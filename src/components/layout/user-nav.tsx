@@ -24,15 +24,22 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-10 w-10 shadow-2xl cursor-pointer">
-            <AvatarImage src={session.user?.image ?? ''} alt={session.user?.name ?? ''} />
-            <AvatarFallback>{session.user?.name?.[0]}</AvatarFallback>
+            <AvatarImage
+              src={session.user?.avatarUrl ?? ''}
+              alt={`${session.user?.firstName} ${session.user?.lastName}`}
+            />
+            <AvatarFallback>
+              {`${session.user?.firstName?.[0] ?? ''}${session.user?.lastName?.[0] ?? ''}`.toUpperCase()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" sideOffset={10} forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{session.user?.name}</p>
+            <p className="text-sm font-medium leading-none">
+              {`${session.user?.firstName} ${session.user?.lastName}`}
+            </p>
             <p className="text-muted-foreground text-xs leading-none">{session.user?.email}</p>
           </div>
         </DropdownMenuLabel>

@@ -1,0 +1,56 @@
+﻿import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { agencyService } from '@/services/agency.service';
+import type { AgencyFilters, CreateAgencyInput, UpdateAgencyInput } from '@/types/agency.types';
+
+export const agencyKeys = {
+  all: ['agencies'] as const,
+  list: (filters?: AgencyFilters) => [...agencyKeys.all, 'list', filters] as const,
+  detail: (id: string) => [...agencyKeys.all, 'detail', id] as const,
+};
+
+export function useAgencies(filters?: AgencyFilters) {
+  return useQuery({
+    queryKey: agencyKeys.list(filters),
+    queryFn: () => agencyService.list(filters),
+  });
+}
+
+export function useAgency(id: string) {
+  return useQuery({
+    queryKey: agencyKeys.detail(id),
+    queryFn: () => agencyService.show(id),
+    enabled: !!id,
+  });
+}
+
+export function useCreateAgency() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: CreateAgencyInput) => agencyService.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}
+
+export function useUpdateAgency(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: UpdateAgencyInput) => agencyService.update(id, input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}
+
+export function useDeleteAgency() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => agencyService.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}
+
+export function useRestoreAgency() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => agencyService.restore(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}

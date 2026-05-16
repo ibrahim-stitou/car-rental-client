@@ -1,5 +1,11 @@
 'use client';
 
+import { useState, useTransition } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -7,129 +13,88 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-import { useState, useTransition } from 'react';
-import { useForm } from 'react-hook-form';
-import { toast } from 'sonner';
-import * as z from 'zod';
+import apiClient from '@/lib/api';
+import { apiRoutes } from '@/config/apiRoutes';
+import { paths } from '@/config/paths';
 
-const formSchema = z.object({
+const schema = z.object({
   email: z.string().email({ message: 'Please enter a valid email address' }),
 });
+type FormValues = z.infer<typeof schema>;
 
-type ForgotPasswordFormValue = z.infer<typeof formSchema>;
+export default function ForgotPasswordView() {
+  const [isPending, startTransition] = useTransition();
+  const [sent, setSent] = useState(false);
 
-export default function ForgotPasswordForm() {
-  const [loading, startTransition] = useTransition();
-  const [emailSent, setEmailSent] = useState(false);
-
-  const form = useForm<ForgotPasswordFormValue>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-    }
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: '' },
   });
 
-  const onSubmit = async (data: ForgotPasswordFormValue) => {
+  const onSubmit = (values: FormValues) => {
     startTransition(async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/forgot-password`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email: data.email }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          toast.error(errorData.error || 'Request failed');
-          return;
-        }
-
-        setEmailSent(true);
-        toast.success('Reset email has been sent');
-      } catch (error) {
-        toast.error('An error occurred while sending the email');
+        await apiClient.post(apiRoutes.auth.forgotPassword, { email: values.email });
+        setSent(true);
+        toast.success('Reset link sent — check your inbox');
+      } catch {
+        toast.error('An error occurred. Please try again.');
       }
     });
   };
 
+  if (sent) {
+    return (
+      <div className="text-center space-y-4">
+        <h3 className="text-lg font-semibold">Check your inbox</h3>
+        <p className="text-sm text-muted-foreground">
+          We sent a password reset link to your email address.
+        </p>
+        <Button variant="outline" asChild>
+          <Link href={paths.auth.signIn}>Back to Sign In</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-4">
-      {emailSent ? (
-        <div className="text-center">
-          <h3 className="text-lg font-medium text-gray-900">Email Sent</h3>
-          <p className="mt-2 text-sm text-gray-600">
-            Please check your inbox and follow the instructions to reset your password.
-          </p>
-          <Button
-            className="mt-4"
-            variant="outline"
-            asChild
-          >
-            <Link href="/auth/signin">Back to Login</Link>
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className="text-center mb-4">
-            <h2 className="text-xl font-semibold">Forgot Password</h2>
-            <p className="text-sm text-gray-600 mt-1">
-              Enter your email address to receive a reset link
-            </p>
+      <div className="text-center">
+        <h2 className="text-xl font-semibold">Forgot Password</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Enter your email to receive a reset link
+        </p>
+      </div>
+
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder="you@example.com" disabled={isPending} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="flex flex-col gap-2">
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? 'Sending…' : 'Send Reset Link'}
+            </Button>
+            <Button variant="outline" type="button" className="w-full" asChild>
+              <Link href={paths.auth.signIn}>Back to Sign In</Link>
+            </Button>
           </div>
-
-          <Form {...form}>
-            <form
-              onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4"
-            >
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="Enter your email..."
-                        disabled={loading}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex flex-col gap-2">
-                <Button
-                  disabled={loading}
-                  className="w-full"
-                  type="submit"
-                >
-                  {loading ? 'Sending...' : 'Send Reset Link'}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  type="button"
-                  asChild
-                >
-                  <Link href="/auth/signin">Back to Login</Link>
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </>
-      )}
+        </form>
+      </Form>
     </div>
   );
 }

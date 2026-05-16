@@ -7,15 +7,110 @@ export const navItems: NavItem[] = [
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
-    items: []
-  }
+    items: [],
+  },
+  {
+    title: 'Agencies',
+    url: '/agencies',
+    icon: 'agencies',
+    isActive: false,
+    shortcut: ['a', 'g'],
+    items: [],
+  },
+  {
+    title: 'Vehicles',
+    url: '/vehicles',
+    icon: 'vehicles',
+    isActive: false,
+    shortcut: ['v', 'v'],
+    items: [],
+  },
+  {
+    title: 'Clients',
+    url: '/clients',
+    icon: 'clients',
+    isActive: false,
+    shortcut: ['c', 'c'],
+    items: [],
+  },
+  {
+    title: 'Reservations',
+    url: '/reservations',
+    icon: 'reservations',
+    isActive: false,
+    shortcut: ['r', 'r'],
+    items: [],
+  },
+  {
+    title: 'Billing',
+    url: '/billing',
+    icon: 'invoicing',
+    isActive: false,
+    shortcut: ['b', 'b'],
+    items: [],
+  },
+  {
+    title: 'Insurances',
+    url: '/insurances',
+    icon: 'insurances',
+    isActive: false,
+    shortcut: ['i', 's'],
+    items: [],
+  },
+  {
+    title: 'Maintenances',
+    url: '/maintenances',
+    icon: 'maintenances',
+    isActive: false,
+    shortcut: ['m', 'm'],
+    items: [],
+  },
+  {
+    title: 'Inspections',
+    url: '/technical-inspections',
+    icon: 'technicalInspections',
+    isActive: false,
+    shortcut: ['t', 'i'],
+    items: [],
+  },
+  {
+    title: 'Vignettes',
+    url: '/vignettes',
+    icon: 'vignettes',
+    isActive: false,
+    shortcut: ['v', 'g'],
+    items: [],
+  },
+  {
+    title: 'Users',
+    url: '/users',
+    icon: 'users',
+    isActive: false,
+    shortcut: ['u', 'u'],
+    items: [],
+  },
+  {
+    title: 'Roles',
+    url: '/roles',
+    icon: 'roles',
+    isActive: false,
+    shortcut: ['r', 'o'],
+    items: [],
+  },
+  {
+    title: 'Notifications',
+    url: '/notifications',
+    icon: 'notifications',
+    isActive: false,
+    shortcut: ['n', 'n'],
+    items: [],
+  },
+  {
+    title: 'Audit Logs',
+    url: '/logs',
+    icon: 'logs',
+    isActive: false,
+    shortcut: ['l', 'g'],
+    items: [],
+  },
 ];
-
-export interface SaleUser {
-  id: number;
-  name: string;
-  email: string;
-  amount: string;
-  image: string;
-  initials: string;
-}

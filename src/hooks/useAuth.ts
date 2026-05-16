@@ -1,27 +1,25 @@
 'use client';
 
-import { useMeStore } from '@/stores/me-store';
 import { useSession } from 'next-auth/react';
-import { useEffect } from 'react';
+import type { UserRole } from '@/types/auth.types';
 
-export const useAuth = () => {
+export function useAuth() {
   const { data: session, status } = useSession();
-  const { user, loading, error, fetchMe, clear } = useMeStore();
 
-  useEffect(() => {
-    if (status === 'authenticated' && !user && !loading) {
-      fetchMe();
-    } else if (status === 'unauthenticated') {
-      clear();
-    }
-  }, [status, user, loading, fetchMe, clear]);
-  const isAdmin = user?.role?.code === 'admin';
+  const hasRole = (role: UserRole) => session?.user?.roles?.includes(role) ?? false;
+  const isSuperAdmin = hasRole('super-admin');
+  const isAdmin = isSuperAdmin || hasRole('admin');
+  const isManager = isAdmin || hasRole('manager');
+
   return {
-    user,
-    loading: status === 'loading' || loading,
-    error,
-    isAuthenticated: status === 'authenticated',
-    isAdmin,
     session,
+    user: session?.user ?? null,
+    status,
+    isAuthenticated: status === 'authenticated',
+    isLoading: status === 'loading',
+    isSuperAdmin,
+    isAdmin,
+    isManager,
+    hasRole,
   };
-};
+}
