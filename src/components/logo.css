@@ -1,0 +1,10 @@
+/* src/components/logo.css */
+.logo {
+  width: 160px !important; /* Ajustez la valeur selon votre besoin */
+  height: 56px !important; /* Ajustez la valeur selon votre besoin */
+  display: block;
+}
+.logo path {
+    /* Inherit the surrounding text color so it shows on light/dark backgrounds */
+    fill: currentColor !important;
+}

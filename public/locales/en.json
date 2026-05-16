@@ -1,0 +1,3513 @@
+{
+  "security": {
+    "account_security": "Account Security",
+    "password_change": "Change Password",
+    "password_change_desc": "Update your login password",
+    "current_password": "Current Password",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "update_password": "Update Password",
+    "updating": "Updating...",
+    "password_changed_success": "Password successfully updated",
+    "error_password_update": "Failed to update password",
+    "error_updating_password": "An error occurred while updating the password"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "missions": "Missions",
+    "timesheets": "Timesheets",
+    "invoices": "Invoices",
+    "users": "Consultants",
+    "clients": "Clients",
+    "settings": "Settings",
+    "profile": "profile",
+    "contracts": "Contracts",
+    "my_dashboard": "Dashboard",
+    "my_timesheets": "My Timesheets",
+    "my_invoices": "My Invoices",
+    "my_companies": "My Companies",
+    "my_missions": "My Missions",
+    "my_contracts": "My Contract",
+    "my_profile": "My Profile",
+    "my_mileage_expenses": "My mileage expenses",
+    "mileage-expenses": "Mileage Expenses",
+    "my_expenses": "My Expenses",
+    "expenses": "Expenses",
+    "overview": "Overview",
+    "settings-daysoff": "DaysOff Settings",
+    "expense-category-settings": "Category Settings",
+    "banks-settings": "Banks Settings",
+    "logout": "Logout",
+    "trackers": "Trackers",
+    "rechargeable_expenses": "Reimbursable expenses",
+    "salaries": "Salaries",
+    "subconstractor_invoices": "Subconstractor Invoices",
+    "my_documents": "My Documents",
+    "import_document": "Import Documents",
+    "export_document": "Export Documents",
+    "generate_flat_fees": "Generate flat-fees",
+    "action_system": "System Actions"
+  },
+  "header": {
+    "language": "Language"
+  },
+  "common": {
+    "optional": "Optional",
+    "months": {
+      "1": "January",
+      "2": "February",
+      "3": "March",
+      "4": "April",
+      "5": "May",
+      "6": "June",
+      "7": "July",
+      "8": "August",
+      "9": "September",
+      "10": "October",
+      "11": "November",
+      "12": "December"
+    },
+    "errorLoading": "Error loading data",
+    "errors": {
+      "fetchFailed": "An error occurred while fetching data"
+    },
+    "currentYear": "Current Year",
+    "dateFormat": "{{day}} {{month}} {{year}}",
+    "dateTimeFormat": "{{day}} {{month}} {{year}} at {{hours}}:{{minutes}}",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "security": "Security",
+    "logout": "Logout",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "download": "Download",
+    "selectDate": "select Date ",
+    "close": "Close",
+    "confirm": "Confirm",
+    "validate": "Validate",
+    "yes": "Yes",
+    "no": "No",
+    "loading": "Loading...",
+    "creating": "Creating...",
+    "error": "Error",
+    "processing": "Processing...",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "noData": "No data available",
+    "noResults": "No results found",
+    "reference": "Reference",
+    "back": "Back",
+    "submitting": "Submitting...",
+    "attention": "Attention",
+    "days": "days",
+    "day": "day",
+    "uploaded": "Uploaded",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "send": "Send",
+    "simple_days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "add": "Add"
+  },
+  "timesheet": {
+    "title": "Timesheet",
+    "details": {
+      "title": "Timesheet Details",
+      "description": "View timesheet information"
+    },
+    "mission_details": "Mission Details",
+    "mission_title": "Mission Title",
+    "work_summary": "Work Summary",
+    "stats": {
+      "worked": "Worked",
+      "absent": "Absent",
+      "vacation": "Vacation",
+      "daysoff": "Days Off",
+      "weekend": "Weekend"
+    },
+    "calendar": {
+      "title": "Timesheet Calendar",
+      "description": "View the work status for each day"
+    },
+    "status": {
+      "worked": "Worked",
+      "absent": "Absent",
+      "vacation": "Vacation",
+      "daysoff": "Days Off",
+      "weekend": "Weekend",
+      "not_specified": "Not Specified",
+      "review": "Under review",
+      "rejected": "Rejected"
+    },
+    "submitted_on": "Submitted on",
+    "rejection_reasons": {
+      "title": "Rejection Reasons",
+      "description": "This timesheet was rejected for the following reasons"
+    },
+    "supporting_documents": {
+      "title": "Supporting Documents",
+      "description": "View or download supporting documents",
+      "no_documents": "No supporting documents attached to this timesheet",
+      "default_title": "Document Preview"
+    },
+    "error": {
+      "load_failed": "Failed to load timesheet data",
+      "no_timesheet_found": "No timesheet found"
+    },
+    "correct": {
+      "button": "Correct Timesheet",
+      "processing": "Processing...",
+      "redirecting": "Redirecting to correction..."
+    }
+  },
+  "consultant": {
+    "invoices": {
+      "title": "My Invoices",
+      "subtitle": "Manage your invoices and track their status",
+      "details": {
+        "title": "Invoice Details",
+        "subtitle": "View detailed information about the invoice",
+        "invoiceDetails": "Invoice Details"
+      },
+      "table": {
+        "id": "ID",
+        "reference": "Reference",
+        "company": "Company",
+        "amount": "Amount",
+        "status": "Status",
+        "invoiceDate": "Invoice Date",
+        "createdAt": "Created At",
+        "actions": "Actions"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "paid": "Paid",
+        "unknown": "Unknown"
+      },
+      "filters": {
+        "reference": "Reference",
+        "company": "Company",
+        "status": "Status"
+      },
+      "actions": {
+        "add": "Add new invoice",
+        "view": "View invoice",
+        "delete": "Delete invoice",
+        "back": "Back"
+      },
+      "fields": {
+        "reference": "Reference",
+        "company": "Company",
+        "amount": "Amount",
+        "date": "Date",
+        "description": "Description"
+      },
+      "rejected": {
+        "title": "Invoice Rejected",
+        "description": "This invoice has been rejected. Please review the reasons below.",
+        "generic": "No specific reason provided"
+      },
+      "delete": {
+        "title": "Delete Invoice",
+        "description": "Are you sure you want to delete this invoice? This action cannot be undone.",
+        "confirm": "Delete"
+      },
+      "toasts": {
+        "deleteSuccess": "Invoice deleted successfully",
+        "deleteFailed": "Failed to delete invoice"
+      },
+      "noData": {
+        "reference": "No reference provided",
+        "company": "No company provided",
+        "date": "No date provided",
+        "description": "No description provided",
+        "invoice": "No invoice data available"
+      },
+      "errors": {
+        "loadFailed": "Failed to load invoice"
+      },
+      "documents": {
+        "title": "Supporting Documents",
+        "subtitle": "View or download invoice documents",
+        "invoiceDocument": "Invoice Document",
+        "supportingDocument": "Supporting Document",
+        "openInNewTab": "Open in new tab",
+        "noDocuments": "No documents attached to this invoice"
+      }
+    },
+    "expenses": {
+      "title": "My Expenses",
+      "description": "Manage and track your business expenses",
+      "addNew": "Add an expense",
+      "table": {
+        "id": "ID",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "amount": "Amount",
+        "status": "Status",
+        "createdAt": "Created At",
+        "actions": "Actions"
+      },
+      "status": {
+        "draft": "Draft",
+        "pending": "Pending Approval",
+        "validated": "Validated",
+        "rejected": "Rejected"
+      },
+      "filters": {
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status"
+      },
+      "actions": {
+        "view": "View",
+        "delete": "Delete",
+        "edit": "Edit"
+      },
+      "delete_success": "Expense deleted successfully",
+      "delete_modal": {
+        "title": "Confirm Deletion",
+        "description": "Are you sure you want to delete this expense? This action cannot be undone.",
+        "deleting": "Deleting..."
+      },
+      "errors": {
+        "delete_failed": "Failed to delete expense",
+        "load_missions_failed": "Failed to load missions",
+        "invalid_mission_data": "Invalid mission data format received",
+        "load_failed": "Failed to load expense details",
+        "update_failed": "Failed to update expense",
+        "add_failed": "Failed to add expense",
+        "update_error": "An error occurred while updating the expense",
+        "add_error": "An error occurred while adding the expense",
+        "delete_error": "An error occurred while deleting the expense",
+        "delete_invalid_id": "Invalid expense ID",
+        "edit_not_allowed": "You cannot edit expenses that are not in draft status",
+        "empty_declaration": "Cannot submit an empty expense declaration",
+        "no_valid_expenses": "No valid expenses found in the declaration",
+        "declare_failed": "Failed to submit expense declaration",
+        "declare_error": "An error occurred while submitting the expense declaration",
+        "correction_failed": "Failed to correct expense declaration",
+        "correction_error": "An error occurred while correcting the expense declaration"
+      },
+      "create": {
+        "title": "New Expense Declaration",
+        "description": "Start by selecting month, year and mission",
+        "month": "Month",
+        "monthSelect": "Select month",
+        "year": "Year",
+        "yearSelect": "Select year",
+        "mission": "Mission",
+        "missionSelect": "Select mission",
+        "no_missions": "No missions available",
+        "continue": "Continue to Add Expenses",
+        "creating": "Creating...",
+        "success": "Expense declaration created successfully.",
+        "error": "Failed to create expense declaration.",
+        "error_generic": "An error occurred while creating the expense declaration.",
+        "mission_required": "Please select a mission",
+        "month_required": "Please select a month",
+        "year_required": "Please select a year"
+      },
+      "declaration_title": "Expense Declaration",
+      "loading": "Loading...",
+      "back_to_list": "Back to Expenses",
+      "submit_all": "Submit All Expenses",
+      "correct_declaration": "Correct Declaration",
+      "add_new": "Add New Expense",
+      "edit_expense": "Edit Expense",
+      "add_description": "Add expense details below. All expenses will be automatically added to your declaration.",
+      "update_description": "Update the expense details below.",
+      "items_count": "Expenses Added",
+      "no_items": "No Expenses Added",
+      "total": "Total",
+      "rejection_history": "Previous Rejection History",
+      "editing_expense": "Editing expense",
+      "no_receipt": "No Receipt",
+      "receipt": "Receipt",
+      "declare_success": "Expense declaration submitted successfully",
+      "correction_success": "Expense declaration returned to draft status",
+      "add_success": "Expense added successfully",
+      "update_success": "Expense updated successfully",
+      "delete_success_": "Expense deleted successfully",
+      "form": {
+        "category": "Category",
+        "select_category": "Select category",
+        "amount": "Amount",
+        "description": "Description",
+        "description_placeholder": "Brief description of the expense",
+        "date": "Date",
+        "select_date": "Select date",
+        "receipt": "Receipt",
+        "receipt_description": "Upload PDF, JPG or PNG (max 5MB)",
+        "cancel_edit": "Cancel Edit",
+        "updating": "Updating...",
+        "adding": "Adding...",
+        "update_expense": "Update Expense",
+        "add_expense": "Add Expense",
+        "errors": {
+          "category_required": "Category is required",
+          "description_required": "Description is required",
+          "amount_required": "Amount is required",
+          "amount_positive": "Amount must be greater than 0",
+          "date_required": "Date is required",
+          "receipt_required": "Receipt is required"
+        }
+      },
+      "card": {
+        "unknown_category": "Unknown Category",
+        "no_receipt": "No receipt",
+        "receipt": "Receipt",
+        "view_receipt": "View receipt",
+        "edit_expense": "Edit expense",
+        "delete_expense": "Delete expense",
+        "receipt_title": "Receipt",
+        "receipt_alt": "Expense receipt",
+        "receipt_pdf": "Expense receipt PDF"
+      },
+      "status_message": {
+        "pending": {
+          "title": "Pending Approval",
+          "description": "Your expense declaration has been submitted and is awaiting approval."
+        },
+        "rejected": {
+          "title": "Declaration Rejected",
+          "description": "Your expense declaration has been rejected. Please review the rejection reason and make corrections."
+        },
+        "validated": {
+          "title": "Declaration Approved",
+          "description": "Your expense declaration has been approved."
+        }
+      },
+      "no_items_message": {
+        "draft": "No expenses added yet. Use the form above to add expenses to your declaration.",
+        "other": "No expenses found in this declaration."
+      },
+      "details": {
+        "title": "Expense Declaration",
+        "submit_all": "Submit All Expenses",
+        "submitting": "Submitting",
+        "back": "Back to Expenses",
+        "correct": "Correct Declaration",
+        "add_expense": "Add New Expense",
+        "edit_expense": "Edit Expense",
+        "expense_details": "Add expense details below. All expenses will be automatically added to your declaration.",
+        "update_details": "Update the expense details below.",
+        "expenses_added": "Expenses Added",
+        "expenses_found": "Expenses",
+        "no_expenses_added": "No expenses added yet",
+        "no_expenses_found": "No expenses found",
+        "total": "Total",
+        "rejection_history": "Previous Rejection History",
+        "no_lines_added": "No expenses added yet. Use the form above to add expenses to your declaration.",
+        "no_lines_found": "No expenses found in this declaration."
+      }
+    },
+    "tracker": {
+      "expenses": {
+        "invoice": "Invoiced Amount",
+        "payment": "Payments Received",
+        "managementFees": "Management Fees",
+        "employeeSocialContribution": "Employee Social Contribution",
+        "employerSocialContribution": "Employer Social Contribution",
+        "netSalary": "Net Salary",
+        "flatRateExpenses": "Flat Rate Expenses",
+        "mileageExpenses": "Mileage Expenses",
+        "otherExpenses": "Other Expenses",
+        "effectiveBalance": "Effective Balance",
+        "subcontractorInvoices": "Subcontractor Invoices",
+        "taxes": "Taxes",
+        "total": "Total",
+        "breakdown": "Tracker",
+        "type": "Expense Type",
+        "insuranceFees": "Insurance and occupational medicine",
+        "thirteenthMonth": "Thirteenth Month",
+        "cheque_repas": "Meal Vouchers"
+      },
+      "title": "Financial Dashboard",
+      "description": "Overview of your financial activity",
+      "years": {
+        "select": "Select Year",
+        "all": "All Years"
+      },
+      "export": "Export to Excel",
+      "exporting": "Exporting...",
+      "metrics": {
+        "totalInvoiced": "Total Invoiced",
+        "totalPayments": "Total Payments",
+        "totalExpenses": "Total Expenses",
+        "effectiveBalance": "Effective Balance"
+      },
+      "rows": {
+        "invoice": "Invoiced Amount",
+        "payment": "Payments Received",
+        "managementFees": "Management Fees",
+        "employeeSocialContribution": "Employee Social Contribution",
+        "employerSocialContribution": "Employer Social Contribution",
+        "netSalary": "Net Salary",
+        "flatRateExpenses": "Flat Rate Expenses",
+        "mileageExpenses": "Mileage Expenses",
+        "otherExpenses": "Other Expenses",
+        "effectiveBalance": "Effective Balance",
+        "subcontractorInvoices": "Subcontractor Invoices",
+        "taxes": "Taxes"
+      },
+      "loading": "Loading your financial data...",
+      "noData": "No financial data available for the selected year"
+    },
+    "timesheets": {
+      "show": {
+        "timesheetDetails": "Timesheet Details",
+        "viewTimesheetInfo": "View timesheet information",
+        "back": "Back",
+        "correctTimesheet": "Correct timesheet",
+        "processing": "Processing...",
+        "goBack": "Go back",
+        "errorLoadingData": "Failed to load data",
+        "redirectingToCorrect": "Redirecting to correction...",
+        "timesheetFor": "Timesheet for",
+        "submittedOn": "Submitted on ",
+        "missionDetails": "Mission details",
+        "title": "Title",
+        "daysWorked": "Days worked",
+        "workingDays": "Working days",
+        "absenceDays": "Absence days",
+        "noData": "N/A",
+        "noTimesheetFound": "No timesheet found",
+        "rejectionReasons": "Rejection reasons",
+        "rejectionDescription": "This timesheet was rejected for the following reasons",
+        "supportingDocuments": "Supporting documents",
+        "supportingDocument": "Supporting document",
+        "viewDocuments": "View or download supporting documents",
+        "noDocuments": "No supporting documents attached to this timesheet",
+        "weekend": "Weekend",
+        "daysoff": "Days off",
+        "worked": "Worked",
+        "absent": "Absent",
+        "vacation": "Vacation",
+        "editTitle": "Edit Timesheet",
+        "editDescription": "Modify the timesheet details below",
+        "noWorkDays": "You must include at least one worked day.",
+        "updateError": "Failed to update the timesheet.",
+        "updateSuccess": "Timesheet updated successfully.",
+        "unmarked": "Unmarked",
+        "notSpecified": "Not specified",
+        "month": "Month",
+        "mission": "Mission",
+        "attention": "Attention",
+        "unmarkedDays": "There are unmarked days in the timesheet",
+        "year": "Year",
+        "uploadDescription": "Upload Description",
+        "status": {
+          "draft": "Draft",
+          "review": "Under review",
+          "rejected": "Rejected",
+          "approved": "Approved"
+        },
+        "calendar": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun",
+          "monday": "Monday",
+          "tuesday": "Tuesday",
+          "wednesday": "Wednesday",
+          "thursday": "Thursday",
+          "friday": "Friday",
+          "saturday": "Saturday",
+          "sunday": "Sunday",
+          "worked": "Worked",
+          "absent": "Absent",
+          "vacation": "Vacation",
+          "weekend": "Weekend",
+          "daysoff": "Days off",
+          "none": "Not specified",
+          "markAllWorkdays": "Please mark all working days before submitting",
+          "unmarked": "unmarked"
+        }
+      },
+      "create": {
+        "title": "Create Timesheet",
+        "description": "Add a new timesheet for your mission hours",
+        "declaration": "Time Declaration",
+        "declaration_description": "Please select the mission, month, year, and upload a supporting document (such as signed timesheet or client approval). Then mark your time for each day of the month.",
+        "mission": "Mission",
+        "mission_required": "Please select a mission",
+        "missionSelect": "Select a mission",
+        "no_missions": "No missions available",
+        "month": "Month",
+        "month_required": "Month is required",
+        "monthSelect": "Select a month",
+        "year": "Year",
+        "year_required": "Year is required",
+        "yearSelect": "Select a year",
+        "supporting_document": "Supporting Document",
+        "document_required": "Supporting document is required",
+        "upload_document": "Upload a supporting document (PDF)",
+        "document_description": "Upload a signed timesheet or other proof of hours worked (max 5MB, PDF only)",
+        "success": "Timesheet created successfully",
+        "error": "Error creating timesheet",
+        "error_general": "Something went wrong while creating the timesheet"
+      },
+      "errors": {
+        "unmarked_days": "Please mark all working days in the calendar",
+        "no_work_days": "You must include at least one worked day",
+        "holidays_load": "Could not load public holidays information",
+        "holidays_load_failed": "Failed to load public holidays",
+        "missions_format": "Invalid missions data format received",
+        "missions_load": "Could not load missions",
+        "missions_load_failed": "Failed to load missions data"
+      },
+      "add": "Declare New Timesheet"
+    },
+    "my_companies": {
+      "delete_company": "Delete company",
+      "company_id": "ID",
+      "edit_company": "Edit Company",
+      "title": "My Companies",
+      "add_new": "Add New Company",
+      "errors": {
+        "load_failed": "Failed to load companies. Please try again later.",
+        "delete_failed": "Failed to delete company"
+      },
+      "delete_success": "Company deleted successfully",
+      "empty_state": {
+        "title": "No companies yet",
+        "description": "Add your first company to manage your business entities",
+        "action": "Add Your First Company"
+      },
+      "delete_modal": {
+        "title": "Are you sure?",
+        "description": "This action cannot be undone. This will permanently delete the company and all associated data.",
+        "deleting": "Deleting..."
+      },
+      "create_company": {
+        "title": "Create New Company",
+        "company_info": "Company Information",
+        "company_name": "Company Name",
+        "company_name_placeholder": "Enter Company Name",
+        "company_id": "Company ID",
+        "company_id_placeholder": "Enter Registration Number / Tax ID",
+        "country": "Country",
+        "select_country": "Select country",
+        "search_country": "Search country...",
+        "no_country_found": "No country found.",
+        "status": "Status",
+        "select_status": "Select status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "banking_info": "Banking Information",
+        "iban": "IBAN",
+        "iban_placeholder": "Enter IBAN Number",
+        "bank_name": "Bank Name",
+        "bank_name_placeholder": "Enter Bank Name",
+        "cancel": "Cancel",
+        "creating": "Creating...",
+        "create": "Create Company",
+        "error": {
+          "load_country_data": "Failed to load country data",
+          "validation_error": "Validation error: Please check the form.",
+          "create_company": "An error occurred while creating the company",
+          "unknown_error": "An unknown error occurred",
+          "company_name_required": "Company name is required",
+          "company_id_required": "Company ID is required",
+          "country_required": "Country is required",
+          "iban_required": "IBAN is required",
+          "bank_name_required": "Bank name is required"
+        },
+        "success": {
+          "company_created": "Company created successfully"
+        }
+      }
+    },
+    "contracts": {
+      "error": {
+        "notFound": "Contract not found",
+        "loadFailed": "Failed to load contract details",
+        "updateError": "Failed to update contract",
+        "validationError": "Validation error: Please check the form.",
+        "unknownError": "An unknown error occurred"
+      },
+      "documents": "Contract Document",
+      "duration": {
+        "ongoing": "Ongoing",
+        "days": "days",
+        "day": "day",
+        "invalidDates": "Invalid dates"
+      },
+      "status": {
+        "inProgress": "In Progress",
+        "terminated": "Terminated",
+        "pending": "Pending",
+        "completed": "Completed"
+      },
+      "date": {
+        "notSpecified": "Not specified"
+      },
+      "type": {
+        "cdi": "Permanent Contract (CDI)",
+        "cdd": "Fixed-term Contract (CDD)",
+        "freelance": "Freelance",
+        "portage": "Portage Salarial",
+        "stage": "Internship"
+      },
+      "notFound": {
+        "title": "Contract Not Found",
+        "description": "The contract you are looking for could not be found. It may have been deleted or you may not have permission to view it."
+      },
+      "noData": {
+        "title": "No Contract Data",
+        "description": "There is no data available for this contract."
+      },
+      "back": "Back",
+      "contractLabel": "Contract",
+      "createdOn": "Created on",
+      "information": "Contract Information",
+      "details": "Contract Details",
+      "contractType": "Contract Type",
+      "contractStatus": "Status",
+      "timeline": "Timeline",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "notSpecified": "Not specified",
+      "duration_": "Duration",
+      "financialDetails": "Financial Details",
+      "flatFeesAmount": "Flat Fees Amount",
+      "managementFees": "Management Fees",
+      "terminationDetails": "Termination Details",
+      "terminationDate": "Termination Date",
+      "terminationReason": "Termination Reason",
+      "noReasonSpecified": "No reason specified",
+      "notes": "Notes",
+      "noNotes": "No notes available for this contract.",
+      "form": {
+        "referencePlaceholder": "Enter contract reference (e.g., CS_0001)",
+        "feesAmountPlaceholder": "Enter fees amount",
+        "managementFeesPlaceholder": "Enter management fees percentage",
+        "searchConsultant": "Search consultant...",
+        "noConsultantFound": "No consultant found.",
+        "terminationDetailsTitle": "Termination Details",
+        "contractInfoTitle": "Contract Information",
+        "financialDetailsTitle": "Financial Details",
+        "additionalInfoTitle": "Additional Information"
+      },
+      "edit": {
+        "notFound": "Contract not found",
+        "loadError": "Failed to load contract data",
+        "dataLoadError": "Failed to load data",
+        "validationError": "Validation error: Please check the form.",
+        "unknownError": "An unknown error occurred",
+        "submit": "Update Contract"
+      }
+    },
+    "missions": {
+      "documents": "Mission Document",
+      "perDay": "per day",
+      "perHour": "per hour",
+      "fixed": "fixed",
+      "daysRemaining": "days remaining",
+      "completed": "Completed",
+      "noMissionsFound": "No missions found",
+      "error": {
+        "loadFailed": "Failed to load mission details"
+      },
+      "duration": {
+        "notSpecified": "Not specified",
+        "days": "days",
+        "day": "day",
+        "invalidDates": "Invalid dates"
+      },
+      "status": {
+        "label": "Status",
+        "pending": "Pending",
+        "inProgress": "In Progress",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "active": "Active",
+        "inactive": "Inactive",
+        "canceled": "Canceled"
+      },
+      "date": {
+        "notSpecified": "Not specified"
+      },
+      "notFound": {
+        "title": "Mission Not Found",
+        "description": "The mission you are looking for doesn't exist or you don't have permission to view it."
+      },
+      "back": "Back",
+      "createdOn": "Created on",
+      "client": "Client",
+      "consultant": "Consultant",
+      "information": "Mission Information",
+      "timeline": "Timeline",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "duration_": "Duration",
+      "financialDetails": "Financial Details",
+      "dailyRate": "Daily Rate",
+      "rateType": "Rate Type",
+      "location": "Location",
+      "workLocation": "Work Location",
+      "noLocationSpecified": "No location specified",
+      "description": "Description",
+      "noDescription": "No description available for this mission.",
+      "notSpecified": "Not specified",
+      "title": "Your Missions",
+      "subtitle": "Stay updated on your missions and track their progress. Manage your client engagements efficiently.",
+      "activeMissions": "Active Missions",
+      "inactiveMissions": "Inactive Missions",
+      "noMissions": "No missions found",
+      "viewDetails": "View Details",
+      "timeLeft": "Time Left",
+      "tjm": "Daily Rate",
+      "tjmType": "Rate Type",
+      "clientDetails": "Client",
+      "consultantDetails": "Consultant",
+      "missionDetails": "Mission Details",
+      "show": {
+        "back": "Back to Missions",
+        "edit": "Edit Mission",
+        "delete": "Delete Mission",
+        "missionDetails": "Mission Details",
+        "clientDetails": "Client",
+        "consultantDetails": "Consultant",
+        "financialDetails": "Financial Details",
+        "tjm": "Daily Rate (TJM)",
+        "tjmType": "Rate Type",
+        "timeline": "Timeline",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "duration": "Duration",
+        "timeLeft": "Time Left",
+        "workLocation": "Location",
+        "noLocationSpecified": "No location specified",
+        "description_": "Description",
+        "noDescription": "No description available for this mission."
+      },
+      "form": {
+        "title": "Mission Title",
+        "client": "Client",
+        "consultant": "Consultant",
+        "selectClient": "Select a client",
+        "selectConsultant": "Select a consultant",
+        "status": "Status",
+        "tjm": "Daily Rate",
+        "tjmType": "Rate Type",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "country": "Country",
+        "selectCountry": "Select a country",
+        "address": "Address",
+        "description": "Description",
+        "consultant_reference": "Consultant reference",
+        "descriptionPlaceholder": "Enter mission description and responsibilities...",
+        "required": "This field is required",
+        "invalidTjm": "Please enter a valid amount",
+        "max255": "Maximum 255 characters",
+        "selectStatus": "Select status",
+        "dailyRate": "Daily",
+        "hourlyRate": "Hourly"
+      }
+    },
+    "mileageExpenses": {
+      "card": {
+        "from": "From",
+        "to": "To",
+        "edit": "Edit",
+        "delete": "Delete",
+        "confirmDelete": "Are you sure?"
+      },
+      "summary": {
+        "totalExpenses": "Total Expenses",
+        "totalDistance": "Total Distance",
+        "totalAmount": "Total Amount"
+      },
+      "empty": {
+        "title": "No Mileage Expenses",
+        "description": "You haven't added any mileage expenses yet.",
+        "action": "Add Your First Mileage Expense"
+      },
+      "confirmation": {
+        "submit": "Submit Confirmation",
+        "submitDescription": "Are you sure you want to submit all mileage expenses? Once submitted, you can't edit them until approved or rejected.",
+        "submitButton": "Yes, Submit All"
+      },
+      "notifications": {
+        "submitSuccess": "Mileage expenses submitted successfully",
+        "submitError": "Failed to submit mileage expenses",
+        "signSuccess": "Document signed successfully",
+        "signError": "Failed to sign document",
+        "correctionRequested": "Correction requested successfully"
+      },
+      "pagination": {
+        "previous": "Previous",
+        "next": "Next",
+        "page": "Page",
+        "of": "of"
+      },
+      "form": {
+        "fromAddress": "From Address",
+        "fromAddressPlaceholder": "Enter starting point address",
+        "toAddress": "To Address",
+        "toAddressPlaceholder": "Enter destination address",
+        "distance": "Distance",
+        "duration": "Duration",
+        "date": "Date",
+        "selectDate": "Select date",
+        "description": "Description",
+        "descriptionPlaceholder": "Brief description of the trip (optional)",
+        "calculating": "Calculating route...",
+        "calculationError": "Error calculating route",
+        "cancel": "Cancel",
+        "submitting": "Submitting...",
+        "updateExpense": "Update Expense",
+        "addExpense": "Add Expense",
+        "errors": {
+          "fromRequired": "From address is required",
+          "toRequired": "To address is required",
+          "distanceMinimum": "Distance must be at least 0.1 km",
+          "priceError": "Price calculation error",
+          "dateRequired": "Date is required",
+          "missingApiKey": "Google Maps API key is missing",
+          "failedToLoadApi": "Failed to load Google Maps API",
+          "unableToCalculate": "Unable to calculate distance",
+          "initAutocomplete": "Failed to initialize address autocomplete",
+          "googleMapsError": "Google Maps Error",
+          "checkApiKey": "Please check your Google Maps API key configuration"
+        }
+      },
+      "details": {
+        "origin": "Origin",
+        "destination": "Destination",
+        "distanceKm": "Distance (km)",
+        "calculatedAmount": "Calculated Amount",
+        "mileageRate": "Mileage Rate"
+      },
+      "declare": {
+        "title": "Declare Expense",
+        "submitting": "Submitting...",
+        "success": "Mileage expense declared successfully",
+        "error": "Failed to declare mileage expense"
+      },
+      "correct": {
+        "title": "Correct Expense",
+        "submitting": "Processing...",
+        "success": "Mileage expense returned to draft successfully",
+        "error": "Failed to correct mileage expense"
+      },
+      "list": {
+        "title": "Mileage Expenses",
+        "subtitle": "Manage and track your mileage expenses",
+        "add": "Add Mileage Expense"
+      },
+      "show": {
+        "mileageExpenseDetails": "Mileage Expense Details",
+        "viewMileageExpenseInfo": "View mileage expense information",
+        "back": "Back",
+        "errorLoadingData": "Failed to load data",
+        "goBack": "Go back",
+        "loading": "Loading...",
+        "mileageExpense": "Mileage Expense",
+        "submittedOn": "Submitted on",
+        "mission": "Mission",
+        "totalKm": "Total Kilometers",
+        "amountTTC": "Amount TTC",
+        "supportingDocuments": "Supporting Documents",
+        "supportingDocument": "Supporting Document",
+        "noMileageExpenseFound": "No mileage expense found",
+        "editExpense": "Edit Mileage Expense",
+        "addNewExpense": "Add New Mileage Expense",
+        "editExpenseDescription": "Update the mileage expense details below.",
+        "addExpenseDescription": "Add mileage expense details below. All expenses will be automatically added to your declaration.",
+        "dateOutsideMonth": "Date must be within the selected month and year",
+        "editingExpense": "You're now editing a mileage expense",
+        "noExpensesYet": "No mileage expenses added yet. Use the form above to add mileage expenses to your declaration.",
+        "rejectionReasons": "Rejection Reasons",
+        "submitAll": "Submit All Mileage Expenses",
+        "signDocument": "Sign Document",
+        "correctDeclaration": "Correct Declaration",
+        "documentPreview": "Document Preview",
+        "addedExpenses": "Added"
+      },
+      "table": {
+        "id": "ID",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "totalKm": "Total KM",
+        "amount": "Amount",
+        "status": "Status",
+        "createdAt": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "month": "Month",
+        "year": "Year",
+        "status": "Status",
+        "mission": "Mission"
+      },
+      "status": {
+        "draft": "Draft",
+        "toSign": "To Sign",
+        "review": "Under Review",
+        "validated": "Validated",
+        "rejected": "Rejected"
+      },
+      "actions": {
+        "view": "View",
+        "delete": "Delete",
+        "duplicateReturn": "Duplicate return trip",
+        "return": "Duplicate return trip"
+
+      },
+      "delete_modal": {
+        "title": "Confirm Deletion",
+        "description": "Are you sure you want to delete this mileage expense? This action cannot be undone."
+      },
+      "delete_success": "Mileage expense deleted successfully",
+      "duplicateReturn": {
+        "success": "Return trip created successfully"
+      },
+      "errors": {
+        "delete_failed": "Failed to delete mileage expense",
+        "duplicate_failed": "Failed to duplicate mileage expense",
+        "invalid_mission_data": "Invalid mission data format received",
+        "load_missions_failed": "Failed to load missions"
+      },
+      "create": {
+        "title": "New Mileage Expense Declaration",
+        "description": "Start by selecting month, year, and mission",
+        "month": "Month",
+        "monthSelect": "Select month",
+        "year": "Year",
+        "yearSelect": "Select year",
+        "mission": "Mission",
+        "missionSelect": "Select mission",
+        "no_missions": "No missions available",
+        "continue": "Continue to Add Mileage Expenses",
+        "creating": "Creating...",
+        "success": "Mileage expense created successfully.",
+        "error": "Failed to create mileage expense.",
+        "error_generic": "An error occurred while creating the mileage expense."
+      },
+      "validation": {
+        "mission_required": "Please select a mission",
+        "month_required": "Please select a month",
+        "year_required": "Please select a year"
+      },
+      "statusMessages": {
+        "draft": "Your mileage expense is in draft mode. Add your expenses and submit when ready.",
+        "to_sign": "Your mileage expense declaration has been submitted and is waiting to be signed.",
+        "rejected": "Your mileage expense declaration has been rejected. Please review the rejection reasons below.",
+        "validated": "Your mileage expense declaration has been approved.",
+        "review": "Your mileage expense declaration is under review.",
+        "pending": "Your mileage expense declaration is under review."
+      }
+    },
+    "rechargeable_expense": {
+      "title": "Reimbursable  Expense",
+      "subtitle": "Expenses for ",
+      "status": {
+        "draft": "Draft",
+        "review": "Under Review",
+        "validated": "Validated",
+        "rejected": "Rejected",
+        "corrected": "Corrected",
+        "paid": "Paid"
+      },
+      "labels": {
+        "mission": "Mission",
+        "consultant_id": "Consultant ID",
+        "period": "Period",
+        "created": "Created",
+        "date": "Date",
+        "nature": "Nature",
+        "comment": "Comment",
+        "amount": "Amount",
+        "total_amount": "Total Amount",
+        "expense_lines": "Expense Lines",
+        "expense_lines_count": "Expense Lines ",
+        "no_expense_lines": "No Expense Lines",
+        "rejection_history": "Rejection History"
+      },
+      "form": {
+        "title_add": "Add New Expense Line",
+        "title_edit": "Edit Expense Line",
+        "date_label": "Date",
+        "date_placeholder": "Select date",
+        "amount_label": "Amount (€)",
+        "amount_placeholder": "0.00",
+        "nature_label": "Nature",
+        "nature_placeholder": "Expense type",
+        "comment_label": "Comment",
+        "comment_placeholder": "Details",
+        "button_cancel": "Cancel",
+        "button_add": "Add",
+        "button_update": "Update",
+        "button_saving": "Saving..."
+      },
+      "buttons": {
+        "back": "Back to Expenses",
+        "declare": "Declare Expense",
+        "correct": "Correct Expense"
+      },
+      "create": "Add a Reimbursable  expense",
+      "messages": {
+        "rejected": "This expense has been rejected. Please make corrections and resubmit.",
+        "no_lines_added": "No expense lines added yet. Add your first expense line to continue.",
+        "no_lines_found": "No expense lines found for this period."
+      },
+      "success": {
+        "declare": "Expense declared successfully!",
+        "correct": "Expense corrected successfully!",
+        "add_line": "Expense line added successfully!",
+        "update_line": "Expense line updated successfully!",
+        "delete_line": "Expense line deleted successfully!"
+      },
+      "errors": {
+        "load_details": "Failed to load expense details",
+        "not_found": "Expense not found",
+        "declare": "Failed to declare expense",
+        "correct": "Failed to correct expense",
+        "add_line": "Failed to add expense line",
+        "update_line": "Failed to update expense line",
+        "delete_line": "Failed to delete expense line"
+      }
+    },
+    "profile": {
+      "error": {
+        "loading": "Could not load user information. Please try again later.",
+        "not_specified": "Not specified",
+        "invalide_date": "Invalid date",
+        "unkown": "unkown",
+        "preview_not_available": "Preview not available"
+      },
+      "personal_info": "Personal Information",
+      "full_name": "Full Name",
+      "email": "Email",
+      "phone_number": "Phone Number",
+      "gender": "Gender",
+      "birth_date": "Date of Birth",
+      "role": "Role",
+      "adess_details": "Address Details",
+      "street_adress": "Street Address",
+      "city": "City",
+      "code_postal": "Postal Code",
+      "country": "Country",
+      "social_security_number": "  Social Security Number",
+      "siret": "SIRET Number",
+      "emergency_contact": "Emergency Contact",
+      "contact_name": "Contact Name",
+      "contact_phone": " Contact Phone",
+      "relationship": "Relationship",
+      "additionnal_info": "Additional Info",
+      "account_info": "Account Information",
+      "account_created": "Account Created",
+      "last_updated": "Last Updated,",
+      "documents": "Documents",
+      "id_documents": "ID Documents",
+      "social_security": "Social Security",
+      "cv_resume": "CV/Resume",
+      "iban_documents": "IBAN Documents"
+    },
+    "rechargeable_expenses": {
+      "title": "Reimbursable expenses",
+      "description": "Manage Reimbursable expenses for consultants",
+      "addNew": "Add New Reimbursable  Expense",
+      "view": "View Expense",
+      "delete": "Delete Expense",
+      "table": {
+        "id": "ID",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "amount": "Amount",
+        "status": "Status",
+        "created_at": "Created At",
+        "updated_at": "Updated At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "consultant": "Consultant",
+        "status": "Status",
+        "year": "Year",
+        "statusPlaceholder": "Select Status",
+        "mission": "Mission"
+      },
+      "status": {
+        "draft": "Draft",
+        "review": "Under Review",
+        "validated": "Approved",
+        "rejected": "Declined",
+        "corrected": "Corrected"
+      },
+      "deleteModal": {
+        "title": "Delete Reimbursable  Expense",
+        "description": "Are you sure you want to delete this Reimbursable  expense? This action cannot be undone."
+      },
+      "create": {
+        "title": "Create Reimbursable  Expense",
+        "description": "Create a new Reimbursable  expense",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "selectConsultant": "Select consultant",
+        "selectMission": "Select mission",
+        "selectMonth": "Select month",
+        "selectYear": "Select year"
+      },
+      "detail": {
+        "title": "Reimbursable  Expense Details",
+        "description": "View Reimbursable  expense details",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "totalAmount": "Total Amount",
+        "status": "Status",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "lines": "Expense Lines",
+        "actions": "Actions",
+        "approveExpense": "Approve Expense",
+        "rejectExpense": "Reject Expense",
+        "confirmApprove": "Are you sure you want to approve this expense?",
+        "confirmReject": "Are you sure you want to reject this expense?",
+        "rejectReason": "Rejection Reason",
+        "enterRejectionReason": "Please enter a reason for rejection"
+      },
+      "messages": {
+        "rejected": "This expense has been rejected. Please make corrections and resubmit.",
+        "no_lines_added": "No expense lines added yet. Add your first expense line to continue.",
+        "no_lines_found": "No expense lines found for this period."
+      }
+    },
+    "documents": {
+      "title": "My Documents",
+      "description": "Manage your documents",
+      "download": "Download Document",
+      "table": {
+        "name": "Name",
+        "document_type": "Document Type",
+        "created_at": "Created At",
+        "month": "Month",
+        "year": "Year",
+        "actions": "Actions",
+        "size": "Size"
+      },
+      "filters": {
+        "document_type": "Choose a document type",
+        "month": "Search by month",
+        "year": "Search by year",
+        "name": "Search by name"
+      }
+    }
+  },
+  "admin": {
+    "dashboard": {
+      "welcome": "Welcome to your dashboard",
+      "timesheets_to_validate": "Timesheets to validate",
+      "expenses_to_validate": "Expenses to validate",
+      "mileage_expenses_to_validate": "Mileage expenses to validate",
+      "rechargeable_expenses_to_validate": "Reimbursable  expenses to validate",
+      "active_consultants": "Active consultants",
+      "unpaid_invoices": "Unpaid invoices",
+      "quickActionsTitle": "Quick Actions",
+      "quickActions": {
+        "newConsultant": "Add New Consultant",
+        "newConsultantDesc": "Add a new consultant to the platform",
+        "newInvoice": "Create Invoice",
+        "newInvoiceDesc": "Generate a new invoice for a client",
+        "newContract": "New Contract",
+        "newContractDesc": "Create a new contract for a consultant",
+        "newMission": "New Mission",
+        "newMissionDesc": "Create a new mission or assignment",
+        "categories": {
+          "people": "People",
+          "finance": "Finance",
+          "legal": "Legal",
+          "projects": "Projects"
+        }
+      },
+      "exportTrackers": {
+        "buttonLabel": "Export Trackers",
+        "title": "Export Trackers",
+        "description": "Export tracker data to an Excel file. Both fields are optional.",
+        "yearLabel": "Year",
+        "yearPlaceholder": "Select a year",
+        "consultantLabel": "Consultant",
+        "consultantPlaceholder": "All consultants",
+        "exportButton": "Export to Excel",
+        "exporting": "Exporting...",
+        "successMessage": "Trackers exported successfully",
+        "errorMessage": "Failed to export trackers"
+      }
+    },
+    "subcontractor": {
+      "actions": {
+        "create": "Create"
+      },
+      "fields": {
+        "reference": "Reference",
+        "company": "Company",
+        "amount": "Amount",
+        "consultant": "Consultant",
+        "invoiceDate": "Invoice Date",
+        "document": "Invoice Document",
+        "description": "Description",
+        "documentHelp": "Upload a PDF file of the invoice (max 5MB)",
+        "date": "Date"
+      },
+      "title": "Subcontractor Invoices",
+      "subtitle": "View and manage subcontractor invoices",
+      "new": {
+        "title": "Create New Invoice",
+        "description": "Add a new subcontractor invoice to the system"
+      },
+      "details": {
+        "title": "Invoice Details",
+        "description": "Fill in the invoice information"
+      },
+      "placeholders": {
+        "reference": "Enter invoice reference",
+        "company": "Enter company name",
+        "amount": "Enter amount",
+        "consultant": "Select consultant",
+        "selectDate": "Select date",
+        "description": "Enter invoice description or notes",
+        "documentDescription": "Drag & drop or click to upload invoice PDF"
+      },
+      "toasts": {
+        "createdSuccess": "Invoice created successfully"
+      },
+      "status": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "paid": "Paid",
+        "validated": "Validated"
+      },
+      "errors": {
+        "loadFailed": "Failed to load invoice data",
+        "general": "An error occurred",
+        "deleteFailed": "Failed to delete invoice",
+        "validateFailed": "Failed to validate invoice"
+      },
+      "deleteModal": {
+        "title": "Delete Invoice",
+        "description": "Are you sure you want to delete this invoice? This action cannot be undone.",
+        "delete": "Delete Invoice",
+        "deleting": "Deleting..."
+      },
+      "invoices": {
+        "messages": {
+          "deleteSuccess": "Invoice deleted successfully",
+          "validateSuccess": "Invoice validated successfully",
+          "noInvoiceFound": "No invoice found",
+          "noDescription": "No description provided"
+        },
+        "title": "Subcontractor Invoices",
+        "subtitle": "View and manage subcontractor invoices",
+        "table": {
+          "id": "ID",
+          "reference": "Reference",
+          "consultant": "Consultant",
+          "company": "Company",
+          "amount": "Amount",
+          "status": "Status",
+          "invoiceDate": "Invoice Date",
+          "createdAt": "Created At",
+          "actions": "Actions"
+        },
+        "deleteModal": {
+          "title": "Delete Invoice",
+          "description": "Are you sure you want to delete this invoice? This action cannot be undone.",
+          "delete": "Delete",
+          "deleting": "Deleting..."
+        },
+        "fields": {
+          "reference": "Reference",
+          "company": "Company",
+          "amount": "Amount",
+          "consultant": "Consultant",
+          "invoiceDate": "Invoice Date",
+          "document": "Invoice Document",
+          "description": "Description",
+          "documentHelp": "Upload a PDF file of the invoice (max 5MB)",
+          "date": "Date"
+        },
+        "detail": {
+          "title": "Subcontractor Invoice Management",
+          "description": "View and manage subcontractor invoice details",
+          "invoiceNumber": "Invoice",
+          "issuedOn": "Issued on"
+        },
+        "filters": {
+          "reference": "Reference",
+          "consultant": "Consultant",
+          "company": "Company",
+          "status": "Status"
+        },
+        "documents": {
+          "title": "Supporting Documents",
+          "description": "Review submitted invoice documents",
+          "openInNewTab": "Open in new tab",
+          "noDocuments": "No supporting documents attached to this invoice"
+        },
+        "actions": {
+          "add": "Add  Subcontractor Invoice",
+          "create": "Create Invoice",
+          "view": "View Details"
+        },
+        "status": {
+          "pending": "Pending",
+          "approved": "Approved",
+          "rejected": "Rejected",
+          "paid": "Paid",
+          "validated": "Validated"
+        }
+      }
+    },
+    "invoices": {
+      "messages": {
+        "dateRequired": "Date is required",
+        "dueDateRequired": "Due date is required"
+      },
+      "devalidateInvoice": "Devalidate Invoice",
+      "changeReference": "Change Reference",
+      "devalidateConfirmation": "Are you sure you want to devalidate this invoice? This action will revert the invoice back to draft status.",
+      "changeReferenceDescription": "Enter a new reference for this invoice",
+      "editDates": "Edit Dates",
+      "dateUpdateSuccess":" Dates updated successfully",
+      "referenceUpdateSuccess": "Reference updated successfully",
+      "referenceUpdateError": "Failed to update reference",
+      "dateUpdateError": "Failed to update dates",
+      "devalidateSuccess": "Invoice devalidated successfully",
+      "devalidateError": "Failed to devalidate invoice",
+      "headingTitle": "Invoices",
+      "headingDescription": "Manage all client invoices",
+      "addInvoice": "Add Invoice",
+      "title": "Invoices",
+      "description": "Manage and view client invoices",
+      "view": "View Details",
+      "delete": "Delete",
+      "download": "Download",
+      "send": "Send",
+      "deleteSuccess": "Invoice deleted successfully",
+      "sendSuccess": "Invoice sent successfully",
+      "noFileToDownload": "No file available for download",
+      "validateSuccess": "Invoice validated successfully",
+      "validateError": "Failed to validate invoice",
+      "sendError": "Failed to send invoice",
+      "payment": {
+        "noBanksAvailable": "No banks available. Please add a bank from settings.",
+        "title": "Add Payment",
+        "mode": "Mode",
+        "selectMode": "Select payment mode",
+        "date": "Date",
+        "selectDate": "Select date",
+        "bank": "Bank",
+        "bankPlaceholder": "Enter bank name",
+        "amountHT": "Amount HT",
+        "amountTTC": "Amount TTC",
+        "submit": "Add Payment",
+        "processing": "Processing...",
+        "addSuccess": "Payment added successfully",
+        "addError": "Failed to add payment",
+        "errorGeneric": "An error occurred while adding the payment",
+        "modes": {
+          "cash": "Cash",
+          "check": "Check",
+          "bankTransfer": "Bank Transfer",
+          "creditCard": "Credit Card"
+        },
+        "details": {
+          "title": "Payment Details",
+          "for": "Payment for Invoice:",
+          "receipt": "Payment Receipt",
+          "noPayments": "No payment records found for this invoice.",
+          "paymentMethod": "Payment Method",
+          "paymentDate": "Payment Date",
+          "paymentBank": "Bank",
+          "amountHT": "Amount HT",
+          "amountTTC": "Amount TTC",
+          "close": "Close",
+          "invoice": "invoice",
+          "viewInvoice": "View Invoice",
+          "payment": "payment",
+          "completed": "Completed",
+          "bank": "Bank",
+          "additionalPayment": "Additional Payment"
+        }
+      },
+      "detail": {
+        "title": "Invoice Details",
+        "noDescription": "No description provided",
+        "backToInvoices": "Back to Invoices",
+        "validateInvoice": "Validate Invoice",
+        "sendToClient": "Send to Client",
+        "pay": "Pay",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "timesSent": "Times Sent",
+        "invoiceLinesCount": "Invoice Lines ",
+        "noInvoiceLinesAddedYet": "No invoice lines added yet",
+        "noInvoiceLinesFound": "No invoice lines found",
+        "noLinesAddedYetUseForm": "No invoice lines added yet. Use the form above to add lines to your invoice.",
+        "errorLoading": "Failed to load invoice details",
+        "notFound": "Invoice not found"
+      },
+      "lines": {
+        "addSuccess": "Invoice line added successfully",
+        "updateSuccess": "Invoice line updated successfully",
+        "deleteSuccess": "Invoice line deleted successfully",
+        "saveError": "Failed to save invoice line",
+        "errorOccurred": "An error occurred",
+        "updateError": "Failed to update invoice line",
+        "addError": "Failed to add invoice line",
+        "invalidIdError": "Cannot delete this invoice line: Invalid ID",
+        "deleteError": "Failed to delete invoice line",
+        "cantEditStatus": "You can't edit invoice lines in the current status",
+        "designation": "Designation",
+        "quantity": "Qty",
+        "unitPrice": "Unit Price",
+        "taxRate": "Tax Rate",
+        "totalHT": "Total HT",
+        "totalTTC": "Total TTC",
+        "actions": "Actions"
+      },
+      "status": {
+        "validated": "Validated",
+        "draft": "Draft",
+        "paid": "Paid"
+      },
+      "paymentStatus": {
+        "paid": "Paid",
+        "unpaid": "Unpaid"
+      },
+      "table": {
+        "id": "ID",
+        "reference": "Reference",
+        "client": "Client",
+        "object": "Object",
+        "date": "Date",
+        "dueDate": "Due Date",
+        "totalHt": "Total HT",
+        "totalTtc": "Total TTC",
+        "status": "Status",
+        "paymentStatus": "Payment Status",
+        "sentCount": "Sent Count",
+        "createdAt": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "reference": "Reference",
+        "client": "Client",
+        "status": "Status",
+        "paymentStatus": "Payment Status"
+      },
+      "create": {
+        "title": "Create New Invoice",
+        "description": "Fill in the details to create a new invoice",
+        "success": "Invoice created successfully",
+        "error": "Failed to create invoice",
+        "errorGeneric": "An error occurred while creating the invoice",
+        "creating": "Creating...",
+        "submit": "Create Invoice"
+      },
+      "form": {
+        "object": "Object",
+        "objectPlaceholder": "Prestations de développement",
+        "mission": "Mission",
+        "selectMission": "Select mission",
+        "searchMission": "Search mission...",
+        "noMissionFound": "No mission found.",
+        "client": "Client",
+        "clientId": "Client ID",
+        "clientAutoFill": "Will be auto-filled",
+        "consultant": "Consultant",
+        "justificatifDescription": "Upload supporting documents for the invoice (optional)",
+        "consultantId": "Consultant ID",
+        "justificatifLabel": "Invoice attached documents",
+        "viewJustificatif": "View attached documents",
+        "consultantAutoFill": "Will be auto-filled",
+        "date": "Invoice Date",
+        "dueDate": "Due Date",
+        "pickDate": "Pick a date"
+      },
+      "deleteModal": {
+        "title": "Delete Invoice",
+        "description": "Are you sure you want to delete this invoice? This action cannot be undone."
+      },
+      "sendModal": {
+        "title": "Confirm Sending",
+        "description": "Are you sure you want to send this invoice?"
+      },
+      "errorLoadingMissions": "Failed to load missions",
+      "errorLoadingClientConsultant": "Failed to load client and consultant data",
+      "loadingMissions": "Loading missions..."
+    },
+    "mileageExpenses": {
+      "title": "Mileage Expenses",
+      "description": "Manage all mileage expense reports",
+      "addNew": "Add New Mileage Expense",
+      "view_details": "View Details",
+      "delete": "Delete Mileage Expense",
+      "deleteSuccess": "Mileage expense deleted successfully",
+      "deleteModal": {
+        "title": "Delete Mileage Expense",
+        "description": "Are you sure you want to delete this mileage expense? This action cannot be undone."
+      },
+      "table": {
+        "id": "ID",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "totalKm": "Total KM",
+        "amount": "Amount",
+        "status": "Status",
+        "created_at": "Created At",
+        "actions": "Actions",
+        "createdAt": "Created At"
+      },
+      "filters": {
+        "mission": "Mission",
+        "consultant": "Consultant",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status"
+      },
+      "view": "View",
+      "status": {
+        "draft": "Draft",
+        "toSign": "To Sign",
+        "validated": "Validated",
+        "rejected": "Rejected",
+        "pending": "Pending"
+      },
+      "details": {
+        "origin": "Origin",
+        "destination": "Destination",
+        "distanceKm": "Distance",
+        "calculatedAmount": "Amount"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "duplicateReturn": "Duplicate return trip",
+        "return": "Return"
+      },
+      "show": {
+        "title": "Mileage Expense Details",
+        "description": "View mileage expense information",
+        "back": "Back to Mileage Expenses List",
+        "validateSuccess": "Mileage expense declaration validated successfully",
+        "validateError": "Failed to validate mileage expense declaration",
+        "validateErrorGeneric": "An error occurred when validating the mileage expense declaration",
+        "rejectSuccess": "Mileage expense declaration rejected successfully",
+        "rejectError": "Failed to reject mileage expense declaration",
+        "rejectErrorGeneric": "An error occurred when rejecting the mileage expense declaration",
+        "loading": "Loading mileage expense details...",
+        "failedToLoad": "Failed to load mileage expense details",
+        "validate": "Validate Declaration",
+        "reject": "Reject Declaration",
+        "processing": "Processing...",
+        "reviewDescription": "Review the mileage expense submitted by",
+        "period": "Period",
+        "totalAmount": "Total Amount",
+        "totalDistance": "Total Distance",
+        "expensesCount": "Mileage Expenses:",
+        "noExpenses": "No mileage expenses found",
+        "noExpensesFound": "No mileage expenses found in this declaration.",
+        "rejectDialogTitle": "Reject Mileage Expense Declaration",
+        "rejectDialogDescription": "Please provide a reason for rejecting this mileage expense declaration. The consultant will be notified and can make corrections.",
+        "rejectionReason": "Rejection Reason",
+        "rejectionReasonPlaceholder": "Enter the reason for rejection...",
+        "confirmRejection": "Reject Declaration",
+        "reasonRequired": "Please provide a reason for rejection",
+        "consultantDetails": "Consultant Information",
+        "expenseDetails": "Expense Details",
+        "dateSubmitted": "Date Submitted",
+        "viewSignedDocument": "View Signed Document",
+        "documentPreview": "Document Preview",
+        "noSignedDocument": "Signed document not available",
+        "rejectionHistory": "Rejection History",
+        "rejectionHistoryDescription": "Past rejections for this mileage expense declaration.",
+        "noRejectionHistory": "No rejection history found."
+      },
+      "statusMessages": {
+        "draft": {
+          "title": "Draft Declaration",
+          "description": "This declaration is still in draft mode and has not been submitted."
+        },
+        "toSign": {
+          "title": "Waiting for Signature",
+          "description": "This declaration has been submitted and is waiting for the consultant's signature."
+        },
+        "pending": {
+          "title": "Pending Your Review",
+          "description": "This mileage expense declaration is waiting for your review and approval."
+        },
+        "rejected": {
+          "title": "Declaration Rejected",
+          "description": "This declaration has been rejected. The consultant can make corrections and resubmit."
+        },
+        "validated": {
+          "title": "Declaration Approved",
+          "description": "This mileage expense declaration has been approved."
+        }
+      },
+      "form": {
+        "name": "Name",
+        "email": "Email",
+        "mission": "Mission"
+      }
+    },
+    "clients": {
+      "title": "Clients",
+      "description": "Manage and view all clients",
+      "addNew": "Add New Client",
+      "view_details": "View Details",
+      "edit_": "Edit Client",
+      "delete": "Delete Client",
+      "deleteSuccess": "Client deleted successfully",
+      "errorLoadingCountries": "Failed to load countries",
+      "deleteModal": {
+        "title": "Delete Client",
+        "description": "Are you sure you want to delete this client? This action cannot be undone."
+      },
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "contactName": "Contact Name",
+        "email": "Email",
+        "phone": "Phone",
+        "country": "Country",
+        "status": "Status",
+        "created_at": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "name": "Name",
+        "contactName": "Contact Name",
+        "email": "Email",
+        "country": "Country",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending"
+      },
+      "show": {
+        "title": "Client Details",
+        "description": "View client information",
+        "back": "Back to Clients",
+        "edit": "Edit Client",
+        "delete": "Delete Client",
+        "clientInfo": "Client Information",
+        "contactInfo": "Contact Information",
+        "addressInfo": "Address Information",
+        "name": "Name",
+        "contactName": "Contact Name",
+        "email": "Email",
+        "phone": "Phone",
+        "address": "Address",
+        "city": "City",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "status": "Status",
+        "createdAt": "Created At",
+        "currency": "Currency",
+        "updatedAt": "Updated At",
+        "deletedAt": "Deleted At",
+        "systemInfo": "System Information",
+        "notFound": "Client not found",
+        "failedToLoad": "Failed to load client information",
+        "missions": "Missions with this Client",
+        "noMissions": "No missions found for this client"
+      },
+      "form": {
+        "clientInfoTitle": "Client Information",
+        "addressInfoTitle": "Address Information",
+        "bankingInfoTitle": "Banking Information",
+        "name": "Client Name",
+        "namePlaceholder": "Client Name",
+        "identifier": "Identifier",
+        "identifierPlaceholder": "Unique Identifier",
+        "capital": "Capital",
+        "capitalPlaceholder": "Capital Amount",
+        "phone": "Phone",
+        "phonePlaceholder": "+123456789",
+        "email": "Email",
+        "emailPlaceholder": "client@example.com",
+        "contactName": "Contact Person",
+        "address": "Address",
+        "addressPlaceholder": "123 Main Street",
+        "reference_special": "Reference (Special)",
+        "reference_specialplaceholder": "ref ____",
+        "city": "City",
+        "cityPlaceholder": "City",
+        "postalCode": "Postal Code",
+        "postalCodePlaceholder": "12345",
+        "country": "Country",
+        "selectCountry": "Select country",
+        "searchCountry": "Search country...",
+        "noCountryFound": "No country found.",
+        "status": "Status",
+        "selectStatus": "Select status",
+        "iban": "IBAN",
+        "ibanPlaceholder": "IBAN",
+        "bic": "BIC",
+        "bicPlaceholder": "BIC",
+        "required": "This field is required",
+        "invalidEmail": "Please enter a valid email address",
+        "validationError": "Validation error: Please check the form."
+      },
+      "create": {
+        "title": "Create New Client",
+        "description": "Add a new client to the system",
+        "success": "Client created successfully",
+        "errorGeneric": "An error occurred while creating the client",
+        "error": "Failed to create client",
+        "validationError": "Validation error: Please check the form.",
+        "creating": "Creating...",
+        "submit": "Create Client"
+      },
+      "edit": {
+        "title": "Edit Client",
+        "description": "Modify existing client details",
+        "success": "Client updated successfully",
+        "errorGeneric": "An error occurred while updating the client",
+        "error": "Failed to update client",
+        "updating": "Updating client...",
+        "loading": "Loading client data..."
+      }
+    },
+    "users": {
+      "fields": {
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "email": "Email",
+        "phone": "Phone Number",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "gender": "Gender",
+        "birthDate": "Date of birth",
+        "role": "Role",
+        "status": "Status",
+        "address": "Address",
+        "city": "City",
+        "postalCode": "Postal Code",
+        "country": "Country",
+        "socialSecurityNumber": "Social Security Number",
+        "siretNumber": "SIRET Number",
+        "bankName": "Bank Name",
+        "iban": "IBAN",
+        "emergencyName": "Contact Name",
+        "emergencyPhone": "Contact Phone",
+        "relationship": "Relationship",
+        "emergencyRelation": "Relationship",
+        "additionalInfo": "Additional Info"
+      },
+      "genders": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other"
+      },
+      "statuses": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended"
+      },
+      "descriptions": {
+        "password": "Minimum 8 characters with at least one uppercase, one lowercase and one number",
+        "confirmPassword": "Repeat your password",
+        "documents": "Upload all required documents: ID, IBAN, CV, and Social Security"
+      },
+      "noResults": {
+        "country": "No country found."
+      },
+      "relationships": {
+        "spouse": "Spouse",
+        "parent": "Parent",
+        "child": "Child",
+        "sibling": "Sibling",
+        "friend": "Friend",
+        "other": "Other"
+      },
+      "placeholders": {
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "john.doe@example.com",
+        "phone": "+33 1 23 45 67 89",
+        "gender": "Select gender",
+        "birthDate": "Pick a date",
+        "role": "Select a role",
+        "status": "Select status",
+        "address": "123 Main Street",
+        "city": "Paris",
+        "postalCode": "75001",
+        "country": "Select country",
+        "searchCountry": "Search country...",
+        "socialSecurityNumber": "1 23 45 67 891 234 56",
+        "siretNumber": "12345678901234",
+        "bankName": "BNP Paribas",
+        "iban": "FR76 3000 6000 0123 4567 8901 234",
+        "emergencyName": "Jane Doe",
+        "emergencyPhone": "+33 9 87 65 43 21",
+        "relationship": "Select relationship"
+      },
+      "title": "Users",
+      "description": "Manage system users",
+      "addNew": "Add New User",
+      "view_details": "View Details",
+      "edit_": "Edit User",
+      "delete": "Delete User",
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "created_at": "Created At",
+        "updated_at": "Updated At",
+        "actions": "Actions",
+        "status": "Status",
+        "firstname": "First Name",
+        "lastname": "Last Name"
+      },
+      "filters": {
+        "name": "Name",
+        "email": "Email",
+        "firstname": "First Name",
+        "lastname": "Last Name",
+        "role": "Role",
+        "status": "Status"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "suspended": "Suspended",
+        "pending": "Pending"
+      },
+      "deleteModal": {
+        "title": "Delete User",
+        "description": "Are you sure you want to delete this user? This action cannot be undone."
+      },
+      "deleteSuccess": "User deleted successfully",
+      "roles": {
+        "admin": "Administrator",
+        "user": "User",
+        "consultant": "Consultant"
+      },
+      "actions": {
+        "create": "Create User",
+        "creating": "Creating...",
+        "update": "Update User",
+        "updating": "Updating..."
+      },
+      "toast": {
+        "createSuccess": "User created successfully",
+        "updateSuccess": "User updated successfully",
+        "createdButAttachmentFailed": "User created but document attachment failed"
+      },
+      "show": {
+        "title": "User Details",
+        "description": "View user information",
+        "personalInfo": "Personal Information",
+        "contactInfo": "Contact Information",
+        "accountInfo": "Account Information",
+        "name": "Name",
+        "email": "Email",
+        "phone": "Phone",
+        "role": "Role",
+        "status": "Status",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "notSpecified": "Not specified",
+        "invalidDate": "Invalid date",
+        "unknown": "Unknown",
+        "additionalInfo": "Additional Information",
+        "notAssigned": "Not assigned",
+        "back": "Back",
+        "idDocuments": "ID Documents",
+        "socialSecurity": "Social Security",
+        "cv": "CV/Resume",
+        "ibanDocuments": "IBAN Documents",
+        "download": "Download",
+        "uploaded": "Uploaded",
+        "previewNotAvailable": "Preview not available",
+        "noDocumentsUploaded": "No documents uploaded"
+      },
+      "form": {
+        "sections": {
+          "personal": "Personal Information",
+          "address": "Address Details",
+          "professional": "Professional Information"
+        },
+        "fields": {
+          "firstName": "First Name",
+          "lastName": "Last Name",
+          "email": "Email",
+          "phone": "Phone Number",
+          "password": "Password",
+          "confirmPassword": "Confirm Password",
+          "gender": "Gender",
+          "birthDate": "Date of birth",
+          "role": "Role",
+          "status": "Status",
+          "address": "Address",
+          "city": "City",
+          "postalCode": "Postal Code",
+          "country": "Country",
+          "socialSecurity": "Social Security Number",
+          "siret": "SIRET Number",
+          "bankName": "Bank Name",
+          "iban": "IBAN",
+          "emergencyFullname": "Contact Name",
+          "emergencyTel": "Contact Phone",
+          "emergencyRelation": "Relationship"
+        },
+        "placeholders": {
+          "firstName": "John",
+          "lastName": "Doe",
+          "email": "john.doe@example.com",
+          "phone": "+33 1 23 45 67 89",
+          "gender": "Select gender",
+          "birthDate": "Pick a date",
+          "role": "Select a role",
+          "status": "Select status",
+          "address": "123 Main Street",
+          "city": "Paris",
+          "postalCode": "75001",
+          "country": "Select country",
+          "searchCountry": "Search country...",
+          "socialSecurity": "1 23 45 67 891 234 56",
+          "siret": "12345678901234",
+          "bankName": "BNP Paribas",
+          "iban": "FR76 3000 6000 0123 4567 8901 234"
+        },
+        "descriptions": {
+          "password": "Minimum 8 characters with at least one uppercase, one lowercase and one number",
+          "confirmPassword": "Repeat your password",
+          "documents": "Upload all required documents: ID, IBAN, CV, and Social Security"
+        },
+        "options": {
+          "gender": {
+            "male": "Male",
+            "female": "Female",
+            "other": "Other"
+          },
+          "status": {
+            "active": "Active",
+            "pending": "Pending",
+            "suspended": "Suspended"
+          }
+        },
+        "messages": {
+          "noCountry": "No country found."
+        },
+        "actions": {
+          "searchCountry": "Search country..."
+        },
+        "name": "Name",
+        "email": "Email",
+        "password": "Password",
+        "confirmPassword": "Confirm Password",
+        "phone": "Phone",
+        "role": "Role",
+        "status": "Status",
+        "selectRole": "Select a role",
+        "selectStatus": "Select status",
+        "required": "This field is required",
+        "invalidEmail": "Please enter a valid email address",
+        "passwordMatch": "Passwords must match"
+      },
+      "create": {
+        "title": "Create New User",
+        "description": "Add a new user to the system",
+        "success": "User created successfully",
+        "errorGeneric": "An error occurred while creating the user",
+        "error": "Failed to create user",
+        "creating": "Creating user...",
+        "pageTitle": "Create New User",
+        "personalInfo": "Personal Information",
+        "addressDetails": "Address Details",
+        "professionalInfo": "Professional Information",
+        "emergencyContact": "Emergency Contact",
+        "documents": "Documents"
+      },
+      "errors": {
+        "create": "Failed to create user",
+        "update": "Failed to update user",
+        "validation": "Validation error:",
+        "general": "An error occurred",
+        "loadFormData": "Failed to load form data",
+        "fileAttachment": "File attachment failed",
+        "updateFailed": "Failed to update user",
+        "loadFailed": "Failed to load user data",
+        "loadDocumentsFailed": "Failed to load user documents"
+      },
+      "edit": {
+        "title": "Edit User",
+        "description": "Modify existing user details",
+        "success": "User updated successfully",
+        "errorGeneric": "An error occurred while updating the user",
+        "error": "Failed to update user",
+        "updating": "Updating user...",
+        "loading": "Loading user data..."
+      }
+    },
+    "exportDocuments": {
+      "downloadSuccess": "Document downloaded successfully",
+      "add": "new Export",
+      "title": "Export Documents",
+      "downloadFailed": "Failed to download document",
+      "description": "Manage document exports",
+      "table": {
+        "id": "ID",
+        "count": "Count",
+        "name": "Name",
+        "documentType": "Document Type",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status",
+        "created_at": "Created At",
+        "actions": "Actions",
+        "paid": "Paid",
+        "size": "Size"
+      },
+      "download": "Download",
+      "markAsPaid": "Mark As Paid",
+      "filters": {
+        "documentType": "Document Type",
+        "month": "Month",
+        "year": "Year",
+        "name": "Name",
+        "status": "Status",
+        "paid": "Paid"
+      },
+      "status": {
+        "treated": "Generated",
+        "failed": "Failed",
+        "treating": "Processing"
+      },
+      "actions": {
+        "download": "Download",
+        "delete": "Delete",
+        "view": "View",
+        "generate": "Generate New Document"
+      },
+      "deleteModal": {
+        "title": "Delete Document",
+        "description": "Are you sure you want to delete this document? This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "generate": {
+        "title": "Generate Document",
+        "description": "Generate a new export document",
+        "documentType": "Document Type",
+        "month": "Month",
+        "year": "Year",
+        "setAllAsPaid": "Set All As paid",
+        "selectDocumentType": "Select document type",
+        "selectMonth": "Select month",
+        "selectYear": "Select year",
+        "generating": "Generating...",
+        "submit": "Generate Document",
+        "bank": "Bank",
+        "currency": "Currency",
+        "selectBank": "Select Bank ",
+        "searchBank": "Search Bank",
+        "loadingBanks": "Loading Banks... "
+      },
+      "errors": {
+        "loadFailed": "Failed to load export documents",
+        "generateFailed": "Failed to generate document",
+        "deleteFailed": "Failed to delete document",
+        "downloadFailed": "Failed to download document",
+        "documentTypeRequired": "Document type is required",
+        "monthRequired": "Month is required",
+        "yearRequired": "Year is required"
+      },
+      "documentTypes": {
+        "subcontractor_invoices": "Subcontractor Invoices",
+        "salaries": "Salaries",
+        "expenses": "Expenses",
+        "mileage_expenses": "Mileage Expenses"
+      },
+      "success": {
+        "generated": "Document generated successfully",
+        "deleted": "Document deleted successfully"
+      },
+      "noData": "No export documents available",
+      "emptyState": {
+        "title": "No Export Documents",
+        "description": "No export documents have been generated yet.",
+        "action": "Generate Your First Document"
+      }
+    },
+    "system-actions": {
+      "title": "System Actions",
+      "description": "Manage and view system action generations",
+      "generate_": "Generate Action",
+      "view_details": "View Details",
+      "view_consultants": "View Consultants",
+      "types": {
+        "flat_fees": "Flat Fees",
+        "insurance": "Insurance and occupational medicine",
+        "tresieme_mois": "thirteenth Month",
+        "cheque_repas": "Meal Voucher"
+      },
+      "table": {
+        "id": "ID",
+        "action_type": "Action Type",
+        "month": "Month",
+        "year": "Year",
+        "total_amount": "Total Amount",
+        "generated_count": "Generated Count",
+        "generated_at": "Generated At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "action_type": "Action Type",
+        "month": "Month",
+        "year": "Year"
+      },
+      "generation_details": {
+        "title": "Generation Details",
+        "generation_info": "Generation Information",
+        "generation_counts": "Generation Counts",
+        "consultant_details": "Consultant Details",
+        "generation_date": "Generation Date",
+        "total_generated": "Total Generated",
+        "total_skipped": "Total Skipped",
+        "total_errors": "Total Errors",
+        "no_generated_items": "No items were generated in this action"
+      },
+      "consultant_name": "Consultant Name",
+      "contract_id": "Contract ID",
+      "amount": "Amount",
+      "clear": "Clear",
+      "generate": {
+        "title": "Generate System Action",
+        "description": "Generate new system actions for consultants",
+        "action_generation": "Action Generation",
+        "select_instruction": "Select the action type, month and year for generation",
+        "select_action": "Select action type",
+        "select_month": "Select month",
+        "select_year": "Select year",
+        "success": "Action generated successfully",
+        "error": "Failed to generate action",
+        "generating": "Generating...",
+        "notes_title": "Important Notes",
+        "note_1": "System actions are generated for all eligible consultants based on their contract status.",
+        "note_2": "Once generated, the actions will appear in the system actions list.",
+        "note_3": "Each action type has specific generation rules based on contract terms."
+      }
+    },
+    "contracts": {
+      "title": "Contracts",
+      "description": "Manage and view all consultant contracts",
+      "addNew": "Add New Contract",
+      "view_details": "View Details",
+      "edit_": "Edit Contract",
+      "delete": "Delete Contract",
+      "deleteSuccess": "Contract deleted successfully",
+      "deleteModal": {
+        "title": "Delete Contract",
+        "description": "Are you sure you want to delete this contract? This action cannot be undone."
+      },
+      "table": {
+        "id": "ID",
+        "reference": "Reference",
+        "consultant": "Consultant",
+        "contract_type": "Contract Type",
+        "contractType": "Contract Type",
+        "feesAmount": "Fees Amount",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "status": "Status",
+        "created_at": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "reference": "Reference",
+        "consultant": "Consultant",
+        "contractType": "Contract Type",
+        "status": "Status"
+      },
+      "status": {
+        "inProgress": "In Progress",
+        "completed": "planned",
+        "terminated": "Terminated",
+        "pending": "Pending",
+        "in_progress": "In Progress"
+      },
+      "types": {
+        "cdi": "CDI",
+        "cdd": "CDD",
+        "contractor": "Contractor",
+        "freelance": "Freelance"
+      },
+      "show": {
+        "description": "View contract details",
+        "back": "Back to Contracts",
+        "edit": "Edit Contract",
+        "delete": "Delete Contract",
+        "contractDetails": "Contract Details",
+        "consultantDetails": "Consultant Details",
+        "financialDetails": "Financial Details",
+        "fees": "Fees Amount",
+        "managementFees": "Management Fees",
+        "timeline": "Timeline",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "duration": "Duration",
+        "terminationDetails": "Termination Details",
+        "terminationDate": "Termination Date",
+        "terminationReason": "Termination Reason",
+        "noReasonSpecified": "No reason specified",
+        "notes": "Notes",
+        "noNotes": "No notes available for this contract.",
+        "days": "days",
+        "day": "day",
+        "ongoing": "Ongoing",
+        "invalidDates": "Invalid dates",
+        "notSpecified": "Not specified",
+        "notSpecifiedOngoing": "Not specified (Ongoing)"
+      },
+      "contractTypes": {
+        "cdi": "Permanent Contract (CDI)",
+        "cdd": "Fixed-term Contract (CDD)",
+        "contractor": "Contractor",
+        "freelance": "Freelance"
+      },
+      "form": {
+        "sections": {
+          "basic": "Basic Information",
+          "financial": "Financial Details",
+          "termination": "Termination Details",
+          "additional": "Additional Information"
+        },
+        "fields": {
+          "reference": "Reference",
+          "consultant": "Consultant",
+          "contractType": "Contract Type",
+          "feesAmount": "Fees Amount",
+          "managementFees": "Management Fees (%)",
+          "startDate": "Start Date",
+          "endDate": "End Date",
+          "status": "Status",
+          "terminationDate": "Termination Date",
+          "terminationReason": "Termination Reason",
+          "notes": "Notes",
+          "insuranceMonths": "Insurance and occupational medicine (month)",
+          "document": "Upload Contract Document",
+          "thirteenthMonth": "Thirteenth Month",
+          "cheque_repas": "Meal voucher",
+          "perdiem_amount": "perdiem amount"
+        },
+        "selectDate": "Select date",
+        "placeholders": {
+          "reference": "Enter contract reference",
+          "consultant": "Select a consultant",
+          "contractType": "Select contract type",
+          "feesAmount": "Enter fees amount",
+          "managementFees": "Enter management fees percentage",
+          "selectDate": "Select date",
+          "status": "Select status",
+          "terminationReason": "Enter reason for termination",
+          "notes": "Enter any additional notes about this contract",
+          "searchConsultant": "Search for a consultant...",
+          "documentDescription": "Upload the contract document (PDF, DOCX, etc.)",
+          "thirteenthMonth": "thirteenth month amount",
+          "cheque_repas": "Meal voucher"
+        },
+        "validation": {
+          "consultantRequired": "Consultant is required",
+          "referenceRequired": "Reference is required",
+          "startDateRequired": "Start date is required",
+          "statusRequired": "Status is required",
+          "contractTypeRequired": "Contract type is required",
+          "feesRequired": "Fees amount is required",
+          "managementFeesRange": "Management fees must be between 0 and 100%"
+        },
+        "noResults": {
+          "consultant": "No consultants found"
+        },
+        "reference": "Reference",
+        "perdiem_amount": "perdiem amount",
+        "additionalInfoTitle": "Additional Information",
+        "consultant": "Consultant",
+        "financialDetailsTitle": "Financial Details",
+        "selectConsultant": "Select a consultant",
+        "contractInfoTitle": "",
+        "contractType": "Contract Type",
+        "selectContractType": "Select contract type",
+        "feesAmount": "Fees Amount",
+        "managementFees": "Management Fees",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "status": "Status",
+        "selectStatus": "Select status",
+        "terminationDate": "Termination Date",
+        "terminationReason": "Termination Reason",
+        "terminationReasonPlaceholder": "Enter reason for termination...",
+        "notes": "Notes",
+        "notesPlaceholder": "Enter any additional notes about this contract...",
+        "required": "This field is required",
+        "invalidAmount": "Please enter a valid amount",
+        "endDateNotApplicable": " (Not applicable for CDI)"
+      },
+      "create": {
+        "title": "Create New Contract",
+        "description": "Add a new contract to the system",
+        "success": "Contract created successfully",
+        "errorGeneric": "An error occurred while creating the contract",
+        "error": "Failed to create contract",
+        "creating": "Creating contract...",
+        "submit": "Create Contract"
+      },
+      "edit": {
+        "title": "Edit Contract",
+        "description": "Modify existing contract details",
+        "success": "Contract updated successfully",
+        "errorGeneric": "An error occurred while updating the contract",
+        "error": "Failed to update contract",
+        "updating": "Updating contract...",
+        "loading": "Loading contract data...",
+        "submit": "Update Contract"
+      },
+      "detail": {
+        "fetchError": "Failed to load contract details",
+        "deleteError": "Failed to delete contract",
+        "notFound": "Contract Not Found",
+        "notFoundMessage": "The contract you are looking for doesn't exist or you don't have permission to view it.",
+        "contractLabel": "Contract",
+        "createdOn": "Created on",
+        "consultant": "Consultant",
+        "editContract": "Edit Contract",
+        "contractInformation": "Contract Information",
+        "contractDetails": "Contract Details",
+        "contractType": "Contract Type",
+        "contractStatus": "Contract Status",
+        "timeline": "Timeline",
+        "notSpecifiedOngoing": "Not specified (Ongoing)",
+        "duration": "Duration",
+        "financialDetails": "Financial Details",
+        "flatFeesAmount": "Flat Fees Amount",
+        "managementFees": "Management Fees (%)",
+        "terminationDetails": "Termination Details",
+        "terminationDate": "Termination Date",
+        "terminationReason": "Termination Reason",
+        "noReasonSpecified": "No reason specified",
+        "notes": "Notes",
+        "noNotes": "No notes available for this contract.",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "days": "days",
+        "day": "day",
+        "ongoing": "Ongoing ...",
+        "notSpecified": "Not specified",
+        "assurance": "Insurance and occupational medicine (€/month)",
+        "assuranceMonth":"month",
+        "document": "Contract Document",
+        "documents": "Contract Documents",
+        "thirteenthMonth": "Thirteenth Month",
+        "cheque_repas": "Meal voucher",
+        "perdiem_amount": "perdiem amount"
+      },
+      "errors": {
+        "loadConsultants": "Failed to load consultants",
+        "validation": "Please check the form for errors",
+        "createFailed": "Failed to create contract",
+        "generic": "An unexpected error occurred",
+        "unknown": "Unknown error"
+      }
+    },
+    "flat-fees": {
+      "generate": {
+      "title": "Generate Flat Fees",
+      "description": "Generate flat fees for consultants by selecting a month and year",
+      "fee_generation": "Fee Generation",
+      "select_instruction": "Select the month and year for which you want to generate flat fees",
+      "select_month": "Select month",
+      "select_year": "Select year",
+      "generating": "Generating...",
+      "success": "Flat fees generated successfully",
+      "error": "Failed to generate flat fees",
+      "notes_title": "Important Information",
+      "note_1": "This will generate fees for all active consultants in the system.",
+      "note_2": "Existing fees for the selected period will not be overwritten.",
+      "note_3": "The process may take several seconds depending on the number of consultants."
+    },
+      "title": "Flat Fees Generations",
+      "description": "Manage and view flat fees generations",
+      "generate_": "Generate Flat Fees",
+      "view_details": "View Details",
+      "view_consultants": " Consultants",
+      "status": {
+        "generated": "Generated",
+        "paid": "Paid",
+        "pending": "Pending"
+      },
+      "table": {
+        "id": "ID",
+        "month": "Month",
+        "year": "Year",
+        "generated_at": "Genrated at",
+        "total_amount": "Total Amount",
+        "generated_count": "Generated Count",
+        "skipped_count": "Skipped Count",
+        "error_count": "Error Count",
+        "created_at": "Created At",
+        "actions": "Actions"
+      },
+
+      "generate_fees": "Generate Fees",
+      "clear": "Clear",
+      "important_notes": "Important Notes",
+      "notes": {
+        "generate_for_all": "This will generate fees for all active consultants in the system.",
+        "existing_fees": "Existing fees for the selected period will not be overwritten.",
+        "process_duration": "The process may take several seconds depending on the number of consultants."
+      },
+      "form": {
+        "month": "Month",
+        "year": "Year",
+        "select_month": "Select a month",
+        "select_year": "Select a year"
+      },
+      "toast": {
+        "success": "Flat fees generated successfully for all consultants!",
+        "failure": "Failed to generate flat fees. Please try again later."
+      },
+      "filters": {
+        "month": "Month",
+        "year": "Year"
+      },
+      "consultants_details": "Consultants Details for",
+      "total_amount": "Total Amount",
+      "consultant_name": "Consultant Name",
+      "contract_id": "Contract ID",
+      "amount": "Amount",
+      "generation_details": {
+        "title": "Flat Fees Generation Details",
+        "generation_info": "Generation Information",
+        "consultant_details": "Consultant Details",
+        "generated_by": "Generated By",
+        "generation_counts": "Generation Counts",
+        "no_generated_flat_fees": "No generated Flat fees exist",
+        "generation_date": "Generation Date",
+        "total_generated": "Total Generated",
+        "total_skipped": "Total Skipped",
+        "total_errors": "Total Errors"
+      }
+    },
+    "rechargeable_expenses": {
+      "title": "Reimbursable expenses",
+      "description": "Manage Reimbursable expenses for consultants",
+      "addNew": "Add New Reimbursable  Expense",
+      "view": "View Expense",
+      "delete": "Delete Expense",
+      "table": {
+        "id": "ID",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "amount": "Amount",
+        "status": "Status",
+        "created_at": "Created At",
+        "updated_at": "Updated At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "consultant": "Consultant",
+        "status": "Status",
+        "year": "Year",
+        "statusPlaceholder": "Select Status",
+        "mission": "Mission"
+      },
+      "status": {
+        "draft": "Draft",
+        "review": "Under Review",
+        "validated": "Validated",
+        "approved": "Validated",
+        "rejected": "Rejected",
+        "declined": "Rejected",
+        "corrected": "Corrected"
+      },
+      "deleteModal": {
+        "title": "Delete Reimbursable  Expense",
+        "description": "Are you sure you want to delete this Reimbursable  expense? This action cannot be undone."
+      },
+      "create": {
+        "title": "Create Reimbursable  Expense",
+        "description": "Create a new Reimbursable  expense",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "selectConsultant": "Select consultant",
+        "selectMission": "Select mission",
+        "selectMonth": "Select month",
+        "selectYear": "Select year"
+      },
+      "detail": {
+        "title": "Reimbursable  Expense Details",
+        "description": "View Reimbursable  expense details",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "month": "Month",
+        "year": "Year",
+        "totalAmount": "Total Amount",
+        "status": "Status",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "lines": "Expense Lines",
+        "actions": "Actions",
+        "approveExpense": "Approve Expense",
+        "rejectExpense": "Reject Expense",
+        "confirmApprove": "Are you sure you want to approve this expense?",
+        "confirmReject": "Are you sure you want to reject this expense?",
+        "rejectReason": "Rejection Reason",
+        "enterRejectionReason": "Please enter a reason for rejection",
+        "declareExpense": "Declare Expense",
+        "correctExpense": "Correct Expense",
+        "addLine": "Add Expense Line",
+        "editLine": "Edit Expense Line",
+        "deleteLine": "Delete Expense Line",
+        "confirmDeclare": "Are you sure you want to declare this expense?",
+        "confirmCorrect": "Are you sure you want to correct this expense?",
+        "noLinesAdded": "No expense lines added yet. Add your first expense line to continue.",
+        "noLinesFound": "No expense lines found for this period."
+      },
+      "messages": {
+        "rejected": "This expense has been rejected. Please make corrections and resubmit.",
+        "no_lines_added": "No expense lines added yet. Add your first expense line to continue.",
+        "no_lines_found": "No expense lines found for this period."
+      },
+      "subtitle": "Detailed view for period",
+      "buttons": {
+        "back": "Back to List",
+        "validate": "Validate",
+        "reject": "Reject",
+        "cancel": "Cancel",
+        "confirm_reject": "Confirm Reject",
+        "processing": "Processing..."
+      },
+      "labels": {
+        "mission": "Mission",
+        "period": "Period",
+        "created": "Created",
+        "rejection_history": "Rejection History",
+        "expense_lines_count": "Expense Lines",
+        "no_expense_lines": "No Expense Lines",
+        "total_amount": "Total Amount",
+        "date": "Date",
+        "nature": "Nature",
+        "comment": "Comment",
+        "amount": "Amount"
+      },
+      "modal": {
+        "reject_title": "Reject Expense",
+        "reject_description": "Please provide a reason for rejecting this expense",
+        "rejection_reason": "Rejection Reason",
+        "rejection_reason_placeholder": "Enter the reason for rejection"
+      },
+      "errors": {
+        "load_details": "Could not load expense details",
+        "validate": "Failed to validate the expense",
+        "reject": "Failed to reject the expense",
+        "not_found": "Expense not found"
+      },
+      "success": {
+        "validate": "Expense successfully validated",
+        "reject": "Expense successfully rejected"
+      }
+    },
+    "trackers": {
+      "title": "Trackers",
+      "description": "Manage your trackers",
+      "addNew": "Add new Tracker",
+      "table": {
+        "id": "ID",
+        "label": "Label",
+        "credit": "Credit",
+        "actions": "Actions",
+        "debit": "Debit",
+        "updated_at": "Updated at",
+        "created_at": "Created at",
+        "consultant": "Consultant",
+        "month": "Month",
+        "year": "Year",
+        "accountable": "Accountable",
+        "paid": "Paid",
+        "solde": "Balance"
+      },
+      "filters": {
+        "label": "Search by label",
+        "credit": "Search by credit",
+        "debit": "Search by debit",
+        "solde": "Search by balance",
+        "created_at": "Search by creation date",
+        "consultant": "Choose a consultant",
+        "month": "Choose a month",
+        "year": "Select a year",
+        "accountable": "Accountable",
+        "paid": "Paid"
+      },
+      "create": {
+        "title": "Create Tracker",
+        "description": "Create a new tracker",
+        "label": "Label",
+        "credit": "Credit",
+        "debit": "Debit",
+        "consultant": "Consultant",
+        "month": "Month",
+        "year": "Year",
+        "accountable": "Accountable",
+        "monthSelect": "Select a month",
+        "yearSelect": "Select a year",
+        "consultantSelect": "Select a consultant",
+        "labelSelect": "Select a label"
+      },
+      "deleteModal": {
+        "title": "Delete Tracker",
+        "description": "Are you sure you want to delete this tracker?"
+      },
+      "delete": "Delete Tracker"
+    },
+    "salaries": {
+      "uploadSuccess": "Payslip Document Uploaded",
+      "uploadError": "Failed to upload the file",
+      "title": "Salaries",
+      "description": "Manage your salaries",
+      "addNew": "Add new Salary",
+      "delete": "Delete Salary",
+      "upload": "Upload Salaries",
+      "download": "Download Payslip",
+      "table": {
+        "id": "ID",
+        "consultant": "Consultant",
+        "month": "Month",
+        "year": "Year",
+        "net_salary": "Net Salary",
+        "employer_contribution": "Employer Contribution",
+        "employee_contribution": "Employee Contribution",
+        "actions": "Actions",
+        "tax": "Tax"
+      },
+      "filters": {
+        "consultant": "Choose a consultant",
+        "month": "Search by month",
+        "year": "Search by year",
+        "net_salary": "Search by net salary",
+        "employer_contribution": "Search by employer contribution",
+        "employee_contribution": "Search by employee contribution",
+        "tax": "Search by tax"
+      },
+      "create": {
+        "title": "Create Salary",
+        "description": "Create a new salary",
+        "consultant": "Consultant",
+        "month": "Month",
+        "year": "Year",
+        "net_salary": "Net Salary",
+        "employer_contribution": "Employer Contribution",
+        "employee_contribution": "Employee Contribution",
+        "tax": "Tax",
+        "monthSelect": "Select a month",
+        "yearSelect": "Select a year",
+        "consultantSelect": "Select a consultant",
+        "document": "Upload a payslip"
+      },
+      "deleteModal": {
+        "title": "Delete Salary",
+        "description": "Are you sure you want to delete this salary?"
+      },
+      "uploadModal": {
+        "title": "Upload Salaries",
+        "description": "You can download the template to upload your salaries.",
+        "download": "Download Template"
+      }
+    },
+    "documentImports": {
+      "title": "Document Imports",
+      "description": "Manage your document imports",
+      "addNew": "Make new Import",
+      "delete": "Delete Document Import",
+      "table": {
+        "id": "ID",
+        "document_type": "Document Type",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status",
+        "score": "Score",
+        "created_at": "Import Date",
+        "actions": "Actions",
+        "name": "Document name",
+        "error": "Error"
+      },
+      "filters": {
+        "document_type": "Choose a document type",
+        "month": "Search by month",
+        "year": "Search by year",
+        "status": "Search by status",
+        "score": "Search by score",
+        "name": "Search by name"
+      },
+      "create": {
+        "title": "Create Document Import",
+        "description": "Create a new document import",
+        "document_type": "Document Type",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status",
+        "score": "Score",
+        "monthSelect": "Select a month",
+        "yearSelect": "Select a year",
+        "document_type_select": "Select a document type",
+        "year_required": "Year is required",
+        "month_required": "Month is required",
+        "document_type_required": "Document type is required",
+        "files_required": "Files are required"
+      },
+      "show": {
+        "title": "Imported documents",
+        "description": "See in details what files are imported "
+      }
+    },
+    "timesheets": {
+      "show": {
+        "description": "View timesheet information",
+        "back": "Back to Timesheets",
+        "reject": "Reject Timesheet",
+        "title": "timesheet details",
+        "missionName": "Mission Title",
+        "approve": "Approve Timesheet",
+        "goBack": "Go Back",
+        "errorLoadingData": "Failed to load timesheet data",
+        "submittedOn": "Submitted on",
+        "rejectionReasons": "Rejection Reasons",
+        "supportingDocuments": "Supporting Documents",
+        "supportingDocument": "Supporting Document",
+        "viewDocuments": "View or download supporting documents",
+        "noDocuments": "No supporting documents attached to this timesheet",
+        "openInNewTab": "Open in New Tab",
+        "noTimesheetFound": "No timesheet found",
+        "workSummary": "Work Summary",
+        "workDays": "Work Days",
+        "absenceDays": "Absence Days",
+        "vacationDays": "Vacation Days",
+        "missionDetails": "Mission Details",
+        "consultant": "Consultant",
+        "noData": "N/A",
+        "timesheetCalendar": "Timesheet Calendar",
+        "calendarDescription": "View the work status for each day",
+        "worked": "Worked",
+        "absent": "Absent",
+        "vacation": "Vacation",
+        "daysoff": "Days Off",
+        "weekend": "Weekend",
+        "notSpecified": "Not Specified",
+        "rejectTimesheet": "Reject Timesheet",
+        "rejectDescription": "Please provide a reason for rejecting this timesheet",
+        "rejectionReason": "Rejection Reason",
+        "rejectionReasonPlaceholder": "Explain why you are rejecting this timesheet...",
+        "rejectionReasonRequired": "A rejection reason is required",
+        "rejecting": "Rejecting...",
+        "rejectSuccess": "Timesheet rejected successfully",
+        "rejectError": "Failed to reject timesheet",
+        "rejectErrorGeneric": "An error occurred while rejecting the timesheet",
+        "approveSuccess": "Timesheet approved successfully",
+        "approveError": "Failed to approve timesheet",
+        "approveErrorGeneric": "An error occurred while approving the timesheet",
+        "status": {
+          "validated": "Validated",
+          "review": "Under Review",
+          "rejected": "Rejected",
+          "draft": "Draft "
+        }
+      },
+      "title": "Timesheets",
+      "description": "Manage and view consultant timesheets",
+      "delete": "Delete Timesheet",
+      "view_details": "View Details",
+      "deleteSuccess": "Timesheet deleted successfully",
+      "deleteModal": {
+        "title": "Delete Timesheet",
+        "description": "Are you sure you want to delete this timesheet? This action cannot be undone."
+      },
+      "table": {
+        "id": "ID",
+        "month": "Month",
+        "year": "Year",
+        "consultant": "Consultant",
+        "status": "Status",
+        "mission": "Mission",
+        "created_at": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "month": "Month",
+        "year": "Year",
+        "consultant": "Consultant",
+        "status": "Status",
+        "mission": "Mission",
+        "created_at": "Created At"
+      },
+      "status": {
+        "validated": "Validated",
+        "review": "Under Review",
+        "rejected": "Rejected"
+      }
+    },
+    "missions": {
+      "title": "Missions",
+      "description": "Manage and view all missions",
+      "addNew": "Add New Mission",
+      "view_details": "View Details",
+      "delete": "Delete Mission",
+      "deleteSuccess": "Mission deleted successfully",
+      "deleteModal": {
+        "title": "Delete Mission",
+        "description": "Are you sure you want to delete this mission? This action cannot be undone."
+      },
+      "table": {
+        "id": "ID",
+        "title": "Title",
+        "client": "Client",
+        "consultant": "Consultant",
+        "status": "Status",
+        "tjm": "Daily Rate",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "created_at": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "title": "Title",
+        "client": "Client",
+        "consultant": "Consultant",
+        "status": "Status",
+        "startDate": "Start Date",
+        "endDate": "End Date"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "pending": "Pending"
+      },
+      "edit__": "Edit",
+      "show": {
+        "description": "View mission details",
+        "back": "Back to Missions",
+        "edit": "Edit Mission",
+        "delete": "Delete Mission",
+        "missionDetails": "Mission Details",
+        "clientDetails": "Client Details",
+        "consultantDetails": "Consultant Details",
+        "financialDetails": "Financial Details",
+        "tjm": "Daily Rate",
+        "tjmType": "Rate Type",
+        "timeline": "Timeline",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "duration": "Duration",
+        "workLocation": "Work Location",
+        "noLocationSpecified": "No location specified",
+        "description_": "Description",
+        "noDescription": "No description available for this mission.",
+        "timeLeft": "Time left",
+        "documents": "Mission Document"
+      },
+      "form": {
+        "title": "Mission Title",
+        "client": "Client",
+        "consultant": "Consultant",
+        "selectClient": "Select a client",
+        "selectConsultant": "Select a consultant",
+        "status": "Status",
+        "tjm": "Daily Rate",
+        "tjmType": "Rate Type",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "country": "Country",
+        "selectCountry": "Select a country",
+        "address": "Address",
+        "description": "Description",
+        "consultant_reference": "Consultant reference",
+        "descriptionPlaceholder": "Enter mission description and responsibilities...",
+        "required": "This field is required",
+        "taux_fkm": "Mileage Rate",
+        "taux_fkmPlaceholder": "0.50",
+        "invalidTauxFkm": "Mileage rate must be a valid number",
+        "invalidTjm": "Please enter a valid amount",
+        "max255": "Maximum 255 characters",
+        "selectStatus": "Select status",
+        "dailyRate": "Daily",
+        "hourlyRate": "Hourly",
+        "fields": {
+          "document": "Upload Mission Document"
+        },
+        "placeholders": {
+          "documentDescription": "Upload the mission document (PDF, DOCX, etc.)"
+        }
+      },
+      "create": {
+        "title": "Create New Mission",
+        "description": "Add a new mission to the system",
+        "success": "Mission created successfully",
+        "errorGeneric": "An error occurred while creating the mission",
+        "error": "Failed to create mission",
+        "creating": "Creating mission..."
+      },
+      "edit": {
+        "title": "Edit Mission",
+        "description": "Modify existing mission details",
+        "success": "Mission updated successfully",
+        "errorGeneric": "An error occurred while updating the mission",
+        "error": "Failed to update mission",
+        "updating": "Updating mission...",
+        "loading": "Loading mission data..."
+      },
+      "edit_": {
+        "title": "Edit Mission",
+        "description": "Modify existing mission details",
+        "success": "Mission updated successfully"
+      },
+      "errorLoading": "Failed to load mission data"
+    },
+    "expenses": {
+      "title": "Expenses",
+      "description": "Manage and view expense reports",
+      "addNew": "Add New Expense",
+      "view_details": "View Details",
+      "edit_": "Edit Expense",
+      "delete": "Delete Expense",
+      "deleteSuccess": "Expense deleted successfully",
+      "deleteModal": {
+        "title": "Delete Expense",
+        "description": "Are you sure you want to delete this expense? This action cannot be undone."
+      },
+      "table": {
+        "id": "ID",
+        "description": "Description",
+        "amount": "Amount",
+        "consultant": "Consultant",
+        "mission": "Mission",
+        "date": "Date",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status",
+        "created_at": "Created At",
+        "actions": "Actions"
+      },
+      "filters": {
+        "mission": "Mission",
+        "consultant": "Consultant",
+        "month": "Month",
+        "year": "Year",
+        "status": "Status"
+      },
+      "status": {
+        "approved": "Approved",
+        "pending": "Pending",
+        "rejected": "Rejected"
+      },
+      "show": {
+        "title": "Expense Details",
+        "description": "View expense information",
+        "back": "Back to Expenses",
+        "edit": "Edit Expense",
+        "delete": "Delete Expense",
+        "expenseDetails": "Expense Details",
+        "consultantDetails": "Consultant Details",
+        "missionDetails": "Mission Details",
+        "financialDetails": "Financial Details",
+        "timeline": "Timeline",
+        "expenseDate": "Expense Date",
+        "receipt": "Receipt",
+        "noReceiptAvailable": "No receipt available for this expense.",
+        "loading": "Loading expense details...",
+        "reject": "Reject",
+        "validate": "Validate",
+        "processing": "Processing",
+        "failedToLoad": "Failed to load expense details",
+        "validateSuccess": "Expense declaration validated successfully",
+        "validateError": "Failed to validate expense declaration",
+        "validateErrorGeneric": "An error occurred when validating the expense declaration",
+        "rejectSuccess": "Expense declaration rejected successfully",
+        "rejectError": "Failed to reject expense declaration",
+        "rejectErrorGeneric": "An error occurred when rejecting the expense declaration",
+        "reasonRequired": "Please provide a reason for rejection",
+        "rejectionHistory": "Previous Rejection History",
+        "declarationSummary": "Declaration Summary",
+        "reviewDescription": "Review the expense declaration submitted by",
+        "period": "Period",
+        "totalAmount": "Total Amount",
+        "expensesCount": "Expenses :",
+        "noExpenses": "No expenses found",
+        "noExpensesFound": "No expenses found in this declaration.",
+        "rejectDialogTitle": "Reject Expense Declaration",
+        "rejectDialogDescription": "Please provide a reason for rejecting this expense declaration. This feedback will be shared with the consultant.",
+        "rejectionReason": "Rejection Reason",
+        "rejectionReasonPlaceholder": "Please provide detailed feedback on why this expense declaration is being rejected...",
+        "confirmRejection": "Confirm Rejection"
+      },
+      "form": {
+        "description": "Description",
+        "amount": "Amount",
+        "consultant": "Consultant",
+        "selectConsultant": "Select a consultant",
+        "mission": "Mission",
+        "selectMission": "Select a mission",
+        "date": "Date",
+        "status": "Status",
+        "selectStatus": "Select status",
+        "receipt": "Receipt",
+        "uploadReceipt": "Upload Receipt",
+        "required": "This field is required",
+        "invalidAmount": "Please enter a valid amount"
+      },
+      "create": {
+        "title": "Create New Expense",
+        "description": "Add a new expense to the system",
+        "success": "Expense created successfully",
+        "errorGeneric": "An error occurred while creating the expense",
+        "error": "Failed to create expense",
+        "creating": "Creating expense..."
+      },
+      "edit": {
+        "title": "Edit Expense",
+        "description": "Modify existing expense details",
+        "success": "Expense updated successfully",
+        "errorGeneric": "An error occurred while updating the expense",
+        "error": "Failed to update expense",
+        "updating": "Updating expense...",
+        "loading": "Loading expense data..."
+      }
+    },
+    "settings": {
+      "emailsCC": {
+        "listing": {
+            "noEmails": "No CC emails found",
+            "oneEmail": "CC email",
+            "multipleEmails": "CC emails",
+            "title": "CC Emails Management",
+            "description": "Manage email CC recipients for system notifications"
+        },
+        "title": "Emails CC",
+        "description": "Manage email CC recipients for system notifications",
+        "addNew": "Add New CC Email",
+        "deleteModal": {
+          "title": "Delete CC Email",
+          "description": "Are you sure you want to delete this CC email? This action cannot be undone.",
+          "confirm": "Delete",
+          "cancel": "Cancel",
+          "deleting": "Deleting..."
+        },
+        "form": {
+          "email": "Email Address",
+          "emailPlaceholder": "Enter email address",
+          "description": "Description",
+          "descriptionPlaceholder": "Enter a description for this email (optional)",
+          "active": "Active",
+          "activeDescription": "Enable or disable this email",
+          "submit": "Save Email",
+          "cancel": "Cancel"
+        },
+        "table": {
+          "email": "Email Address",
+          "description": "Description",
+          "status": "Status",
+          "actions": "Actions"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive"
+        },
+        "toast": {
+          "loadFailed": "Failed to load CC emails",
+          "addSuccess": "CC email added successfully",
+          "addError": "Error while adding CC email",
+          "addFailed": "Failed to add CC email",
+          "updateSuccess": "CC email updated successfully",
+          "updateFailed": "Failed to update CC email",
+          "deleteSuccess": "CC email deleted successfully",
+          "deleteFailed": "Failed to delete CC email"
+        },
+        "alerts": {
+          "noEmailsTitle": "No CC Emails Found",
+          "noEmailsDesc": "You haven't added any CC emails yet. Use the form below to add a new CC email."
+        },
+        "actions": {
+          "add":" Add CC Email",
+          "update": "Update CC Email",
+          "cancel": "Cancel",
+          "deleting": "Deleting...",
+          "adding": "Adding...",
+          "updating": "Updating..."
+        },
+        "messages": {
+          "createSuccess": "CC email added successfully",
+          "updateSuccess": "CC email updated successfully",
+          "deleteSuccess": "CC email deleted successfully",
+          "error": "An error occurred",
+          "invalidEmail": "Please enter a valid email address"
+        },
+        "noEmails": "No CC emails found"
+      },
+      "banks": {
+        "deleteModal": {
+          "title": "Delete Bank",
+          "description": "Are you sure you want to delete this bank? This action cannot be undone.",
+          "descriptionWithName": "Are you sure you want to delete this bank? This action cannot be undone.",
+          "delete": "Delete",
+          "deleting": "Deleting..."
+        },
+        "listing": {
+          "noBanks": "No banks found",
+          "oneBank": "bank",
+          "multipleBank": "banks",
+          "title": "Banks Management",
+          "description": "Manage your banks"
+        },
+        "form": {
+          "editTitle": "Edit Bank",
+          "addTitle": "Add New Bank",
+          "nameLabel": "Bank Name",
+          "namePlaceholder": "Enter bank name",
+          "countryLabel": "Country",
+          "countryPlaceholder": "Select a country",
+          "searchCountriesPlaceholder": "Search countries...",
+          "noCountriesFound": "No countries found",
+          "bicLabel": "BIC",
+          "bicPlaceholder": "Enter BIC code",
+          "ibanLabel": "IBAN",
+          "ibanPlaceholder": "Enter IBAN",
+          "activeLabel": "Active Status",
+          "activeDescription": "Enable or disable this bank",
+          "messages": {
+            "createSuccess": "Bank created successfully",
+            "updateSuccess": "Bank updated successfully"
+          }
+        },
+        "fields": {
+          "bic": "BIC",
+          "iban": "IBAN",
+          "countryNotSpecified": "Country not specified"
+        },
+        "status": {
+          "active": "Active",
+          "inactive": "Inactive",
+          "updating": "Updating..."
+        },
+        "actions": {
+          "addBank": "Add Bank",
+          "delete": "Delete Bank"
+        },
+        "toggleModal": {
+          "activateTitle": "Activate Bank",
+          "deactivateTitle": "Deactivate Bank",
+          "activateDescription": "Are you sure you want to activate this bank? It will become available for use in the system.",
+          "deactivateDescription": "Are you sure you want to deactivate this bank? It will no longer be available for use in the system.",
+          "activate": "Activate",
+          "deactivate": "Deactivate",
+          "processing": "Processing..."
+        }
+      },
+      "daysOff": {
+        "table": {
+          "id": "ID",
+          "name": "Name",
+          "country": "Country",
+          "date": "Date",
+          "recurring": "Recurring",
+          "actions": "Actions"
+        },
+        "listing": {
+          "title": "Holidays & Days Off",
+          "description": "Manage holidays and days off by country",
+          "itemsLabel": "holidays",
+          "noData": "No holidays found",
+          "errorLoading": "Error loading holidays"
+        },
+        "deleteModal": {
+          "title": "Confirm Deletion",
+          "description": "Are you sure you want to delete this holiday? This action cannot be undone.",
+          "confirm": "Delete",
+          "deleting": "Deleting..."
+        },
+        "deleteSuccess": "Holiday deleted successfully",
+        "form": {
+          "title": {
+            "add": "Add Holiday",
+            "edit": "Edit Holiday"
+          },
+          "description": {
+            "add": "Add a new holiday to the system",
+            "edit": "Modify the existing holiday"
+          },
+
+          "fields": {
+            "name": "Holiday Name",
+            "country": "Country",
+            "date": "Date",
+            "recurring": "Recurring Holiday",
+            "multiDay": "Multiple Days",
+            "additionalDays": "Additional Days",
+            "day": "Day",
+            "month": "Month",
+            "year": "Year"
+          },
+          "placeholders": {
+            "name": "Enter holiday name",
+            "country": "Select country",
+            "searchCountries": "Search countries...",
+            "day": "Day",
+            "month": "Month",
+            "year": "Year"
+          },
+          "additionalDaysPrompt": "Click \"Add Day\" to add multiple days",
+          "noCountriesFound": "No countries found",
+          "actions": {
+            "addDay": "Add Day",
+            "removeDay": "Remove Day",
+            "cancel": "Cancel",
+            "create": "Create Holiday",
+            "update": "Update Holiday",
+            "creating": "Creating...",
+            "updating": "Updating..."
+          },
+          "months": {
+            "0": "January",
+            "1": "February",
+            "2": "March",
+            "3": "April",
+            "4": "May",
+            "5": "June",
+            "6": "July",
+            "7": "August",
+            "8": "September",
+            "9": "October",
+            "10": "November",
+            "11": "December"
+          },
+          "validation": {
+            "nameRequired": "Holiday name is required",
+            "countryRequired": "Country is required"
+          },
+          "error": {
+            "loadingData": "Error loading holiday data",
+            "create": "Error creating holiday",
+            "update": "Error updating holiday"
+          },
+          "selectCountryFirst": "Please select a country first",
+          "addTitle": "Add Holiday",
+          "editTitle": "Edit Holiday",
+          "nameLabel": "Holiday Name",
+          "namePlaceholder": "Enter holiday name",
+          "countryLabel": "Country",
+          "countryPlaceholder": "Select country",
+          "descriptionLabel": "Description",
+          "descriptionPlaceholder": "Enter holiday description (optional)",
+          "dateStartLabel": "Start Date",
+          "dateEndLabel": "End Date",
+          "dateLabel": "Date",
+          "recurringLabel": "Recurring Holiday",
+          "recurringDescription": "This holiday repeats every year on the same date",
+          "multiDayLabel": "Multiple Days",
+          "multiDayDescription": "This holiday spans multiple days",
+          "additionalDays": "Additional Days",
+          "addDay": "Add Day",
+          "addDayHint": "Click \"Add Day\" to add multiple days",
+          "dayLabel": "Day",
+          "monthLabel": "Month",
+          "yearLabel": "Year",
+          "messages": {
+            "createSuccess": "Holiday created successfully",
+            "updateSuccess": "Holiday updated successfully",
+            "createError": "Error creating holiday",
+            "updateError": "Error updating holiday",
+            "invalidDate": "Invalid date values in holiday record",
+            "required": "This field is required",
+            "nameRequired": "Holiday name is required",
+            "dateRequired": "Date is required"
+          },
+          "buttons": {
+            "create": "Create Holiday",
+            "update": "Update Holiday",
+            "creating": "Creating...",
+            "updating": "Updating..."
+          }
+        },
+        "actions": {
+          "addHoliday": "Add Holiday",
+          "editHoliday": "Edit Holiday",
+          "deleteHoliday": "Delete Holiday"
+        },
+        "columns": {
+          "number": "№",
+          "name": "Holiday Name",
+          "date": "Date",
+          "country": "Country",
+          "type": "Type",
+          "actions": "Actions"
+        },
+        "filters": {
+          "searchPlaceholder": "Search holidays...",
+          "selectCountry": "Select Country",
+          "month": "Month",
+          "year": "Year",
+          "recurring": "Recurring"
+        },
+        "labels": {
+          "recurring": "Recurring",
+          "multiDay": "Multi-Day",
+          "unknown": "Unknown"
+        },
+        "states": {
+          "loadingCountries": "Loading countries...",
+          "selectCountry": "Please select a country to view holidays",
+          "noHolidays": "No holidays found for this country",
+          "addNewHoliday": "Click the 'Add Holiday' button to create a new holiday",
+          "error": "Error"
+        }
+      },
+      "expenses": {
+        "listing": {
+          "title": "Expense Categories",
+          "description": "Manage your expense categories"
+        },
+        "deleteModal": {
+          "title": "Confirm Deletion",
+          "description": "Are you sure you want to delete this expense category? This action cannot be undone."
+        },
+        "form": {
+          "title": "Expense Category Name",
+          "titlePlaceholder": "Enter category name",
+          "observation": "Observation",
+          "observationPlaceholder": "Enter optional observation"
+        },
+        "actions": {
+          "add": "Add",
+          "adding": "Adding...",
+          "update": "Update",
+          "updating": "Updating...",
+          "cancel": "Cancel",
+          "edit": "Edit Expense",
+          "delete": "Delete Expense"
+        },
+        "table": {
+          "number": "№",
+          "title": "Title",
+          "observation": "Observation",
+          "actions": "Actions",
+          "noData": "No expense categories found"
+        },
+        "toast": {
+          "addSuccess": "Expense category added successfully",
+          "addFailed": "Failed to add expense category",
+          "updateSuccess": "Expense category updated successfully",
+          "updateFailed": "Failed to update expense category",
+          "deleteSuccess": "Expense category deleted successfully",
+          "deleteFailed": "Failed to delete expense category",
+          "loadFailed": "Failed to load expense categories"
+        },
+        "error": {
+          "fetchFailed": "Failed to fetch expense categories"
+        },
+        "alerts": {
+          "noResultsTitle": "No Search Results",
+          "noResultsDesc": "No expense categories found matching your search criteria. Try changing your search term or add a new category.",
+          "noExpensesTitle": "No Expense Categories Found",
+          "noExpensesDesc": "You haven't added any expense categories yet. Use the form above to create your first expense category."
+        }
+      },
+      "title": "Settings",
+      "options": {
+        "daysOff": "Days Off",
+        "banks": "Banks",
+        "categoryExpense": "Category Expense",
+        "fkmFee": "FKM Rate",
+        "emailscc":"Email CC"
+      },
+      "fkmTaux": {
+        "title": "FKM Rates",
+        "description": "Manage FKM rates for consultants",
+        "label": "FKM Rate (€/km)",
+        "saveSuccess": "FKM rate saved successfully",
+        "saveError": "Failed to save FKM rate",
+        "fetchError": "Failed to fetch FKM rate"
+      }
+    }
+  },
+  "dataTable": {
+    "searchColumns": "Search columns",
+    "loading": "Loading...",
+    "all": "All",
+    "noData": "No data available",
+    "page": {
+      "of": "of",
+      "next": "Next",
+      "previous": "Previous",
+      "page": "Page"
+    },
+    "search": {
+      "placeholder": "Search..."
+    },
+    "reset": "Reset",
+    "apply": "Apply filters",
+    "rowsPerPage": "Rows per page",
+    "rowsTotal": "row(s) total.",
+    "rowsSelected": "row(s) selected.",
+    "columns": "Columns"
+  },
+  "months": {
+    "1": "January",
+    "2": "February",
+    "3": "March",
+    "4": "April",
+    "5": "May",
+    "6": "June",
+    "7": "July",
+    "8": "August",
+    "9": "September",
+    "10": "October",
+    "11": "November",
+    "12": "December"
+  },
+  "dropzone": {
+    "remove_file": "Remove file",
+    "drag_and_drop": "Drag  drop files here, or click to select files",
+    "drag_and_drop_description": "You can upload"
+  }
+}
