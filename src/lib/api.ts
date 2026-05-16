@@ -27,15 +27,6 @@ const getAuthToken = async (isServerSide: boolean): Promise<string | null> => {
 
 const isServerSide = (): boolean => typeof window === 'undefined';
 
-const getLocale = (): string => {
-  if (isServerSide()) {
-    return 'fr';
-  }
-  return localStorage.getItem('locale') ||
-    navigator.language.split('-')[0] ||
-    'fr';
-};
-
 apiClient.interceptors.request.use(
   async (config: any) => {
     const isAuthEndpoint =
@@ -47,11 +38,6 @@ apiClient.interceptors.request.use(
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-    }
-
-    const locale = getLocale();
-    if (config.headers) {
-      config.headers['Accept-Language'] = locale;
     }
 
     config._requestTimestamp = Date.now();

@@ -3,15 +3,9 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { CheckIcon } from '@radix-ui/react-icons';
-import { useFormContext, UseFormReturn } from 'react-hook-form';
-import {
-  CustomTableFilterConfig,
-} from '@/components/custom/data-table/types'; // Adjust the import path
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { UseFormReturn } from 'react-hook-form';
+import { CustomTableFilterConfig } from '@/components/custom/data-table/types';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Command,
   CommandEmpty,
@@ -22,7 +16,6 @@ import {
   CommandSeparator,
 } from '@/components/ui/command';
 import { useState, useCallback, useEffect } from 'react';
-import { useLanguage } from '@/context/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -30,13 +23,12 @@ import { PlusCircle, XCircle } from 'lucide-react';
 
 interface DataTableSelectFilterProps {
   filter: CustomTableFilterConfig;
-  form: UseFormReturn<any>
+  form: UseFormReturn<any>;
 }
 
 export function CustomDataTableSelect({ filter, form }: DataTableSelectFilterProps) {
   const { field, label, type, options } = filter;
   const { setValue, getValues } = form;
-  const { t } = useLanguage();
   const isMultiSelect = type === 'datatable-multiselect';
 
   const [open, setOpen] = useState(false);
@@ -89,50 +81,37 @@ export function CustomDataTableSelect({ filter, form }: DataTableSelectFilterPro
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant='outline' size='sm' className='border-dashed'>
+        <Button variant="outline" size="sm" className="border-dashed">
           {selectedValues?.size > 0 ? (
             <div
-              role='button'
+              role="button"
               aria-label={`Clear ${label} filter`}
               tabIndex={0}
               onClick={onReset}
-              className='focus-visible:ring-ring rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-1 focus-visible:outline-none'
+              className="focus-visible:ring-ring rounded-sm opacity-70 transition-opacity hover:opacity-100 focus-visible:ring-1 focus-visible:outline-none"
             >
-              <XCircle className='h-4 w-4' />
+              <XCircle className="h-4 w-4" />
             </div>
           ) : (
-            <PlusCircle className='h-4 w-4' />
+            <PlusCircle className="h-4 w-4" />
           )}
           {label}
           {selectedValues?.size > 0 && (
             <>
-              <Separator
-                orientation='vertical'
-                className='mx-0.5 data-[orientation=vertical]:h-4'
-              />
-              <Badge
-                variant='secondary'
-                className='rounded-sm px-1 font-normal lg:hidden'
-              >
+              <Separator orientation="vertical" className="mx-0.5 data-[orientation=vertical]:h-4" />
+              <Badge variant="secondary" className="rounded-sm px-1 font-normal lg:hidden">
                 {selectedValues.size}
               </Badge>
-              <div className='hidden items-center gap-1 lg:flex'>
+              <div className="hidden items-center gap-1 lg:flex">
                 {selectedValues.size > 2 ? (
-                  <Badge
-                    variant='secondary'
-                    className='rounded-sm px-1 font-normal'
-                  >
-                    {selectedValues.size} {t('common.selected')}
+                  <Badge variant="secondary" className="rounded-sm px-1 font-normal">
+                    {selectedValues.size} selected
                   </Badge>
                 ) : (
                   options
                     ?.filter((option) => selectedValues.has(option.value))
                     .map((option) => (
-                      <Badge
-                        variant='secondary'
-                        key={option.value}
-                        className='rounded-sm px-1 font-normal'
-                      >
+                      <Badge variant="secondary" key={option.value} className="rounded-sm px-1 font-normal">
                         {option.label}
                       </Badge>
                     ))
@@ -142,29 +121,25 @@ export function CustomDataTableSelect({ filter, form }: DataTableSelectFilterPro
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className='w-[12.5rem] p-0' align='start'>
+      <PopoverContent className="w-[12.5rem] p-0" align="start">
         <Command>
           <CommandInput placeholder={label} />
-          <CommandList className='max-h-full'>
-            <CommandEmpty>{t('common.noData')}</CommandEmpty>
-            <CommandGroup className='max-h-[18.75rem] overflow-x-hidden overflow-y-auto'>
+          <CommandList className="max-h-full">
+            <CommandEmpty>No results</CommandEmpty>
+            <CommandGroup className="max-h-[18.75rem] overflow-x-hidden overflow-y-auto">
               {options?.map((option) => {
                 const isSelected = selectedValues.has(option.value);
-
                 return (
-                  <CommandItem
-                    key={option.value}
-                    onSelect={() => onItemSelect(option, isSelected)}
-                  >
+                  <CommandItem key={option.value} onSelect={() => onItemSelect(option, isSelected)}>
                     <div
                       className={cn(
                         'border-primary flex size-4 items-center justify-center rounded-sm border',
                         isSelected ? 'bg-primary' : 'opacity-50 [&_svg]:invisible'
                       )}
                     >
-                      <CheckIcon className='h-4 w-4' />
+                      <CheckIcon className="h-4 w-4" />
                     </div>
-                    <span className='truncate'>{option.label}</span>
+                    <span className="truncate">{option.label}</span>
                   </CommandItem>
                 );
               })}
@@ -173,11 +148,8 @@ export function CustomDataTableSelect({ filter, form }: DataTableSelectFilterPro
               <>
                 <CommandSeparator />
                 <CommandGroup>
-                  <CommandItem
-                    onSelect={onReset}
-                    className='justify-center text-center'
-                  >
-                    {t('common.clear')}
+                  <CommandItem onSelect={onReset} className="justify-center text-center">
+                    Clear filters
                   </CommandItem>
                 </CommandGroup>
               </>

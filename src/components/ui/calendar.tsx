@@ -4,7 +4,7 @@ import * as React from 'react';
 import { DayPicker, CaptionProps } from 'react-day-picker';
 import type { ComponentProps } from 'react';
 import { format } from 'date-fns';
-import { fr, enUS } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
@@ -106,40 +106,8 @@ function Calendar({
   fromYear?: number;
   toYear?: number;
 }) {
-  const getLocale = () => {
-    if (propLocale) return propLocale;
-    if (typeof window !== 'undefined') {
-      const storedLocale = localStorage.getItem('locale');
-      return storedLocale === 'fr' ? fr : enUS;
-    }
-    return enUS;
-  };
-
-  const [locale, setLocale] = React.useState(getLocale);
+  const locale = propLocale ?? enUS;
   const [currMonth, setCurrMonth] = React.useState<Date>(month || props.defaultMonth || new Date());
-
-  React.useEffect(() => {
-    const handleStorageChange = () => {
-      setLocale(getLocale());
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('storage', handleStorageChange);
-      const interval = setInterval(() => {
-        const newLocale = getLocale();
-        setLocale(prev => {
-          const prevIsFr = prev === fr;
-          const newIsFr = newLocale === fr;
-          return prevIsFr !== newIsFr ? newLocale : prev;
-        });
-      }, 100);
-
-      return () => {
-        window.removeEventListener('storage', handleStorageChange);
-        clearInterval(interval);
-      };
-    }
-  }, [propLocale]);
 
   React.useEffect(() => {
     if (month) {

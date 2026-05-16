@@ -14,7 +14,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import CustomTablePagination from '@/components/custom/data-table/custom-table-pagination';
 import { CustomTableProps } from '@/components/custom/data-table/types';
 import { CustomTableToolbar } from '@/components/custom/data-table/custom-table-toolbar';
-import { useLanguage } from '@/context/LanguageContext';
 import { IconLoader } from '@tabler/icons-react';
 
 const CustomTable = <T extends Record<string, any>>({
@@ -23,8 +22,7 @@ const CustomTable = <T extends Record<string, any>>({
   filters,
   onInit
                                                     }: CustomTableProps<T>) => {
-  const table= useCustomTable(url, columns);
-  const { t } = useLanguage();
+  const table = useCustomTable(url, columns);
   useEffect(() => {
     if (onInit) {
       // @ts-ignore
@@ -139,7 +137,7 @@ const CustomTable = <T extends Record<string, any>>({
                           colSpan={table.visibleColumns.length ?? 0}
                           className='h-24 text-center'
                         >
-                          {t('dataTable.noData')}
+                          No data
                         </TableCell>
                       </TableRow>
                     )}

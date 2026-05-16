@@ -1,11 +1,7 @@
 {
-  "name": "next-shadcn-dashboard-starter",
-  "version": "1.0.0",
+  "name": "car-rental-client",
+  "version": "0.1.0",
   "private": true,
-  "author": {
-    "name": "Kiran",
-    "url": "https://github.com/Kiranism"
-  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
@@ -16,7 +12,7 @@
     "format": "prettier --write .",
     "format:check": "prettier -c -w .",
     "prepare": "husky",
-    "server": "json-server --watch db.json --port 3001"
+    "typecheck": "tsc --noEmit"
   },
   "lint-staged": {
     "**/*.{js,jsx,tsx,ts,css,less,scss,sass}": [

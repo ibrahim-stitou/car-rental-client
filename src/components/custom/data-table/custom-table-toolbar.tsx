@@ -19,10 +19,10 @@ import { CustomDataTableSelect } from '@/components/custom/data-table/custom-dat
 import { Cross2Icon, CaretSortIcon, CheckIcon } from '@radix-ui/react-icons';
 import { CalendarIcon, Settings2 } from 'lucide-react';
 
-import { useLanguage } from '@/context/LanguageContext';
 import { CustomTableFilterConfig, UseCustomTableReturnType } from '@/components/custom/data-table/types';
 import { Calendar } from '@/components/ui/calendar';
-import { dFormat, getDateLocale } from '@/utils/date-utils';
+import { dFormat } from '@/utils/date-utils';
+import { enUS } from 'date-fns/locale';
 
 interface CustomTableToolbarProps<TData extends Record<string, any>>
   extends React.ComponentProps<'div'> {
@@ -31,14 +31,11 @@ interface CustomTableToolbarProps<TData extends Record<string, any>>
 }
 
 export function CustomTableToolbar<TData extends Record<string, any>>({
-                                                                        table,
-                                                                        filters = [],
-                                                                        className,
-                                                                        ...props
-                                                                      }: CustomTableToolbarProps<TData>) {
-  const { t , language} = useLanguage();
-
-
+  table,
+  filters = [],
+  className,
+  ...props
+}: CustomTableToolbarProps<TData>) {
   const defaultValues = useMemo(() => {
     return filters.reduce<Record<string, any>>((acc, filter) => {
       acc[filter.field] = filter.defaultValue ?? '';
@@ -49,14 +46,13 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
   const filterSchema = useMemo(() => {
     const schema: Record<string, z.ZodTypeAny> = {};
     filters.forEach((filter) => {
-      const base = z.any().nullable(); // fallback
       schema[filter.field] =
         filter.type === 'text' ? z.string().nullable() :
           filter.type === 'number' ? z.union([z.number(), z.string()]).nullable() :
             filter.type === 'date' ? z.string().nullable() :
               filter.type === 'select' ? z.any().nullable() :
                 filter.type === 'checkbox' ? z.boolean().nullable() :
-                  base;
+                  z.any().nullable();
     });
     return z.object(schema);
   }, [filters]);
@@ -70,7 +66,7 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
   const { handleSubmit, reset, control } = methods;
 
   const handleApplyFilters = handleSubmit((values) => {
-    table.onFilter(values)
+    table.onFilter(values);
   });
 
   const handleResetFilters = () => {
@@ -115,29 +111,26 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className={cn(
-                      "justify-start text-left font-normal",
-                      !field.value && "text-muted-foreground"
-                    )}
+                    className={cn('justify-start text-left font-normal', !field.value && 'text-muted-foreground')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {field.value ? dFormat(new Date(field.value), "PPP", language) : <span>{filter.label}</span>}
+                    {field.value ? dFormat(new Date(field.value), 'PPP') : <span>{filter.label}</span>}
                     {field.value && (
                       <span
                         className="ml-auto flex items-center"
                         onClick={(e) => {
-                          e.stopPropagation(); // Prevents the popover from opening
-                          field.onChange(null); // Clears the date
+                          e.stopPropagation();
+                          field.onChange(null);
                         }}
                       >
-                  <Cross2Icon className="h-4 w-4 text-muted-foreground hover:text-red-500 cursor-pointer" />
-                </span>
+                        <Cross2Icon className="h-4 w-4 text-muted-foreground hover:text-red-500 cursor-pointer" />
+                      </span>
                     )}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
-                    locale={getDateLocale(language)}
+                    locale={enUS}
                     mode="single"
                     selected={field.value ? new Date(field.value) : undefined}
                     onSelect={(date) => {
@@ -161,17 +154,13 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
               control={control}
               name={name}
               render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value}
-                  defaultValue={field.value}
-                >
+                <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                   <SelectTrigger>
                     <SelectValue placeholder={filter.label} />
                   </SelectTrigger>
                   <SelectContent>
                     {/* @ts-ignore */}
-                    <SelectItem value={null}>{t('dataTable.all')}</SelectItem>
+                    <SelectItem value={null}>All</SelectItem>
                     {filter.options?.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -190,13 +179,9 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
             control={control}
             name={name}
             render={({ field }) => (
-              <FormItem className='flex items-center space-x-2'>
+              <FormItem className="flex items-center space-x-2">
                 <FormControl>
-                  <Checkbox
-                    checked={!!field.value}
-                    onCheckedChange={field.onChange}
-                    id={filter.field}
-                  />
+                  <Checkbox checked={!!field.value} onCheckedChange={field.onChange} id={filter.field} />
                 </FormControl>
                 <FormLabel htmlFor={filter.field}>{filter.label}</FormLabel>
               </FormItem>
@@ -217,58 +202,58 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
   return (
     <FormProvider {...methods}>
       <div
-        role='toolbar'
-        aria-orientation='horizontal'
+        role="toolbar"
+        aria-orientation="horizontal"
         className={cn('flex w-full items-start justify-between gap-2 p-1', className)}
         {...props}
       >
-        <div className='flex flex-wrap items-center gap-2'>
+        <div className="flex flex-wrap items-center gap-2">
           {filters.map((filter) => (
-            <div key={filter.field} className='relative'>
+            <div key={filter.field} className="relative">
               {renderFilter(filter)}
             </div>
           ))}
 
           {filters.length > 0 && isFiltered && (
             <Button
-              aria-label='Reset filters'
-              variant='outline'
-              size='sm'
-              className='border-dashed'
+              aria-label="Reset filters"
+              variant="outline"
+              size="sm"
+              className="border-dashed"
               onClick={handleResetFilters}
             >
-              <Cross2Icon className='mr-2 h-4 w-4' />
-              {t('dataTable.reset')}
+              <Cross2Icon className="mr-2 h-4 w-4" />
+              Reset
             </Button>
           )}
 
           {filters.length > 0 && (
-            <Button aria-label='Apply filters' size='sm' onClick={handleApplyFilters}>
-              {t('dataTable.apply')}
+            <Button aria-label="Apply filters" size="sm" onClick={handleApplyFilters}>
+              Apply
             </Button>
           )}
         </div>
 
-        <div className='flex items-center gap-2'>
+        <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                aria-label='Toggle columns'
-                role='combobox'
-                variant='outline'
-                size='sm'
-                className='ml-auto hidden h-8 lg:flex'
+                aria-label="Toggle columns"
+                role="combobox"
+                variant="outline"
+                size="sm"
+                className="ml-auto hidden h-8 lg:flex"
               >
-                <Settings2 className='mr-2 h-4 w-4' />
-                {t('dataTable.columns')}
-                <CaretSortIcon className='ml-auto opacity-50' />
+                <Settings2 className="mr-2 h-4 w-4" />
+                Columns
+                <CaretSortIcon className="ml-auto opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent align='end' className='w-44 p-0'>
+            <PopoverContent align="end" className="w-44 p-0">
               <Command>
-                <CommandInput placeholder={t('dataTable.searchColumns')} />
+                <CommandInput placeholder="Search columns..." />
                 <CommandList>
-                  <CommandEmpty>{t('common.noData')}</CommandEmpty>
+                  <CommandEmpty>No results</CommandEmpty>
                   <CommandGroup>
                     {table.columns.map((column) => (
                       <CommandItem
@@ -286,12 +271,10 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
                         <CheckIcon
                           className={cn(
                             'mr-2 h-4 w-4',
-                            table.visibleColumns.includes(column.data as keyof TData)
-                              ? 'opacity-100'
-                              : 'opacity-0'
+                            table.visibleColumns.includes(column.data as keyof TData) ? 'opacity-100' : 'opacity-0'
                           )}
                         />
-                        <span className='truncate'>{column.label}</span>
+                        <span className="truncate">{column.label}</span>
                       </CommandItem>
                     ))}
                   </CommandGroup>

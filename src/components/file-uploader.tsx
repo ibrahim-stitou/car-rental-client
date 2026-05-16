@@ -13,7 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useControllableState } from '@/hooks/use-controllable-state';
 import { cn, formatBytes } from '@/lib/utils';
-import { useLanguage } from '@/context/LanguageContext';
 
 interface FileUploaderProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -172,11 +171,8 @@ export function FileUploader(props: FileUploaderProps) {
     };
   }, []);
 
-  const isMaxed =
-    (files?.length ?? 0) >= maxFiles && maxFiles !== Infinity && !multiple;
+  const isMaxed = (files?.length ?? 0) >= maxFiles && maxFiles !== Infinity && !multiple;
   const isDisabled = disabled || isMaxed;
-
-  const { t } = useLanguage();
   return (
     <div className='relative flex flex-col gap-6 overflow-hidden'>
       <Dropzone
@@ -209,10 +205,10 @@ export function FileUploader(props: FileUploaderProps) {
                 </div>
                 <div className='space-y-px'>
                   <p className='text-muted-foreground font-medium'>
-                    {t('dropzone.drag_and_drop')}
+                    Drag and drop
                   </p>
                   <p className='text-muted-foreground/70 text-sm'>
-                    {t('dropzone.drag_and_drop_description')}
+                    or click to browse
                     {maxFiles > 1
                       ? ` ${maxFiles === Infinity ? 'multiple' : maxFiles}
                     files (up to ${formatBytes(maxSize)} each)`
@@ -251,7 +247,6 @@ interface FileCardProps {
 }
 
 function FileCard({ file, progress, onRemove }: FileCardProps) {
-  const {t} = useLanguage();
   return (
     <div className='relative flex w-full flex-col gap-4 sm:flex-row'>
       <div className='flex flex-1 space-x-4'>
@@ -291,7 +286,7 @@ function FileCard({ file, progress, onRemove }: FileCardProps) {
           className='size-8 rounded-full'
         >
           <IconX className='text-muted-foreground' />
-          <span className='sr-only'>{t('dropzone.remove_file')}</span>
+          <span className='sr-only'>Remove file</span>
         </Button>
       </div>
     </div>

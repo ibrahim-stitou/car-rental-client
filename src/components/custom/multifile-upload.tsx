@@ -16,7 +16,6 @@ import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import { cn, formatBytes } from '@/lib/utils';
 import type { UploadedFile } from '@/components/custom/singlefile-upload';
-import { useLanguage } from '@/context/LanguageContext';
 
 export interface MultiFileUploadProps {
   value?: UploadedFile[];
@@ -57,8 +56,6 @@ export function MultiFileUpload({
   collection = 'default',
   showPreview = false,
 }: MultiFileUploadProps) {
-  const { t } = useLanguage();
-
   const [error, setError] = React.useState<string | null>(null);
   const [isUploading, setIsUploading] = React.useState(false);
   const [files, setFiles] = React.useState<UploadedFile[]>(value || []);
@@ -96,26 +93,19 @@ export function MultiFileUpload({
     async (acceptedFiles: FileWithPath[]) => {
       setError(null);
       if (acceptedFiles.length === 0) {
-        setError(t('dropzone.no_valid_file') || 'No valid file selected');
+        setError('No valid file selected');
         return;
       }
 
       const currentCount = files.length;
       if (currentCount + acceptedFiles.length > maxFiles) {
-        setError(
-          (t('dropzone.max_files_error') || 'Too many files. Max:') + ` ${maxFiles}`
-        );
+        setError(`Too many files. Max: ${maxFiles}`);
         return;
       }
 
-      const tooBig = acceptedFiles.find(
-        (f) => f.size > maxSize * 1024 * 1024
-      );
+      const tooBig = acceptedFiles.find((f) => f.size > maxSize * 1024 * 1024);
       if (tooBig) {
-        setError(
-          (t('dropzone.max_size_error') || 'File too large. Max:') +
-            ` ${maxSize}MB`
-        );
+        setError(`File too large. Max: ${maxSize}MB`);
         return;
       }
 
@@ -130,16 +120,12 @@ export function MultiFileUpload({
         onFilesChangeAction(next);
       } catch (e: any) {
         console.error('Multi upload failed', e);
-        setError(
-          e?.response?.data?.message ||
-            t('dropzone.upload_failed') ||
-            'Upload failed. Please try again.'
-        );
+        setError(e?.response?.data?.message || 'Upload failed. Please try again.');
       } finally {
         setIsUploading(false);
       }
     },
-    [files, maxFiles, maxSize, onFilesChangeAction, t, uploadSingle]
+    [files, maxFiles, maxSize, onFilesChangeAction, uploadSingle]
   );
 
   const removeFile = async (idx: number) => {
@@ -174,10 +160,7 @@ export function MultiFileUpload({
     disabled: disabled || isUploading,
   });
 
-  const help =
-    description ||
-    t('dropzone.drag_and_drop_description') ||
-    'Drag & drop files here, or click to browse';
+  const help = description || 'Drag & drop files here, or click to browse';
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -195,10 +178,10 @@ export function MultiFileUpload({
         <div className="flex flex-col items-center justify-center gap-2">
           <UploadCloud className="h-8 w-8 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
-            {isUploading ? (t('dropzone.uploading') || 'Uploading...') : help}
+            {isUploading ? 'Uploading...' : help}
           </p>
           <p className="text-xs text-muted-foreground">
-            {t('dropzone.limits') || 'Limits:'} {maxFiles} {t('dropzone.files') || 'files'} {'•'} {maxSize}MB
+            Limits: {maxFiles} files • {maxSize}MB
           </p>
         </div>
       </div>
@@ -239,12 +222,12 @@ export function MultiFileUpload({
                     {showPreview ? (
                       <>
                         <Eye className="h-4 w-4 mr-1" />
-                        {t('common.view') || 'View'}
+                        View
                       </>
                     ) : (
                       <>
                         <ArrowDownToLine className="h-4 w-4 mr-1" />
-                        {t('common.download') || 'Download'}
+                        Download
                       </>
                     )}
                   </Button>
@@ -258,7 +241,7 @@ export function MultiFileUpload({
                     className="h-8"
                     onClick={() => move(idx, idx - 1)}
                     disabled={idx === 0}
-                    aria-label={t('common.move_up') || 'Move up'}
+                    aria-label="Move up"
                   >
                     ↑
                   </Button>
@@ -269,7 +252,7 @@ export function MultiFileUpload({
                     className="h-8"
                     onClick={() => move(idx, idx + 1)}
                     disabled={idx === files.length - 1}
-                    aria-label={t('common.move_down') || 'Move down'}
+                    aria-label="Move down"
                   >
                     ↓
                   </Button>
@@ -282,7 +265,7 @@ export function MultiFileUpload({
                   className="h-8 w-8 text-destructive"
                   onClick={() => removeFile(idx)}
                   disabled={disabled || isUploading}
-                  aria-label={t('common.remove') || 'Remove'}
+                  aria-label="Remove"
                 >
                   <X className="h-4 w-4" />
                 </Button>
