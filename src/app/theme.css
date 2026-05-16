@@ -1,337 +1,138 @@
 body {
-    overscroll-behavior: none;
-    background-color: transparent;
+  overscroll-behavior: none;
+  background-color: transparent;
 }
 
-:root {
-    --primary: #3B1E90;
-    --primary-light: #5E43B0;
-    --primary-lighter: #8A74CC;
-    --primary-dark: #2A1566;
-    --primary-darker: #1A0D3F;
-    --primary-foreground: #FFFFFF;
-    --card-background: #e9e0ff;
-    --table-header: #F4F0FF;
+/* ─── Car Rental theme ────────────────────────────────────── */
+.theme-car-rental {
+  --primary:          #1E3A5F;
+  --primary-light:    #2D5F9E;
+  --primary-dark:     #152D49;
+  --primary-foreground: #FFFFFF;
+
+  --accent-brand:     #E8601C;
+  --accent-light:     #F59452;
+
+  --sidebar-bg:       #1E3A5F;
+  --sidebar-border:   #152D49;
+  --sidebar-text:     #E2E8F0;
+  --sidebar-hover:    #2D5F9E;
+  --sidebar-active:   #2D5F9E;
+  --sidebar-indicator: #E8601C;
+
+  --scrollbar-thumb:  #2D5F9E;
+  --scrollbar-track:  transparent;
 }
 
-.theme-scaled {
-    @media (min-width: 1024px) {
-        --radius: 0.6rem;
-        --text-lg: 1.05rem;
-        --text-base: 0.85rem;
-        --text-sm: 0.8rem;
-        --spacing: 0.222222rem;
-    }
-
-    [data-slot='card'] {
-        --spacing: 0.16rem;
-    }
-
-    [data-slot='select-trigger'],
-    [data-slot='toggle-group-item'] {
-        --spacing: 0.222222rem;
-    }
+/* Sidebar shell */
+.theme-car-rental [data-slot='sidebar'] {
+  background-color: var(--sidebar-bg);
+  border-right: 1px solid var(--sidebar-border);
 }
 
-.theme-blue,
-.theme-blue-scaled {
-    --primary: var(--color-blue-600);
-    --primary-foreground: var(--color-blue-50);
+.theme-car-rental [data-slot='sidebar-header'],
+.theme-car-rental [data-slot='sidebar-footer'] {
+  border-color: var(--sidebar-border);
 }
 
-.dark .theme-blue,
-.dark .theme-blue-scaled {
-    --primary: var(--color-blue-500);
-    --primary-foreground: var(--color-blue-50);
+/* Nav items */
+.theme-car-rental [data-slot='sidebar-menu-button'] {
+  color: var(--sidebar-text);
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
 }
 
-.theme-green,
-.theme-green-scaled {
-    --primary: var(--color-lime-600);
-    --primary-foreground: var(--color-lime-50);
+.theme-car-rental [data-slot='sidebar-menu-button'] svg {
+  color: var(--sidebar-text);
+  width: 20px;
+  height: 20px;
 }
 
-.dark .theme-green,
-.dark .theme-green-scaled {
-    --primary: var(--color-lime-600);
-    --primary-foreground: var(--color-lime-50);
+.theme-car-rental [data-slot='sidebar-menu-button']:hover {
+  background-color: var(--sidebar-hover);
+  color: #FFFFFF;
 }
 
-.theme-amber,
-.theme-amber-scaled {
-    --primary: var(--color-amber-600);
-    --primary-foreground: var(--color-amber-50);
+.theme-car-rental [data-slot='sidebar-menu-button']:hover svg {
+  color: #FFFFFF;
 }
 
-.dark .theme-amber,
-.dark .theme-amber-scaled {
-    --primary: var(--color-amber-500);
-    --primary-foreground: var(--color-amber-50);
+/* Active nav item with orange left indicator */
+.theme-car-rental [data-slot='sidebar-menu-button'][data-active='true'] {
+  background-color: var(--sidebar-active);
+  color: #FFFFFF;
+  font-weight: 500;
+  position: relative;
 }
 
-.theme-inginuity {
-    --primary: #3B1E90;
-    --primary-foreground: #FFFFFF;
+.theme-car-rental [data-slot='sidebar-menu-button'][data-active='true']::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--sidebar-indicator);
+  border-radius: 0 2px 2px 0;
 }
 
-.dark .theme-inginuity {
-    --primary: #3B1E90;
-    --primary-foreground: #FFFFFF;
+.theme-car-rental [data-slot='sidebar-menu-button'][data-active='true'] svg {
+  color: #FFFFFF;
 }
 
-.theme-mono,
-.theme-mono-scaled {
-    --font-sans: var(--font-mono);
-    --primary: var(--color-neutral-600);
-    --primary-foreground: var(--color-neutral-50);
+/* Menu item spacing */
+.theme-car-rental [data-slot='sidebar-menu-item'] {
+  padding: 0.2rem 0;
 }
 
-.dark .theme-mono,
-.dark .theme-mono-scaled {
-    --primary: var(--color-neutral-500);
-    --primary-foreground: var(--color-neutral-50);
+/* Sidebar footer */
+.theme-car-rental [data-slot='sidebar-footer'] {
+  background-color: var(--sidebar-bg);
+  border-top: 1px solid var(--sidebar-border);
+  padding: 0.5rem;
 }
 
-.theme-mono .rounded-xs,
-.theme-mono .rounded-sm,
-.theme-mono .rounded-md,
-.theme-mono .rounded-lg,
-.theme-mono .rounded-xl,
-.theme-mono-scaled .rounded-xs,
-.theme-mono-scaled .rounded-sm,
-.theme-mono-scaled .rounded-md,
-.theme-mono-scaled .rounded-lg,
-.theme-mono-scaled .rounded-xl {
-    border-radius: 0 !important;
+.theme-car-rental [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button'] {
+  background-color: transparent;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
 }
 
-.theme-mono .shadow-xs,
-.theme-mono .shadow-sm,
-.theme-mono .shadow-md,
-.theme-mono .shadow-lg,
-.theme-mono .shadow-xl,
-.theme-mono-scaled .shadow-xs,
-.theme-mono-scaled .shadow-sm,
-.theme-mono-scaled .shadow-md,
-.theme-mono-scaled .shadow-lg,
-.theme-mono-scaled .shadow-xl {
-    box-shadow: none !important;
+.theme-car-rental [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button']:hover {
+  background-color: var(--sidebar-hover);
 }
 
-.theme-mono [data-slot='sidebar-menu-button'] svg,
-.theme-mono-scaled [data-slot='sidebar-menu-button'] svg {
-    color: var(--primary);
+.theme-car-rental [data-slot='sidebar-footer'] [data-state='open'] {
+  background-color: var(--sidebar-active);
 }
 
-.theme-mono [data-slot='sidebar-menu-button']:hover,
-.theme-mono-scaled [data-slot='sidebar-menu-button']:hover {
-    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-    color: var(--primary);
+/* Scrollbar */
+.theme-car-rental [data-slot='sidebar-content']::-webkit-scrollbar {
+  width: 6px;
 }
 
-.theme-mono [data-slot='sidebar-menu-button'][data-active="true"],
-.theme-mono-scaled [data-slot='sidebar-menu-button'][data-active="true"] {
-    background-color: color-mix(in srgb, var(--primary) 10%, transparent);
-    color: var(--primary);
-    font-weight: 500;
+.theme-car-rental [data-slot='sidebar-content']::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
 }
 
-.theme-mono [data-slot='toggle-group'],
-.theme-mono [data-slot='toggle-group-item'],
-.theme-mono-scaled [data-slot='toggle-group'],
-.theme-mono-scaled [data-slot='toggle-group-item'] {
-    border-radius: 0 !important;
-    box-shadow: none !important;
+.theme-car-rental [data-slot='sidebar-content']::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+  border-radius: 3px;
 }
 
-label[aria-required="true"] {
-    gap: 0;
+.theme-car-rental [data-slot='sidebar-content'] {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scroll-behavior: smooth;
 }
 
-label[aria-required="true"]::after {
-    content: "*";
-    color: var(--color-red-500);
-    margin-left: 0.1rem;
+/* ─── Required field indicator ────────────────────────────── */
+label[aria-required='true'] {
+  gap: 0;
 }
 
-/* Style spécifique pour la sidebar Inginuity */
-.theme-inginuity {
-    --sidebar: #3B1E90;
-    --sidebar-bg: #362172;
-    --sidebar-border: #2A1566;
-    --sidebar-text: #FFFFFF;
-    --sidebar-hover: #5e43b0;
-    --sidebar-active: #5E43B0;
-    --scrollbar-thumb: #5E43B0; /* Couleur du curseur */
-    --scrollbar-track: rgba(42, 21, 102, 0); /* Couleur de la piste */
-}
-
-.theme-inginuity [data-slot='sidebar'] {
-    background-color: var(--sidebar-bg);
-    border-right: 1px solid var(--sidebar-border);
-}
-.theme-inginuity [data-slot='sidebar-header'],
-.theme-inginuity [data-slot='sidebar-footer'] {
-    border-color: var(--sidebar-border);
-}
-
-.theme-inginuity [data-slot='sidebar-menu-button'] {
-    color: var(--sidebar-text);
-    transition: all 0.2s;
-}
-
-.theme-inginuity [data-slot='sidebar-menu-button']:hover {
-    background-color: var(--sidebar-hover);
-    color: var(--primary-foreground);
-}
-
-.theme-inginuity [data-slot='sidebar-menu-button'][data-active="true"] {
-    background-color: var(--sidebar-active);
-    color: var(--primary-foreground);
-    font-weight: 500;
-    position: relative;
-}
-
-.theme-inginuity [data-slot='sidebar-menu-button'][data-active="true"]::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 3px;
-    background: var(--primary-foreground);
-}
-
-.theme-inginuity [data-slot='sidebar-toggle'] {
-    background-color: var(--sidebar-bg);
-    color: var(--sidebar-text);
-    border: 1px solid var(--sidebar-border);
-}
-
-.theme-inginuity [data-slot='sidebar-toggle']:hover {
-    background-color: var(--sidebar-hover);
-}
-
-.theme-inginuity [data-slot='sidebar-menu-button'] svg {
-    color: var(--sidebar-text);
-}
-/* Style de la scrollbar pour WebKit (Chrome, Safari, Edge) */
-.theme-inginuity [data-slot='sidebar-content']::-webkit-scrollbar {
-    width: 8px;
-}
-
-.theme-inginuity [data-slot='sidebar-content']::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-    border-radius: 4px;
-}
-
-.theme-inginuity [data-slot='sidebar-content']::-webkit-scrollbar-thumb {
-    background-color: var(--scrollbar-thumb);
-    border-radius: 4px;
-    border: 1px solid var(--sidebar-border);
-}
-
-.theme-inginuity [data-slot='sidebar-content']::-webkit-scrollbar-thumb:hover {
-    background-color: var(--primary-light);
-}
-
-/* Style de la scrollbar pour Firefox */
-.theme-inginuity [data-slot='sidebar-content'] {
-    scrollbar-width: thin;
-    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
-}
-
-/* Style général du contenu de la sidebar */
-.theme-inginuity [data-slot='sidebar-content'] {
-    overflow-y: auto;
-    scrollbar-gutter: stable;
-    padding-right: 4px;
-}
-
-/* Animation fluide lors du défilement */
-.theme-inginuity [data-slot='sidebar-content'] {
-    scroll-behavior: smooth;
-}
-
-/* Style spécifique pour le footer de la sidebar Inginuity */
-.theme-inginuity [data-slot='sidebar-footer'] {
-    background-color: var(--sidebar-bg);
-    border-top: 1px solid var(--sidebar-border);
-    padding: 0.5rem;
-    margin-top: auto; /* Pour le pousser vers le bas */
-}
-
-/* Style du bouton utilisateur dans le footer */
-.theme-inginuity [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button'] {
-    background-color: transparent;
-    transition: background-color 0.2s ease;
-    border-radius: 0.375rem;
-    padding: 0.5rem;
-}
-
-.theme-inginuity [data-slot='sidebar-footer'] [data-slot='sidebar-menu-button']:hover {
-    background-color: var(--sidebar-hover);
-}
-
-/* Style du dropdown menu */
-.theme-inginuity [data-slot='sidebar-footer'] [data-slot='dropdown-menu-content'] {
-    background-color: var(--sidebar-bg);
-    border: 1px solid var(--sidebar-border);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-}
-
-.theme-inginuity [data-slot='sidebar-footer'] [data-slot='dropdown-menu-item'] {
-    color: var(--sidebar-text);
-    padding: 0.5rem 1rem;
-    transition: background-color 0.2s ease;
-}
-
-.theme-inginuity [data-slot='sidebar-footer'] [data-slot='dropdown-menu-item']:hover {
-    background-color: var(--sidebar-hover);
-    color: var(--primary-foreground);
-}
-
-/* Style de l'avatar et du texte */
-.theme-inginuity [data-slot='sidebar-footer'] .avatar {
-    border: 1px solid var(--sidebar-border);
-}
-
-.theme-inginuity [data-slot='sidebar-footer'] .truncate {
-    color: var(--sidebar-text);
-}
-
-.theme-inginuity [data-slot='sidebar-footer'] .text-xs {
-    opacity: 0.8;
-}
-
-/* Style du séparateur */
-.theme-inginuity [data-slot='sidebar-footer'] [data-slot='dropdown-menu-separator'] {
-    background-color: var(--sidebar-border);
-    margin: 0.25rem 0;
-}
-
-/* Style pour l'état ouvert */
-.theme-inginuity [data-slot='sidebar-footer'] [data-state='open'] {
-    background-color: var(--sidebar-active);
-}
-
-.theme-inginuity [data-slot="sidebar-menu-button"]
-{
-    color: var(--sidebar-text);
-    font-size: medium;
-    transition: all .2s;
-}
-
-.theme-inginuity [data-slot="sidebar-menu-button"] svg
-
-{
-    color: var(--sidebar-text);
-    height: 20px;
-    width: 20px;
-}
-
-.theme-inginuity [data-slot="sidebar-menu-item"]
-{
-   padding: 0.3rem 0 ;
-
+label[aria-required='true']::after {
+  content: '*';
+  color: var(--color-red-500);
+  margin-left: 0.1rem;
 }

@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 
 export function ThemeInitializer() {
-  useEffect(() => {document.documentElement.classList.add('theme-inginuity');
-    localStorage.theme = 'inginuity';
+  useEffect(() => {
+    document.body.classList.add('theme-car-rental');
   }, []);
 
   return null;

@@ -31,7 +31,7 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   const cookieStore = await cookies();
-  const activeThemeValue = 'default';
+  const activeThemeValue = 'car-rental';
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -40,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           dangerouslySetInnerHTML={{
             __html: `
       try {
+        document.body.classList.add('theme-car-rental');
         if (localStorage.darkMode === 'true' ||
            (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
           document.documentElement.classList.add('dark');
