@@ -1,0 +1,335 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
+import { useCreateVehicle, useUpdateVehicle } from '../hooks/use-vehicles';
+import { useAgencies } from '@/features/agencies/hooks/use-agencies';
+import type { Vehicle } from '@/types/vehicle.types';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import {
+  VEHICLE_CATEGORY_OPTIONS, FUEL_TYPE_OPTIONS, TRANSMISSION_OPTIONS,
+} from '@/config/constants';
+
+const schema = z.object({
+  agency_id: z.string().min(1, 'Agency is required'),
+  brand: z.string().min(1, 'Brand is required'),
+  model: z.string().min(1, 'Model is required'),
+  year: z.coerce.number().min(2000).max(new Date().getFullYear() + 1),
+  registration_number: z.string().min(1, 'Registration number is required'),
+  vin: z.string().optional(),
+  color: z.string().optional(),
+  category: z.string().min(1, 'Category is required'),
+  fuel_type: z.string().min(1, 'Fuel type is required'),
+  transmission: z.string().min(1, 'Transmission is required'),
+  seats: z.coerce.number().min(2).max(9),
+  daily_rate: z.coerce.number().min(0, 'Daily rate must be positive'),
+  deposit_amount: z.coerce.number().min(0),
+  mileage: z.coerce.number().min(0),
+  notes: z.string().optional(),
+  show_on_website: z.boolean().optional(),
+  website_description: z.string().optional(),
+  website_price_override: z.coerce.number().optional(),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  vehicle?: Vehicle | null;
+}
+
+export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
+  const createMutation = useCreateVehicle();
+  const updateMutation = useUpdateVehicle(vehicle?.id ?? '');
+  const { data: agenciesRes } = useAgencies({ per_page: 100 });
+  const agencies = agenciesRes?.data ?? [];
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      agency_id: '', brand: '', model: '', year: new Date().getFullYear(),
+      registration_number: '', vin: '', color: '', category: '', fuel_type: '',
+      transmission: '', seats: 5, daily_rate: 0, deposit_amount: 0, mileage: 0,
+      notes: '', show_on_website: false, website_description: '', website_price_override: undefined,
+    },
+  });
+
+  useEffect(() => {
+    if (vehicle) {
+      form.reset({
+        agency_id: vehicle.agency_id,
+        brand: vehicle.brand,
+        model: vehicle.model,
+        year: vehicle.year,
+        registration_number: vehicle.registration_number,
+        vin: vehicle.vin ?? '',
+        color: vehicle.color ?? '',
+        category: vehicle.category,
+        fuel_type: vehicle.fuel_type,
+        transmission: vehicle.transmission,
+        seats: vehicle.seats,
+        daily_rate: Number(vehicle.daily_rate),
+        deposit_amount: Number(vehicle.deposit_amount),
+        mileage: vehicle.mileage,
+        notes: vehicle.notes ?? '',
+        show_on_website: vehicle.show_on_website ?? false,
+        website_description: vehicle.website_description ?? '',
+        website_price_override: vehicle.website_price_override ? Number(vehicle.website_price_override) : undefined,
+      });
+    } else {
+      form.reset({
+        agency_id: '', brand: '', model: '', year: new Date().getFullYear(),
+        registration_number: '', vin: '', color: '', category: '', fuel_type: '',
+        transmission: '', seats: 5, daily_rate: 0, deposit_amount: 0, mileage: 0,
+        notes: '', show_on_website: false, website_description: '',
+      });
+    }
+  }, [vehicle, form, open]);
+
+  const onSubmit = (values: FormValues) => {
+    if (vehicle) {
+      updateMutation.mutate(values as any, {
+        onSuccess: () => { toast.success('Vehicle updated successfully'); onOpenChange(false); },
+        onError: () => toast.error('Failed to update vehicle'),
+      });
+    } else {
+      createMutation.mutate(values as any, {
+        onSuccess: () => { toast.success('Vehicle created successfully'); onOpenChange(false); form.reset(); },
+        onError: () => toast.error('Failed to create vehicle'),
+      });
+    }
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-2xl p-0">
+        <SheetHeader className="px-6 py-4 border-b">
+          <SheetTitle>{vehicle ? 'Edit Vehicle' : 'Add Vehicle'}</SheetTitle>
+          <SheetDescription>
+            {vehicle ? 'Update vehicle information' : 'Add a new vehicle to your fleet'}
+          </SheetDescription>
+        </SheetHeader>
+        <ScrollArea className="h-[calc(100vh-140px)]">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6">
+              {/* Agency */}
+              <FormField control={form.control} name="agency_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Agency *</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger><SelectValue placeholder="Select agency" /></SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {agencies.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <Separator />
+              <p className="text-sm font-medium text-muted-foreground">Vehicle Information</p>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="brand" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand *</FormLabel>
+                    <FormControl><Input placeholder="Toyota" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="model" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Model *</FormLabel>
+                    <FormControl><Input placeholder="Corolla" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <FormField control={form.control} name="year" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Year *</FormLabel>
+                    <FormControl><Input type="number" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="color" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Color</FormLabel>
+                    <FormControl><Input placeholder="White" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="seats" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Seats *</FormLabel>
+                    <FormControl><Input type="number" min={2} max={9} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="registration_number" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Registration Number *</FormLabel>
+                    <FormControl><Input placeholder="12345-A-1" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="vin" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>VIN</FormLabel>
+                    <FormControl><Input placeholder="17 characters" maxLength={17} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <FormField control={form.control} name="category" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category *</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {VEHICLE_CATEGORY_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="fuel_type" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Fuel Type *</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {FUEL_TYPE_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="transmission" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transmission *</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                      <SelectContent>
+                        {TRANSMISSION_OPTIONS.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <Separator />
+              <p className="text-sm font-medium text-muted-foreground">Pricing & Condition</p>
+
+              <div className="grid grid-cols-3 gap-4">
+                <FormField control={form.control} name="daily_rate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Daily Rate (MAD) *</FormLabel>
+                    <FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="deposit_amount" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Deposit (MAD) *</FormLabel>
+                    <FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="mileage" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Mileage (km) *</FormLabel>
+                    <FormControl><Input type="number" min={0} {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <FormField control={form.control} name="notes" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl><Textarea placeholder="Additional information…" rows={3} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <Separator />
+              <p className="text-sm font-medium text-muted-foreground">Website Settings</p>
+
+              <FormField control={form.control} name="show_on_website" render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <FormLabel>Show on website</FormLabel>
+                    <p className="text-xs text-muted-foreground mt-0.5">Display this vehicle on the public website</p>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )} />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField control={form.control} name="website_price_override" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website Price Override (MAD)</FormLabel>
+                    <FormControl><Input type="number" min={0} placeholder="Leave empty to use daily rate" {...field} value={field.value ?? ''} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+
+              <FormField control={form.control} name="website_description" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Website Description</FormLabel>
+                  <FormControl><Textarea placeholder="Description displayed on the public website…" rows={2} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <div className="flex justify-end gap-3 pt-2">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Saving…' : vehicle ? 'Update Vehicle' : 'Create Vehicle'}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
+}

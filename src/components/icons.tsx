@@ -40,6 +40,7 @@ import {
   IconFileInvoice,
   IconClipboardCheck,
   IconId,
+  IconGlobe,
 } from '@tabler/icons-react';
 
 export type Icon = React.ComponentType<IconProps>;
@@ -87,4 +88,5 @@ export const Icons = {
   notifications: IconBell,
   roles: IconKey,
   logs: IconHistory,
+  globe: IconGlobe,
 };

@@ -27,6 +27,10 @@ export interface Vehicle {
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+  show_on_website: boolean;
+  website_description: string | null;
+  website_price_override: number | null;
+  website_price: number;
 }
 
 export interface VehicleAgency {
@@ -57,6 +61,9 @@ export interface CreateVehicleInput {
   deposit_amount: number;
   mileage: number;
   notes?: string;
+  show_on_website?: boolean;
+  website_description?: string;
+  website_price_override?: number;
 }
 
 export type UpdateVehicleInput = Partial<CreateVehicleInput>;

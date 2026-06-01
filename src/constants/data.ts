@@ -3,7 +3,7 @@ import { NavItem } from 'types';
 export const navItems: NavItem[] = [
   {
     title: 'Dashboard',
-    url: '/dashboard',
+    url: '/overview',
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
@@ -111,6 +111,22 @@ export const navItems: NavItem[] = [
     icon: 'logs',
     isActive: false,
     shortcut: ['l', 'g'],
+    items: [],
+  },
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: 'settings',
+    isActive: false,
+    shortcut: ['s', 's'],
+    items: [],
+  },
+  {
+    title: 'Website',
+    url: '/website',
+    icon: 'globe',
+    isActive: false,
+    shortcut: ['w', 'b'],
     items: [],
   },
 ];

@@ -1,12 +1,6 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { VehiclesView } from '@/features/vehicles/components/vehicles-view';
 
 export const metadata: Metadata = { title: 'Vehicles | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Vehicles</h1>
-    </main>
-  );
-}
-
+export default function Page() { return <VehiclesView />; }

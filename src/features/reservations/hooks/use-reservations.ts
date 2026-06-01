@@ -34,6 +34,10 @@ export function useDeleteReservation() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: (id: string) => reservationService.delete(id), onSuccess: () => qc.invalidateQueries({ queryKey: reservationKeys.all }) });
 }
+export function useConfirmReservation() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => reservationService.confirm(id), onSuccess: () => qc.invalidateQueries({ queryKey: reservationKeys.all }) });
+}
 export function useActivateReservation() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: ({ id, input }: { id: string; input: ActivateReservationInput }) => reservationService.activate(id, input), onSuccess: () => qc.invalidateQueries({ queryKey: reservationKeys.all }) });

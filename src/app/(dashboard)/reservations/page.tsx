@@ -1,12 +1,6 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { ReservationsView } from '@/features/reservations/components/reservations-view';
 
 export const metadata: Metadata = { title: 'Reservations | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Reservations</h1>
-    </main>
-  );
-}
-
+export default function Page() { return <ReservationsView />; }
