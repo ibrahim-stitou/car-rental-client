@@ -223,13 +223,13 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
               onClick={handleResetFilters}
             >
               <Cross2Icon className="mr-2 h-4 w-4" />
-              Reset
+              Réinitialiser
             </Button>
           )}
 
           {filters.length > 0 && (
             <Button aria-label="Apply filters" size="sm" onClick={handleApplyFilters}>
-              Apply
+              Filtrer
             </Button>
           )}
         </div>
@@ -245,7 +245,7 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
                 className="ml-auto hidden h-8 lg:flex"
               >
                 <Settings2 className="mr-2 h-4 w-4" />
-                Columns
+                Colonnes
                 <CaretSortIcon className="ml-auto opacity-50" />
               </Button>
             </PopoverTrigger>

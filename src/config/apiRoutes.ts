@@ -44,6 +44,7 @@ export const apiRoutes = {
     show: (id: string) => `${BASE}/reservations/${id}`,
     update: (id: string) => `${BASE}/reservations/${id}`,
     delete: (id: string) => `${BASE}/reservations/${id}`,
+    confirm: (id: string) => `${BASE}/reservations/${id}/confirm`,
     activate: (id: string) => `${BASE}/reservations/${id}/activate`,
     complete: (id: string) => `${BASE}/reservations/${id}/complete`,
     cancel: (id: string) => `${BASE}/reservations/${id}/cancel`,
@@ -166,6 +167,19 @@ export const apiRoutes = {
     vehicle: (id: string) => `${BASE}/public/vehicles/${id}`,
     submitReservation: `${BASE}/public/reservations`,
   },
+  expenses: {
+    list: `${BASE}/expenses`,
+    create: `${BASE}/expenses`,
+    show: (id: string) => `${BASE}/expenses/${id}`,
+    update: (id: string) => `${BASE}/expenses/${id}`,
+    delete: (id: string) => `${BASE}/expenses/${id}`,
+    statistics: `${BASE}/expenses/statistics`,
+  },
+  payments: {
+    list: (reservationId: string) => `${BASE}/reservations/${reservationId}/payments`,
+    create: (reservationId: string) => `${BASE}/reservations/${reservationId}/payments`,
+    delete: (reservationId: string, paymentId: string) => `${BASE}/reservations/${reservationId}/payments/${paymentId}`,
+  },
   // Extended routes
   vehiclesExt: {
     photos: (id: string) => `${BASE}/vehicles/${id}/photos`,
@@ -175,6 +189,15 @@ export const apiRoutes = {
     documents: (id: string) => `${BASE}/vehicles/${id}/documents`,
     history: (id: string) => `${BASE}/vehicles/${id}/history`,
     vehicleReservations: (id: string) => `${BASE}/vehicles/${id}/reservations`,
+    statistics: (id: string) => `${BASE}/vehicles/${id}/statistics`,
+    expenses: (id: string) => `${BASE}/vehicles/${id}/expenses`,
+  },
+  agenciesExt: {
+    statistics: (id: string) => `${BASE}/agencies/${id}/statistics`,
+  },
+  clientsExt: {
+    statistics: (id: string) => `${BASE}/clients/${id}/statistics`,
+    reservations: (id: string) => `${BASE}/clients/${id}/reservations`,
   },
   reservationsExt: {
     confirm: (id: string) => `${BASE}/reservations/${id}/confirm`,
@@ -182,7 +205,9 @@ export const apiRoutes = {
     uploadContract: (id: string) => `${BASE}/reservations/${id}/contract`,
     uploadPickupPhotos: (id: string) => `${BASE}/reservations/${id}/pickup-photos`,
     uploadReturnPhotos: (id: string) => `${BASE}/reservations/${id}/return-photos`,
+    noShow: (id: string) => `${BASE}/reservations/${id}/no-show`,
     overdue: `${BASE}/reservations/overdue`,
+    credits: `${BASE}/reservations/credits`,
   },
   maintenancesExt: {
     complete: (id: string) => `${BASE}/maintenances/${id}/complete`,

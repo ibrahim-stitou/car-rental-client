@@ -3,4 +3,6 @@ import { ReservationsView } from '@/features/reservations/components/reservation
 
 export const metadata: Metadata = { title: 'Reservations | Car Rental' };
 
-export default function Page() { return <ReservationsView />; }
+export default function ReservationsPage() {
+  return <ReservationsView />;
+}

@@ -34,3 +34,11 @@ export function useMarkBillingPaid() {
   const qc = useQueryClient();
   return useMutation({ mutationFn: ({ id, input }: { id: string; input: MarkBillingPaidInput }) => billingService.markPaid(id, input), onSuccess: () => qc.invalidateQueries({ queryKey: billingKeys.all }) });
 }
+export function useApproveBillingDocument() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (id: string) => billingService.approve(id), onSuccess: () => qc.invalidateQueries({ queryKey: billingKeys.all }) });
+}
+export function useCreateBillingFromReservation() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: ({ reservationId, type }: { reservationId: string; type?: string }) => billingService.createFromReservation(reservationId, type), onSuccess: () => qc.invalidateQueries({ queryKey: billingKeys.all }) });
+}

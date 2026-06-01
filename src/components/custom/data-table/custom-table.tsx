@@ -137,7 +137,7 @@ const CustomTable = <T extends Record<string, any>>({
                           colSpan={table.visibleColumns.length ?? 0}
                           className='h-24 text-center'
                         >
-                          No data
+                          Aucune donnée
                         </TableCell>
                       </TableRow>
                     )}

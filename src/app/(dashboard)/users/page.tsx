@@ -1,12 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { UsersView } from '@/features/users/components/users-view';
 
 export const metadata: Metadata = { title: 'Users | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Users</h1>
-    </main>
-  );
+export default function UsersPage() {
+  return <UsersView />;
 }
-

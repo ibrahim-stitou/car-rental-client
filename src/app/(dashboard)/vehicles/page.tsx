@@ -3,4 +3,6 @@ import { VehiclesView } from '@/features/vehicles/components/vehicles-view';
 
 export const metadata: Metadata = { title: 'Vehicles | Car Rental' };
 
-export default function Page() { return <VehiclesView />; }
+export default function VehiclesPage() {
+  return <VehiclesView />;
+}

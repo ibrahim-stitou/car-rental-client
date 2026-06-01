@@ -4,17 +4,13 @@ import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { signIn } from 'next-auth/react';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
+  Form, FormControl, FormField, FormItem, FormLabel, FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { signInSchema, type SignInFormValues } from '../schemas/sign-in.schema';
@@ -39,75 +35,122 @@ export default function SignInForm() {
         });
 
         if (result?.error) {
-          toast.error('Invalid email or password');
+          toast.error('Email ou mot de passe incorrect');
+          form.setError('password', { message: 'Identifiants invalides' });
         } else {
-          toast.success('Signed in successfully');
+          toast.success('Connexion réussie !');
           window.location.href = paths.dashboard.root;
         }
       } catch {
-        toast.error('Something went wrong. Please try again.');
+        toast.error('Une erreur est survenue. Veuillez réessayer.');
       }
     });
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+
+        {/* Email */}
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                Adresse email
+              </FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@example.com" disabled={isPending} {...field} />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                  <Input
+                    type="email"
+                    placeholder="votre@email.com"
+                    disabled={isPending}
+                    className={cn(
+                      'pl-9 h-11 rounded-xl border-border/60',
+                      'focus:border-primary focus:ring-1 focus:ring-primary/30',
+                      'bg-background transition-all duration-200',
+                    )}
+                    {...field}
+                  />
+                </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
+        {/* Password */}
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>Password</FormLabel>
+                <FormLabel className="text-xs font-semibold text-foreground/80 uppercase tracking-wider">
+                  Mot de passe
+                </FormLabel>
                 <Link
                   href={paths.auth.forgotPassword}
-                  className="text-xs text-primary hover:underline"
+                  className="text-xs text-primary hover:text-primary/80 hover:underline transition-colors"
                 >
-                  Forgot password?
+                  Mot de passe oublié ?
                 </Link>
               </div>
               <FormControl>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
                   <Input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
                     disabled={isPending}
-                    className="pr-10"
+                    className={cn(
+                      'pl-9 pr-10 h-11 rounded-xl border-border/60',
+                      'focus:border-primary focus:ring-1 focus:ring-primary/30',
+                      'bg-background transition-all duration-200',
+                    )}
                     {...field}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                     disabled={isPending}
+                    aria-label={showPassword ? 'Masquer' : 'Afficher'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isPending}>
-          {isPending ? 'Signing in…' : 'Sign In'}
+        {/* Submit */}
+        <Button
+          type="submit"
+          disabled={isPending}
+          className={cn(
+            'w-full h-11 mt-2 rounded-xl font-semibold text-sm',
+            'bg-primary hover:bg-primary/90 text-primary-foreground',
+            'shadow-md shadow-primary/25 hover:shadow-lg hover:shadow-primary/30',
+            'transition-all duration-200',
+            'disabled:opacity-60 disabled:cursor-not-allowed',
+          )}
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Connexion en cours…
+            </>
+          ) : (
+            <>
+              Se connecter
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </>
+          )}
         </Button>
       </form>
     </Form>

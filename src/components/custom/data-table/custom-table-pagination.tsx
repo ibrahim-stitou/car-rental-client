@@ -18,15 +18,15 @@ const CustomTablePagination = <T extends Record<string, any>>({ table }: { table
         <div className="text-muted-foreground flex-1 text-sm whitespace-nowrap">
           {table.selectedRows.length > 0 ? (
             <>
-              {table.selectedRows.length} of {table.data.length} rows selected
+              {table.selectedRows.length} sur {table.data.length} ligne{table.selectedRows.length > 1 ? 's' : ''} sélectionnée{table.selectedRows.length > 1 ? 's' : ''}
             </>
           ) : (
-            <>{table.data.length} total rows</>
+            <>{table.data.length} ligne{table.data.length > 1 ? 's' : ''} au total</>
           )}
         </div>
         <div className="flex flex-col-reverse items-center gap-4 sm:flex-row sm:gap-6 lg:gap-8">
           <div className="flex items-center space-x-2">
-            <p className="text-sm font-medium whitespace-nowrap">Rows per page</p>
+            <p className="text-sm font-medium whitespace-nowrap">Lignes par page</p>
             <Select
               value={`${table.rowsPerPage}`}
               onValueChange={(value) => table.setRowsPerPage(Number(value))}
@@ -44,7 +44,7 @@ const CustomTablePagination = <T extends Record<string, any>>({ table }: { table
             </Select>
           </div>
           <div className="flex items-center justify-center text-sm font-medium">
-            Page {table.currentPage + 1} of {table.pages}
+            Page {table.currentPage + 1} sur {table.pages}
           </div>
           <div className="flex items-center space-x-2">
             <Button

@@ -4,26 +4,49 @@ import { SidebarTrigger } from '../ui/sidebar';
 import { Separator } from '../ui/separator';
 import { Breadcrumbs } from '../breadcrumbs';
 import { UserNav } from './user-nav';
-import { Maximize, Minimize } from 'lucide-react';
+import { NotificationBell } from './notification-bell';
+import { ModeToggle } from './ThemeToggle/theme-toggle';
+import { Maximize, Minimize, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Button } from '../ui/button';
+import { useKBar } from 'kbar';
+
+function SearchButton() {
+  const { query } = useKBar();
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={query.toggle}
+      className={cn(
+        'hidden md:flex items-center gap-2 h-8 px-3',
+        'text-muted-foreground text-xs',
+        'border-dashed hover:border-solid hover:text-foreground',
+        'transition-all duration-200'
+      )}
+    >
+      <Search className="h-3.5 w-3.5" />
+      <span>Rechercher…</span>
+      <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+        <span className="text-xs">⌘</span>K
+      </kbd>
+    </Button>
+  );
+}
 
 export default function Header() {
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    const handler = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', handler);
+    return () => document.removeEventListener('fullscreenchange', handler);
   }, []);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
+      document.documentElement.requestFullscreen().catch(() => {});
     } else {
       document.exitFullscreen?.();
     }
@@ -33,38 +56,48 @@ export default function Header() {
     <motion.header
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.25 }}
       className={cn(
-        'flex h-16 shrink-0 items-center justify-between gap-2',
-        'bg-white/80 dark:bg-gray-900/90 backdrop-blur-lg',
-        'border-b border-gray-100 dark:border-gray-800',
-        'transition-all duration-300 ease-in-out',
-        'sticky top-0 z-50',
-        'px-4 md:px-6',
-        'group-has-data-[collapsible=icon]/sidebar-wrapper:h-12'
+        'flex h-14 shrink-0 items-center justify-between gap-2',
+        'bg-background/80 backdrop-blur-lg',
+        'border-b border-border/60',
+        'sticky top-0 z-50 px-3 md:px-4',
+        'group-has-data-[collapsible=icon]/sidebar-wrapper:h-12',
       )}
     >
-      <div className="flex items-center gap-4">
-        <SidebarTrigger className="-ml-1 cursor-pointer hover:scale-110 transition-transform duration-200" />
-        <Separator orientation="vertical" className="h-6 bg-gray-200 dark:bg-gray-700" />
+      {/* Left */}
+      <div className="flex items-center gap-2">
+        <SidebarTrigger className="-ml-1 h-8 w-8 cursor-pointer hover:scale-105 transition-transform duration-150" />
+        <Separator orientation="vertical" className="h-5" />
         <Breadcrumbs />
       </div>
 
-      <div className="flex items-center gap-3">
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.95 }}
+      {/* Right */}
+      <div className="flex items-center gap-1.5">
+        <SearchButton />
+
+        <Separator orientation="vertical" className="h-5 mx-1" />
+
+        {/* Fullscreen */}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 rounded-full hover:bg-accent"
           onClick={toggleFullscreen}
-          className={cn(
-            'flex items-center justify-center w-9 h-9 rounded-full',
-            'bg-gray-100 dark:bg-gray-800',
-            'hover:bg-gray-200 dark:hover:bg-gray-700',
-            'transition-colors duration-200'
-          )}
-          aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+          aria-label={isFullscreen ? 'Quitter le plein écran' : 'Plein écran'}
         >
-          {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
-        </motion.button>
+          {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+        </Button>
+
+        {/* Theme */}
+        <ModeToggle />
+
+        {/* Notifications */}
+        <NotificationBell />
+
+        <Separator orientation="vertical" className="h-5 mx-0.5" />
+
+        {/* User */}
         <UserNav />
       </div>
     </motion.header>

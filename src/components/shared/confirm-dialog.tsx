@@ -27,9 +27,9 @@ export function ConfirmDialog({
   open,
   onOpenChange,
   onConfirm,
-  title = 'Are you sure?',
-  description = 'This action cannot be undone.',
-  confirmLabel = 'Delete',
+  title = 'Êtes-vous sûr ?',
+  description = 'Cette action est irréversible.',
+  confirmLabel = 'Supprimer',
   isPending = false,
 }: ConfirmDialogProps) {
   return (
@@ -40,13 +40,13 @@ export function ConfirmDialog({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Annuler</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isPending}
             className={cn(buttonVariants({ variant: 'destructive' }))}
           >
-            {isPending ? 'Deleting…' : confirmLabel}
+            {isPending ? 'Suppression…' : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -22,10 +22,12 @@ export interface BillingDocumentItem {
 export interface BillingDocument {
   id: string;
   reference: string;
+  document_number: string;
   type: BillingDocumentType;
   status: BillingStatus;
   agency_id: string;
   reservation_id: string | null;
+  reservation?: { id: string; reservation_number: string } | null;
   client_id: string | null;
   client_name: string;
   client_address: string | null;

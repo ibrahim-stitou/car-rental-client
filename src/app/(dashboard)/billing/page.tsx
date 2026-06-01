@@ -1,12 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { BillingView } from '@/features/billing/components/billing-view';
 
 export const metadata: Metadata = { title: 'Billing | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Billing</h1>
-    </main>
-  );
+export default function BillingPage() {
+  return <BillingView />;
 }
-

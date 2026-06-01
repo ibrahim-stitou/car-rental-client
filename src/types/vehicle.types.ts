@@ -31,6 +31,7 @@ export interface Vehicle {
   website_description: string | null;
   website_price_override: number | null;
   website_price: number;
+  registration_card: string | null;
 }
 
 export interface VehicleAgency {

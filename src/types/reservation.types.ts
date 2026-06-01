@@ -1,4 +1,15 @@
 export type ReservationStatus = 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled' | 'no_show';
+export type CreditReservation = {
+  id: string;
+  reservation_number: string;
+  total_amount: number;
+  paid_amount: number;
+  credit_amount: number;
+  status: ReservationStatus;
+  client?: { id: string; first_name: string; last_name: string; full_name?: string };
+  vehicle?: { id: string; brand: string; model: string; registration_number: string };
+  agency?: { id: string; name: string };
+};
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'refunded';
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'check' | 'online';
 export type FuelLevel = 'empty' | 'quarter' | 'half' | 'three_quarters' | 'full';

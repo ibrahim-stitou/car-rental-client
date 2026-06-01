@@ -39,18 +39,31 @@ export const useCustomTable = <T extends Record<string, any>>(
       const config = {
         params: {
           ...state.filters,
+          // Laravel pagination params (page-based)
+          page: state.currentPage + 1,
+          per_page: state.rowsPerPage,
+          // Also send DataTables params for backward compat
           start: state.currentPage * state.rowsPerPage,
           length: state.rowsPerPage,
-          sortBy: state.sortBy,
-          sortDir: state.sortDir,
+          ...(state.sortBy ? { sort_by: state.sortBy, sortBy: state.sortBy } : {}),
+          ...(state.sortDir ? { sort_dir: state.sortDir, sortDir: state.sortDir } : {}),
         },
       };
-      const response: AxiosResponse<CustomTableResponse<T>> = await apiClient.get(url, config);
+      const response: AxiosResponse<any> = await apiClient.get(url, config);
+      const resData = response.data;
+
+      // Support both Laravel pagination format and DataTables format
+      const laravelMeta = resData.meta;
+      const pagination = laravelMeta?.pagination ?? laravelMeta;
+      const total = pagination?.total ?? resData.recordsTotal ?? resData.recordsFiltered ?? 0;
+      const lastPage = pagination?.last_page ?? pagination?.total_pages
+        ?? (total > 0 ? Math.ceil(total / state.rowsPerPage) : 1);
+
       setState((prev) => ({
         ...prev,
-        data: response.data.data,
-        pages: Math.ceil(response.data.recordsFiltered / state.rowsPerPage),
-        recordCount: response.data.recordsTotal,
+        data: resData.data ?? [],
+        pages: lastPage,
+        recordCount: total,
         loading: false,
         selectedRows: [],
       }));

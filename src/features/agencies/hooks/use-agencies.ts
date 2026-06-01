@@ -1,11 +1,14 @@
 ﻿import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { agencyService } from '@/services/agency.service';
+import apiClient from '@/lib/api';
+import { apiRoutes } from '@/config/apiRoutes';
 import type { AgencyFilters, CreateAgencyInput, UpdateAgencyInput } from '@/types/agency.types';
 
 export const agencyKeys = {
   all: ['agencies'] as const,
   list: (filters?: AgencyFilters) => [...agencyKeys.all, 'list', filters] as const,
   detail: (id: string) => [...agencyKeys.all, 'detail', id] as const,
+  statistics: (id: string) => [...agencyKeys.all, 'statistics', id] as const,
 };
 
 export function useAgencies(filters?: AgencyFilters) {
@@ -52,5 +55,13 @@ export function useRestoreAgency() {
   return useMutation({
     mutationFn: (id: string) => agencyService.restore(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}
+
+export function useAgencyStatistics(id: string) {
+  return useQuery({
+    queryKey: agencyKeys.statistics(id),
+    queryFn: () => apiClient.get(apiRoutes.agenciesExt.statistics(id)).then((r) => r.data),
+    enabled: !!id,
   });
 }

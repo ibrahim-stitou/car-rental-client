@@ -2,15 +2,15 @@ import { NavItem } from 'types';
 
 export const navItems: NavItem[] = [
   {
-    title: 'Dashboard',
-    url: '/overview',
+    title: 'Tableau de bord',
+    url: '/dashboard',
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
     items: [],
   },
   {
-    title: 'Agencies',
+    title: 'Agences',
     url: '/agencies',
     icon: 'agencies',
     isActive: false,
@@ -18,7 +18,7 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Vehicles',
+    title: 'Véhicules',
     url: '/vehicles',
     icon: 'vehicles',
     isActive: false,
@@ -34,15 +34,18 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Reservations',
+    title: 'Réservations',
     url: '/reservations',
     icon: 'reservations',
     isActive: false,
     shortcut: ['r', 'r'],
-    items: [],
+    items: [
+      { title: 'Liste', url: '/reservations' },
+      { title: 'Calendrier', url: '/reservations/calendar' },
+    ],
   },
   {
-    title: 'Billing',
+    title: 'Facturation',
     url: '/billing',
     icon: 'invoicing',
     isActive: false,
@@ -50,7 +53,15 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Insurances',
+    title: 'Dépenses',
+    url: '/expenses',
+    icon: 'billing',
+    isActive: false,
+    shortcut: ['d', 'p'],
+    items: [],
+  },
+  {
+    title: 'Assurances',
     url: '/insurances',
     icon: 'insurances',
     isActive: false,
@@ -66,7 +77,7 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Inspections',
+    title: 'Visites techniques',
     url: '/technical-inspections',
     icon: 'technicalInspections',
     isActive: false,
@@ -82,7 +93,7 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Users',
+    title: 'Utilisateurs',
     url: '/users',
     icon: 'users',
     isActive: false,
@@ -90,7 +101,7 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Roles',
+    title: 'Rôles',
     url: '/roles',
     icon: 'roles',
     isActive: false,
@@ -106,7 +117,7 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Audit Logs',
+    title: "Journal d'activité",
     url: '/logs',
     icon: 'logs',
     isActive: false,
@@ -114,7 +125,7 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Settings',
+    title: 'Paramètres',
     url: '/settings',
     icon: 'settings',
     isActive: false,
@@ -122,7 +133,15 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
-    title: 'Website',
+    title: 'Rapports',
+    url: '/reports',
+    icon: 'billing',
+    isActive: false,
+    shortcut: ['r', 'p'],
+    items: [],
+  },
+  {
+    title: 'Site web',
     url: '/website',
     icon: 'globe',
     isActive: false,

@@ -1,12 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { MaintenancesView } from '@/features/maintenances/components/maintenances-view';
 
 export const metadata: Metadata = { title: 'Maintenances | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Maintenances</h1>
-    </main>
-  );
+export default function MaintenancesPage() {
+  return <MaintenancesView />;
 }
-

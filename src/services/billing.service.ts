@@ -1,4 +1,4 @@
-﻿import apiClient from '@/lib/api';
+import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
 import type { BillingDocument, CreateBillingInput, UpdateBillingInput, MarkBillingPaidInput, BillingFilters, BillingStatistics } from '@/types/billing.types';
@@ -16,6 +16,12 @@ export const billingService = {
     apiClient.delete<ApiResponse<null>>(apiRoutes.billing.delete(id)).then((r) => r.data),
   markPaid: (id: string, input: MarkBillingPaidInput) =>
     apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billing.markPaid(id), input).then((r) => r.data),
+  approve: (id: string) =>
+    apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billingExt.approve(id)).then((r) => r.data),
+  createFromReservation: (reservationId: string, type: string = 'FA') =>
+    apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billingExt.fromReservation(reservationId), { type }).then((r) => r.data),
+  viewPdf: (id: string) => `${apiRoutes.billingExt.viewPdf(id)}`,
+  downloadPdf: (id: string) => `${apiRoutes.billingExt.downloadPdf(id)}`,
   statistics: () =>
     apiClient.get<ApiResponse<BillingStatistics>>(apiRoutes.billing.statistics).then((r) => r.data),
 };

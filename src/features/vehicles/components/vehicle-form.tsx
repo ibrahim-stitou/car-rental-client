@@ -48,9 +48,10 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   vehicle?: Vehicle | null;
+  onSuccess?: () => void;
 }
 
-export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
+export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
   const createMutation = useCreateVehicle();
   const updateMutation = useUpdateVehicle(vehicle?.id ?? '');
   const { data: agenciesRes } = useAgencies({ per_page: 100 });
@@ -103,13 +104,13 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
   const onSubmit = (values: FormValues) => {
     if (vehicle) {
       updateMutation.mutate(values as any, {
-        onSuccess: () => { toast.success('Vehicle updated successfully'); onOpenChange(false); },
-        onError: () => toast.error('Failed to update vehicle'),
+        onSuccess: () => { toast.success('Véhicule mis à jour'); onOpenChange(false); onSuccess?.(); },
+        onError: () => toast.error('Échec de la mise à jour'),
       });
     } else {
       createMutation.mutate(values as any, {
-        onSuccess: () => { toast.success('Vehicle created successfully'); onOpenChange(false); form.reset(); },
-        onError: () => toast.error('Failed to create vehicle'),
+        onSuccess: () => { toast.success('Véhicule créé'); onOpenChange(false); form.reset(); onSuccess?.(); },
+        onError: () => toast.error('Impossible de créer le véhicule'),
       });
     }
   };
@@ -118,9 +119,9 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl p-0">
         <SheetHeader className="px-6 py-4 border-b">
-          <SheetTitle>{vehicle ? 'Edit Vehicle' : 'Add Vehicle'}</SheetTitle>
+          <SheetTitle>{vehicle ? 'Modifier le véhicule' : 'Ajouter un véhicule'}</SheetTitle>
           <SheetDescription>
-            {vehicle ? 'Update vehicle information' : 'Add a new vehicle to your fleet'}
+            {vehicle ? 'Mettre à jour les informations du véhicule' : 'Ajouter un nouveau véhicule à la flotte'}
           </SheetDescription>
         </SheetHeader>
         <ScrollArea className="h-[calc(100vh-140px)]">
@@ -129,10 +130,10 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               {/* Agency */}
               <FormField control={form.control} name="agency_id" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Agency *</FormLabel>
+                  <FormLabel>Agence *</FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Select agency" /></SelectTrigger>
+                      <SelectTrigger><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger>
                     </FormControl>
                     <SelectContent>
                       {agencies.map((a) => (
@@ -145,19 +146,19 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               )} />
 
               <Separator />
-              <p className="text-sm font-medium text-muted-foreground">Vehicle Information</p>
+              <p className="text-sm font-medium text-muted-foreground">Informations du véhicule</p>
 
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="brand" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Brand *</FormLabel>
+                    <FormLabel>Marque *</FormLabel>
                     <FormControl><Input placeholder="Toyota" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="model" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Model *</FormLabel>
+                    <FormLabel>Modèle *</FormLabel>
                     <FormControl><Input placeholder="Corolla" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -167,21 +168,21 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               <div className="grid grid-cols-3 gap-4">
                 <FormField control={form.control} name="year" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Year *</FormLabel>
+                    <FormLabel>Année *</FormLabel>
                     <FormControl><Input type="number" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="color" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Color</FormLabel>
-                    <FormControl><Input placeholder="White" {...field} /></FormControl>
+                    <FormLabel>Couleur</FormLabel>
+                    <FormControl><Input placeholder="Blanc" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="seats" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Seats *</FormLabel>
+                    <FormLabel>Sièges *</FormLabel>
                     <FormControl><Input type="number" min={2} max={9} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -191,7 +192,7 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="registration_number" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Registration Number *</FormLabel>
+                    <FormLabel>N° d'immatriculation *</FormLabel>
                     <FormControl><Input placeholder="12345-A-1" {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -199,7 +200,7 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
                 <FormField control={form.control} name="vin" render={({ field }) => (
                   <FormItem>
                     <FormLabel>VIN</FormLabel>
-                    <FormControl><Input placeholder="17 characters" maxLength={17} {...field} /></FormControl>
+                    <FormControl><Input placeholder="17 caractères" maxLength={17} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -208,9 +209,9 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               <div className="grid grid-cols-3 gap-4">
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Category *</FormLabel>
+                    <FormLabel>Catégorie *</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {VEHICLE_CATEGORY_OPTIONS.map((o) => (
                           <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -222,9 +223,9 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
                 )} />
                 <FormField control={form.control} name="fuel_type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Fuel Type *</FormLabel>
+                    <FormLabel>Carburant *</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {FUEL_TYPE_OPTIONS.map((o) => (
                           <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -238,7 +239,7 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
                   <FormItem>
                     <FormLabel>Transmission *</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger></FormControl>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
                       <SelectContent>
                         {TRANSMISSION_OPTIONS.map((o) => (
                           <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
@@ -251,26 +252,26 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               </div>
 
               <Separator />
-              <p className="text-sm font-medium text-muted-foreground">Pricing & Condition</p>
+              <p className="text-sm font-medium text-muted-foreground">Tarification & État</p>
 
               <div className="grid grid-cols-3 gap-4">
                 <FormField control={form.control} name="daily_rate" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Daily Rate (MAD) *</FormLabel>
+                    <FormLabel>Tarif journalier (MAD) *</FormLabel>
                     <FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="deposit_amount" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Deposit (MAD) *</FormLabel>
+                    <FormLabel>Caution (MAD) *</FormLabel>
                     <FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
                 <FormField control={form.control} name="mileage" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Current Mileage (km) *</FormLabel>
+                    <FormLabel>Kilométrage actuel (km) *</FormLabel>
                     <FormControl><Input type="number" min={0} {...field} /></FormControl>
                     <FormMessage />
                   </FormItem>
@@ -280,19 +281,19 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Notes</FormLabel>
-                  <FormControl><Textarea placeholder="Additional information…" rows={3} {...field} /></FormControl>
+                  <FormControl><Textarea placeholder="Informations complémentaires…" rows={3} {...field} /></FormControl>
                   <FormMessage />
                 </FormItem>
               )} />
 
               <Separator />
-              <p className="text-sm font-medium text-muted-foreground">Website Settings</p>
+              <p className="text-sm font-medium text-muted-foreground">Paramètres site web</p>
 
               <FormField control={form.control} name="show_on_website" render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-3">
                   <div>
-                    <FormLabel>Show on website</FormLabel>
-                    <p className="text-xs text-muted-foreground mt-0.5">Display this vehicle on the public website</p>
+                    <FormLabel>Afficher sur le site web</FormLabel>
+                    <p className="text-xs text-muted-foreground mt-0.5">Afficher ce véhicule sur le site public</p>
                   </div>
                   <FormControl>
                     <Switch checked={field.value} onCheckedChange={field.onChange} />
@@ -303,8 +304,8 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="website_price_override" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website Price Override (MAD)</FormLabel>
-                    <FormControl><Input type="number" min={0} placeholder="Leave empty to use daily rate" {...field} value={field.value ?? ''} /></FormControl>
+                    <FormLabel>Prix spécial site web (MAD)</FormLabel>
+                    <FormControl><Input type="number" min={0} placeholder="Laisser vide pour utiliser le tarif journalier" {...field} value={field.value ?? ''} /></FormControl>
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -320,10 +321,10 @@ export function VehicleForm({ open, onOpenChange, vehicle }: Props) {
 
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-                  Cancel
+                  Annuler
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                  {isPending ? 'Saving…' : vehicle ? 'Update Vehicle' : 'Create Vehicle'}
+                  {isPending ? 'Enregistrement…' : vehicle ? 'Mettre à jour' : 'Créer le véhicule'}
                 </Button>
               </div>
             </form>

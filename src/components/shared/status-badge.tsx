@@ -38,13 +38,13 @@ const colorMap: Record<string, string> = {
 };
 
 const labelMap: Record<string, string> = {
-  pending: 'Pending', confirmed: 'Confirmed', active: 'Active', completed: 'Completed',
-  cancelled: 'Cancelled', no_show: 'No Show', available: 'Available', rented: 'Rented',
-  maintenance: 'Maintenance', out_of_service: 'Out of Service', draft: 'Draft',
-  approved: 'Approved', paid: 'Paid', scheduled: 'Scheduled', in_progress: 'In Progress',
-  passed: 'Passed', failed: 'Failed', partial: 'Partial', refunded: 'Refunded',
-  low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent',
-  converted: 'Converted', rejected: 'Rejected',
+  pending: 'En attente', confirmed: 'Confirmée', active: 'Active', completed: 'Terminée',
+  cancelled: 'Annulée', no_show: 'Non présenté', available: 'Disponible', rented: 'Loué',
+  maintenance: 'En maintenance', out_of_service: 'Hors service', draft: 'Brouillon',
+  approved: 'Approuvé', paid: 'Payé', scheduled: 'Planifiée', in_progress: 'En cours',
+  passed: 'Réussi', failed: 'Échoué', partial: 'Partiel', refunded: 'Remboursé',
+  low: 'Faible', medium: 'Moyenne', high: 'Élevée', urgent: 'Urgente',
+  converted: 'Converti', rejected: 'Rejeté',
 };
 
 interface StatusBadgeProps {

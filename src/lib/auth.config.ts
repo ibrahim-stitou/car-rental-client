@@ -36,7 +36,9 @@ export const authConfig = {
             avatarUrl: user.avatar_url,
             accessToken: access_token,
           };
-        } catch {
+        } catch (err: unknown) {
+          const axiosErr = err as { response?: { data?: unknown; status?: number } };
+          console.error('[auth] Login failed:', axiosErr?.response?.status, axiosErr?.response?.data ?? err);
           return null;
         }
       },
@@ -94,5 +96,4 @@ export const authConfig = {
     signOut: '/sign-in',
     error: '/sign-in',
   },
-  secret: process.env.NEXTAUTH_SECRET,
 } satisfies NextAuthConfig;

@@ -1,12 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { VignettesView } from '@/features/vignettes/components/vignettes-view';
 
 export const metadata: Metadata = { title: 'Vignettes | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Vignettes</h1>
-    </main>
-  );
+export default function VignettesPage() {
+  return <VignettesView />;
 }
-

@@ -1,12 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { RolesView } from '@/features/roles/components/roles-view';
 
 export const metadata: Metadata = { title: 'Roles | Car Rental' };
 
-export default function ListPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Roles</h1>
-    </main>
-  );
+export default function RolesPage() {
+  return <RolesView />;
 }
-

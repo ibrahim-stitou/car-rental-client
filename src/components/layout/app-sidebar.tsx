@@ -52,7 +52,11 @@ export default function AppSidebar() {
           <div className={`flex items-center justify-center w-full ${state === 'expanded' ? 'h-24' : 'h-12'}`}>
             <Link href="/dashboard">
               {state === 'expanded' ? (
-                <Logowhite className="w-40 h-auto" />
+                <img
+                  src="/logo/small-logo.svg"
+                  alt="Logo"
+                  className="w-9 h-9 object-contain transition-all duration-300 animate-fade-in"
+                />
               ) : (
                 <img
                   src="/logo/small-logo.svg"

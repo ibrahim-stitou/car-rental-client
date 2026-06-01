@@ -1,11 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
+import { SecurityView } from '@/features/security/components/security-view';
 
 export const metadata: Metadata = { title: 'Security | Car Rental' };
 
 export default function SecurityPage() {
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Security</h1>
-    </main>
-  );
+  return <SecurityView />;
 }
