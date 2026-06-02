@@ -83,6 +83,7 @@ export const Icons = {
   invoicing: IconFileInvoice,
   insurances: IconShield,
   maintenances: IconTool,
+  claims: IconAlertTriangle,
   technicalInspections: IconClipboardCheck,
   vignettes: IconReceipt,
   notifications: IconBell,

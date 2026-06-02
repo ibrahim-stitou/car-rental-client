@@ -77,6 +77,14 @@ export const navItems: NavItem[] = [
     items: [],
   },
   {
+    title: 'Sinistres',
+    url: '/claims',
+    icon: 'claims',
+    isActive: false,
+    shortcut: ['s', 'n'],
+    items: [],
+  },
+  {
     title: 'Visites techniques',
     url: '/technical-inspections',
     icon: 'technicalInspections',

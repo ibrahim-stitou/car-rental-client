@@ -114,15 +114,7 @@ export function FileUpload({
       formData.append('file', file);
       formData.append('collection', collectionName);
 
-      const response = await apiClient.post(
-        apiRoutes.files.uploadTemp,
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
+      const response = await apiClient.post(apiRoutes.files.uploadTemp, formData);
 
       return {
         ...response.data,

@@ -100,10 +100,10 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                 <FormField control={editForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={editForm.control} name="agency_id" render={({ field }) => (
                   <FormItem><FormLabel>Agency</FormLabel>
-                    <Select value={field.value ?? ''} onValueChange={(v) => field.onChange(v || undefined)}>
+                    <Select value={field.value || '__none__'} onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Sans agence" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sans agence</SelectItem>
+                        <SelectItem value="__none__">Sans agence</SelectItem>
                         {agencies.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                       </SelectContent>
                     </Select><FormMessage /></FormItem>
@@ -151,10 +151,10 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                 )} />
                 <FormField control={createForm.control} name="agency_id" render={({ field }) => (
                   <FormItem><FormLabel>Agency</FormLabel>
-                    <Select value={field.value ?? ''} onValueChange={(v) => field.onChange(v || undefined)}>
+                    <Select value={field.value || '__none__'} onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}>
                       <FormControl><SelectTrigger><SelectValue placeholder="Sans agence" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sans agence</SelectItem>
+                        <SelectItem value="__none__">Sans agence</SelectItem>
                         {agencies.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
                       </SelectContent>
                     </Select><FormMessage /></FormItem>

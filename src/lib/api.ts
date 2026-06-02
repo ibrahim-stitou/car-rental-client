@@ -40,6 +40,12 @@ apiClient.interceptors.request.use(
       }
     }
 
+    // For FormData uploads, remove Content-Type so the browser sets it
+    // automatically with the correct multipart boundary
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      delete config.headers['Content-Type'];
+    }
+
     config._requestTimestamp = Date.now();
 
     return config;

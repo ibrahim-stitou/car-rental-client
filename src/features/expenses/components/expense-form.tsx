@@ -111,8 +111,8 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
   const onSubmit = async (values: FormValues) => {
     const payload = {
       ...values,
-      agency_id: values.agency_id || undefined,
-      vehicle_id: values.vehicle_id || undefined,
+      agency_id: (values.agency_id && values.agency_id !== '__none__') ? values.agency_id : undefined,
+      vehicle_id: (values.vehicle_id && values.vehicle_id !== '__none__') ? values.vehicle_id : undefined,
       payment_method: values.payment_method || undefined,
     };
 
@@ -133,7 +133,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg">
+      <SheetContent className="w-full sm:max-w-lg pl-4">
         <SheetHeader>
           <SheetTitle>{expense ? 'Modifier la dépense' : 'Nouvelle dépense'}</SheetTitle>
           <SheetDescription>Saisir les informations de la dépense</SheetDescription>
@@ -203,10 +203,13 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
                 <FormField control={form.control} name="vehicle_id" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Véhicule (optionnel)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}
+                      value={field.value || '__none__'}
+                    >
                       <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un véhicule" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">— Aucun —</SelectItem>
+                        <SelectItem value="__none__">— Aucun —</SelectItem>
                         {vehicles.map((v) => (
                           <SelectItem key={v.id} value={v.id}>{v.brand} {v.model} · {v.registration_number}</SelectItem>
                         ))}
@@ -221,10 +224,13 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
                 <FormField control={form.control} name="agency_id" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Agence (optionnel)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger></FormControl>
+                    <Select
+                      onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}
+                      value={field.value || '__none__'}
+                    >
+                      <FormControl><SelectTrigger className={'w-full'}><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">— Aucune —</SelectItem>
+                        <SelectItem value="__none__">— Aucune —</SelectItem>
                         {agencies.map((a) => (
                           <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
                         ))}

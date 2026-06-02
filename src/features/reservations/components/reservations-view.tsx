@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { Edit, Trash2, Check, Play, Square, X, CreditCard, FileText, Receipt, UserX, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,8 @@ import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
 import { ReservationForm } from './reservation-form';
 import { PaymentDialog } from './payment-dialog';
+import { CompleteReservationDialog } from './complete-reservation-dialog';
+import { ExtendReservationDialog } from './extend-reservation-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -19,6 +22,7 @@ import { RESERVATION_STATUS_OPTIONS, PAYMENT_STATUS_OPTIONS } from '@/config/con
 import { format, parseISO } from 'date-fns';
 import { useCreateBillingFromReservation } from '@/features/billing/hooks/use-billing';
 import { billingService } from '@/services/billing.service';
+import Link from 'next/link';
 
 const STATUS_CLS: Record<string, string> = {
   pending:   'bg-amber-100 text-amber-800 border-amber-200',
@@ -45,7 +49,16 @@ export function ReservationsView() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<{ id: string; ref: string } | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number } | null>(null);
+  const [extendDialog, setExtendDialog] = useState<{ id: string; ref: string; returnDate?: string; status: string } | null>(null);
   const createInvoice = useCreateBillingFromReservation();
+
+  // Fetch current user profile to check signature
+  const { data: profileData } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => apiClient.get(apiRoutes.profile.show).then(r => r.data?.data),
+  });
+  const currentUserHasSignature = profileData?.has_signature ?? true; // default true to avoid blocking
 
   const doAction = useCallback(async (id: string, url: string, msg: string, method: 'post' | 'patch' = 'patch') => {
     setPendingAction(id + url);
@@ -174,7 +187,15 @@ export function ReservationsView() {
                 <TooltipTrigger asChild>
                   <Button variant="outline" className="h-8 w-8 p-1.5 text-blue-600 hover:bg-blue-50"
                     disabled={!!pendingAction}
-                    onClick={() => doAction(key, apiRoutes.reservations.confirm(row.id), 'Réservation confirmée', 'patch')}>
+                    onClick={() => {
+                      if (!currentUserHasSignature) {
+                        toast.warning(
+                          'Votre signature/cachet n\'est pas configuré. Veuillez les ajouter dans votre profil pour qu\'ils apparaissent sur le contrat.',
+                          { action: { label: 'Profil →', onClick: () => window.location.href = '/profile' }, duration: 7000 }
+                        );
+                      }
+                      doAction(key, apiRoutes.reservations.confirm(row.id), 'Réservation confirmée', 'patch');
+                    }}>
                     {busy(apiRoutes.reservations.confirm(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
@@ -196,17 +217,33 @@ export function ReservationsView() {
               </Tooltip>
             )}
 
-            {/* Terminer (active) */}
+            {/* Terminer (active) — ouvre dialog kilométrage */}
             {row.status === 'active' && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button variant="outline" className="h-8 w-8 p-1.5 text-slate-600 hover:bg-slate-50"
-                    disabled={!!pendingAction}
-                    onClick={() => doAction(key, apiRoutes.reservations.complete(row.id), 'Réservation terminée', 'patch')}>
-                    {busy(apiRoutes.reservations.complete(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Square className="h-4 w-4" />}
+                    onClick={() => setCompleteDialog({
+                      id: row.id,
+                      ref: row.reference,
+                      initialMileage: (row as any).initial_mileage ?? undefined,
+                    })}>
+                    <Square className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Terminer (retour)</TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Prolonger (pending / confirmed / active) */}
+            {['pending', 'confirmed', 'active'].includes(row.status) && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" className="h-8 w-8 p-1.5 text-blue-600 hover:bg-blue-50"
+                    onClick={() => setExtendDialog({ id: row.id, ref: row.reference, returnDate: row.return_date, status: row.status })}>
+                    <span className="text-xs font-bold">+</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Prolonger</TooltipContent>
               </Tooltip>
             )}
 
@@ -319,6 +356,27 @@ export function ReservationsView() {
           onOpenChange={(o) => !o && setPaymentDialog(null)}
           reservationId={paymentDialog.id}
           reservationRef={paymentDialog.ref}
+        />
+      )}
+      {completeDialog && (
+        <CompleteReservationDialog
+          open={!!completeDialog}
+          onOpenChange={(o) => !o && setCompleteDialog(null)}
+          reservationId={completeDialog.id}
+          reservationRef={completeDialog.ref}
+          initialMileage={completeDialog.initialMileage}
+          onSuccess={() => tableInstance?.refresh?.()}
+        />
+      )}
+      {extendDialog && (
+        <ExtendReservationDialog
+          open={!!extendDialog}
+          onOpenChange={(o) => !o && setExtendDialog(null)}
+          reservationId={extendDialog.id}
+          reservationRef={extendDialog.ref}
+          currentReturnDate={extendDialog.returnDate}
+          status={extendDialog.status}
+          onSuccess={() => tableInstance?.refresh?.()}
         />
       )}
     </div>

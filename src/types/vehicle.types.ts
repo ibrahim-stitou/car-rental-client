@@ -22,7 +22,9 @@ export interface Vehicle {
   mileage: number;
   status: VehicleStatus;
   is_active: boolean;
+  has_adblue: boolean;
   notes: string | null;
+  description: string | null;
   photos: VehiclePhoto[];
   created_at: string;
   updated_at: string;
@@ -62,6 +64,8 @@ export interface CreateVehicleInput {
   deposit_amount: number;
   mileage: number;
   notes?: string;
+  description?: string;
+  has_adblue?: boolean;
   show_on_website?: boolean;
   website_description?: string;
   website_price_override?: number;

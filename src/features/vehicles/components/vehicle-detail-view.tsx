@@ -31,7 +31,7 @@ function fdate(d: string | undefined) {
 }
 
 export function VehicleDetailView({ vehicleId }: Props) {
-  const { data: vehicleRes, isLoading: loadingVehicle } = useVehicle(vehicleId);
+  const { data: vehicleRes, isLoading: loadingVehicle, isError: vehicleError } = useVehicle(vehicleId);
   const { data: statsRes, isLoading: loadingStats } = useVehicleStatistics(vehicleId);
   const { data: reservationsRes } = useVehicleReservations(vehicleId, { per_page: 10 });
   const { data: expensesRes } = useVehicleExpenses(vehicleId, { per_page: 10 });
@@ -47,11 +47,20 @@ export function VehicleDetailView({ vehicleId }: Props) {
     return <PageContainer><div className="p-6 space-y-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
   }
 
-  if (!vehicle) return <PageContainer><div className="p-6 text-muted-foreground">Véhicule introuvable.</div></PageContainer>;
+  if (vehicleError || !vehicle) return (
+    <PageContainer>
+      <div className="p-6">
+        <Button variant="outline" size="sm" asChild className="mb-4">
+          <Link href="/vehicles"><IconArrowLeft className="h-4 w-4 mr-1" />Retour</Link>
+        </Button>
+        <div className="text-muted-foreground">Véhicule introuvable ou inaccessible (ID: {vehicleId}).</div>
+      </div>
+    </PageContainer>
+  );
 
   return (
     <PageContainer scrollable>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 w-full">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>

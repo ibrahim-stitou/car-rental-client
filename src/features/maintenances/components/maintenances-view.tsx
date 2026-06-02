@@ -10,6 +10,7 @@ import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
 import { MaintenanceForm } from './maintenance-form';
+import { OilChangeAlerts } from './oil-change-alerts';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -66,9 +67,20 @@ export function MaintenancesView() {
     },
     {
       data: 'type',
-      label: 'Type',
+      label: 'Type / Sous-type',
       sortable: true,
-      render: (v) => <Badge variant="outline" className="text-xs capitalize">{(v as string)?.replace(/_/g, ' ')}</Badge>,
+      render: (v, row) => {
+        const subType = (row as any).sub_type;
+        const nextOilKm = (row as any).next_oil_change_mileage;
+        const currentKm = (row as any).vehicle?.mileage;
+        const isOilOverdue = subType === 'oil_change' && nextOilKm && currentKm && currentKm >= nextOilKm;
+        return (
+          <div className="space-y-0.5">
+            <Badge variant="outline" className="text-xs capitalize">{(v as string)?.replace(/_/g, ' ')}</Badge>
+            {subType && <Badge variant="outline" className={`text-xs ml-1 ${isOilOverdue ? 'bg-red-100 text-red-700 border-red-300' : 'bg-muted text-muted-foreground'}`}>{subType.replace(/_/g, ' ')}{isOilOverdue ? ' !' : ''}</Badge>}
+          </div>
+        );
+      },
     },
     {
       data: 'maintenance_date',
@@ -165,6 +177,7 @@ export function MaintenancesView() {
         onAdd={() => { setEditMaintenance(null); setFormOpen(true); }}
         addLabel="Ajouter une maintenance"
       />
+      <OilChangeAlerts />
       <CustomTable<Maintenance>
         url={apiRoutes.maintenances.list}
         columns={columns}

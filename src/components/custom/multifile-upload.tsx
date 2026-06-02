@@ -69,9 +69,7 @@ export function MultiFileUpload({
     formData.append('file', fileToUpload);
     formData.append('collection', collection);
 
-    const response = await apiClient.post(apiRoutes.files.uploadTemp, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    const response = await apiClient.post(apiRoutes.files.uploadTemp, formData);
 
     const uploaded: UploadedFile = {
       ...response.data,

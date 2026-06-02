@@ -19,9 +19,7 @@ export const settingService = {
     const form = new FormData();
     form.append('logo', file);
     return apiClient
-      .post<ApiResponse<{ url: string }>>(apiRoutes.settings.uploadLogo, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      .post<ApiResponse<{ url: string }>>(apiRoutes.settings.uploadLogo, form)
       .then((r) => r.data);
   },
 
@@ -29,9 +27,7 @@ export const settingService = {
     const form = new FormData();
     form.append('image', file);
     return apiClient
-      .post<ApiResponse<{ url: string }>>(apiRoutes.settings.uploadHeroImage, form, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      })
+      .post<ApiResponse<{ url: string }>>(apiRoutes.settings.uploadHeroImage, form)
       .then((r) => r.data);
   },
 };

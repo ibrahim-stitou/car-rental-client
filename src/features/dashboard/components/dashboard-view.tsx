@@ -301,7 +301,7 @@ export function DashboardView() {
         <CardContent>
           {isLoading ? <Skeleton className="h-40 w-full" /> : (
             <div className="space-y-0">
-              {(s?.recent_reservations ?? []).length === 0 ? (
+              {toArr(s?.recent_reservations).length === 0 ? (
                 <p className="text-center py-8 text-muted-foreground text-sm">Aucune réservation pour le moment</p>
               ) : (
                 <>
@@ -313,7 +313,7 @@ export function DashboardView() {
                     <div className="col-span-1">Statut</div>
                     <div className="col-span-2 text-right">Montant</div>
                   </div>
-                  {(s?.recent_reservations ?? []).map((r) => (
+                  {toArr(s?.recent_reservations).map((r: any) => (
                     <div key={r.id} className="grid grid-cols-12 gap-2 px-3 py-2.5 text-sm border-b last:border-0 hover:bg-muted/40 cursor-pointer transition-colors rounded" onClick={() => router.push(paths.reservations.list)}>
                       <div className="col-span-2 font-mono text-xs font-medium truncate">{r.reservation_number}</div>
                       <div className="col-span-3 text-sm truncate">{r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}</div>
