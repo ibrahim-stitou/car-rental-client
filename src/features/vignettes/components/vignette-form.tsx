@@ -116,10 +116,13 @@ export function VignetteForm({ open, onOpenChange, vignette, onSuccess }: Props)
 
               <FormField control={form.control} name="payment_method" render={({ field }) => (
                 <FormItem><FormLabel>Mode de paiement</FormLabel>
-                  <Select value={field.value ?? ''} onValueChange={(v) => field.onChange(v || undefined)}>
+                  <Select
+                    value={field.value || '__none__'}
+                    onValueChange={v => field.onChange(v === '__none__' ? undefined : v)}
+                  >
                     <FormControl><SelectTrigger><SelectValue placeholder="Si déjà payée" /></SelectTrigger></FormControl>
                     <SelectContent>
-                      <SelectItem value="">Non payée</SelectItem>
+                      <SelectItem value="__none__">Non payée</SelectItem>
                       {VIGNETTE_PAYMENT_METHOD_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                     </SelectContent>
                   </Select><FormMessage /></FormItem>

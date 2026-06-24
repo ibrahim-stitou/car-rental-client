@@ -163,10 +163,13 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
                 )} />
                 <FormField control={form.control} name="sub_type" render={({ field }) => (
                   <FormItem><FormLabel>Sous-type</FormLabel>
-                    <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || '__none__'}
+                      onValueChange={v => field.onChange(v === '__none__' ? '' : v)}
+                    >
                       <FormControl><SelectTrigger><SelectValue placeholder="Optionnel" /></SelectTrigger></FormControl>
                       <SelectContent>
-                        <SelectItem value="">— Aucun —</SelectItem>
+                        <SelectItem value="__none__">— Aucun —</SelectItem>
                         {MAINTENANCE_SUB_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
                       </SelectContent>
                     </Select><FormMessage /></FormItem>

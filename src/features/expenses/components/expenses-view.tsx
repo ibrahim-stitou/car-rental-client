@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -10,6 +10,7 @@ import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
 import { ExpenseForm } from './expense-form';
+import { ExpenseDetailDialog } from './expense-detail-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -23,7 +24,6 @@ const CATEGORY_LABELS: Record<string, string> = {
   cleaning: 'Nettoyage', administrative: 'Administratif', salary: 'Salaire',
   rent: 'Loyer', utilities: 'Charges', other: 'Autre',
 };
-
 const CATEGORY_COLORS: Record<string, string> = {
   fuel: 'bg-orange-100 text-orange-800', maintenance: 'bg-blue-100 text-blue-800',
   insurance: 'bg-purple-100 text-purple-800', vignette: 'bg-green-100 text-green-800',
@@ -37,6 +37,7 @@ export function ExpensesView() {
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Expense>> | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editExpense, setEditExpense] = useState<Expense | null>(null);
+  const [viewExpense, setViewExpense] = useState<Expense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -48,7 +49,7 @@ export function ExpensesView() {
       render: (_v, row) => (
         <div>
           <div className="font-medium text-sm">{row.title}</div>
-          {row.reference && <div className="text-xs text-muted-foreground">Réf: {row.reference}</div>}
+          {row.reference && <div className="text-xs text-muted-foreground font-mono">Réf: {row.reference}</div>}
         </div>
       ),
     },
@@ -79,14 +80,14 @@ export function ExpensesView() {
       label: 'Véhicule',
       sortable: false,
       render: (_v, row) => row.vehicle
-        ? <span className="text-xs font-mono">{row.vehicle.registration_number}</span>
+        ? <span className="text-xs font-mono">{(row.vehicle as any).registration_number}</span>
         : <span className="text-muted-foreground text-sm">—</span>,
     },
     {
       data: 'agency',
       label: 'Agence',
       sortable: false,
-      render: (_v, row) => <span className="text-sm">{row.agency?.name ?? '—'}</span>,
+      render: (_v, row) => <span className="text-sm">{(row.agency as any)?.name ?? '—'}</span>,
     },
     {
       data: 'actions',
@@ -94,6 +95,16 @@ export function ExpensesView() {
       sortable: false,
       render: (_v, row) => (
         <div className="flex items-center gap-1">
+          {/* Voir détails + documents */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => setViewExpense(row)}>
+                <Eye className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Voir & Documents</TooltipContent>
+          </Tooltip>
+          {/* Modifier */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => { setEditExpense(row); setFormOpen(true); }}>
@@ -102,6 +113,7 @@ export function ExpensesView() {
             </TooltipTrigger>
             <TooltipContent>Modifier</TooltipContent>
           </Tooltip>
+          {/* Supprimer */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" className="h-8 w-8 p-1.5 text-red-600 hover:bg-red-50"
@@ -161,6 +173,16 @@ export function ExpensesView() {
         expense={editExpense}
         onSuccess={() => tableInstance?.refresh?.()}
       />
+
+      {viewExpense && (
+        <ExpenseDetailDialog
+          open={!!viewExpense}
+          onOpenChange={(o) => !o && setViewExpense(null)}
+          expense={viewExpense}
+          onEdit={(e) => { setViewExpense(null); setEditExpense(e); setFormOpen(true); }}
+          onDocumentChange={() => tableInstance?.refresh?.()}
+        />
+      )}
 
       <CustomAlertDialog
         title="Supprimer la dépense ?"

@@ -174,6 +174,10 @@ export const apiRoutes = {
     update: (id: string) => `${BASE}/expenses/${id}`,
     delete: (id: string) => `${BASE}/expenses/${id}`,
     statistics: `${BASE}/expenses/statistics`,
+    uploadDocuments: (id: string) => `${BASE}/expenses/${id}/documents`,
+    uploadReceipts:  (id: string) => `${BASE}/expenses/${id}/receipts`,
+    media:           (id: string) => `${BASE}/expenses/${id}/media`,
+    deleteMedia:     (id: string, mediaId: number) => `${BASE}/expenses/${id}/media/${mediaId}`,
   },
   payments: {
     list: (reservationId: string) => `${BASE}/reservations/${reservationId}/payments`,
