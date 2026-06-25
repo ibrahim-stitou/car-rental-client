@@ -61,6 +61,8 @@ export const apiRoutes = {
     markPaid: (id: string) => `${BASE}/billing/${id}/mark-paid`,
     statistics: `${BASE}/billing/statistics`,
     logs: (id: string) => `${BASE}/billing/${id}/logs`,
+    history: (id: string) => `${BASE}/billing/${id}/history`,
+    unapprove: (id: string) => `${BASE}/billing/${id}/unapprove`,
   },
   insurances: {
     list: `${BASE}/insurances`,
@@ -198,10 +200,16 @@ export const apiRoutes = {
   },
   agenciesExt: {
     statistics: (id: string) => `${BASE}/agencies/${id}/statistics`,
+    uploadLogo: (id: string) => `${BASE}/agencies/${id}/logo`,
+    deleteMedia: (id: string, mediaId: number) => `${BASE}/agencies/${id}/media/${mediaId}`,
   },
   clientsExt: {
     statistics: (id: string) => `${BASE}/clients/${id}/statistics`,
     reservations: (id: string) => `${BASE}/clients/${id}/reservations`,
+    uploadIdDocument: (id: string) => `${BASE}/clients/${id}/id-document`,
+    uploadDrivingLicense: (id: string) => `${BASE}/clients/${id}/driving-license`,
+    uploadSelfie: (id: string) => `${BASE}/clients/${id}/selfie`,
+    deleteMedia: (id: string, mediaId: number) => `${BASE}/clients/${id}/media/${mediaId}`,
   },
   reservationsExt: {
     confirm: (id: string) => `${BASE}/reservations/${id}/confirm`,

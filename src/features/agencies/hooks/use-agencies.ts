@@ -58,6 +58,22 @@ export function useRestoreAgency() {
   });
 }
 
+export function useUploadAgencyLogo(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => agencyService.uploadLogo(id, file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}
+
+export function useDeleteAgencyMedia(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mediaId: number) => agencyService.deleteMedia(id, mediaId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: agencyKeys.all }),
+  });
+}
+
 export function useAgencyStatistics(id: string) {
   return useQuery({
     queryKey: agencyKeys.statistics(id),

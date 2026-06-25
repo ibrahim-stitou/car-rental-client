@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { Edit, Trash2, Check, Play, Square, X, CreditCard, FileText, Receipt, UserX, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Check, Play, Square, X, CreditCard, FileText, Receipt, UserX, Loader2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -42,6 +43,7 @@ const PAY_CLS: Record<string, string> = {
 const PAY_FR: Record<string, string> = { pending: 'Non payé', partial: 'Partiel', paid: 'Payé', refunded: 'Remboursé' };
 
 export function ReservationsView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Reservation>> | null>(null);
   const [formOpen, setFormOpen] = useState(false);
   const [editRes, setEditRes] = useState<Reservation | null>(null);
@@ -89,8 +91,8 @@ export function ReservationsView() {
       label: 'Référence',
       sortable: true,
       render: (v, row) => (
-        <div>
-          <div className="font-mono text-sm font-semibold">{v}</div>
+        <div className="cursor-pointer group" onClick={() => router.push(`/reservations/${row.id}`)}>
+          <div className="font-mono text-sm font-semibold group-hover:text-primary group-hover:underline underline-offset-2">{v}</div>
           {(row as any).is_overdue && <Badge variant="destructive" className="text-[10px] h-4 px-1">En retard</Badge>}
         </div>
       ),
@@ -159,6 +161,16 @@ export function ReservationsView() {
         const busy = (url: string) => pendingAction === key + url;
         return (
           <div className="flex items-center gap-1 flex-wrap">
+            {/* Voir détails */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" className="h-8 w-8 p-1.5 text-slate-600 hover:bg-slate-50"
+                  onClick={() => router.push(`/reservations/${row.id}`)}>
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Voir les détails</TooltipContent>
+            </Tooltip>
             {/* Paiements */}
             <Tooltip>
               <TooltipTrigger asChild>
@@ -339,7 +351,7 @@ export function ReservationsView() {
       <PageHeader
         title="Réservations"
         description="Gestion des réservations de véhicules"
-        onAdd={() => { setEditRes(null); setFormOpen(true); }}
+        onAdd={() => router.push('/reservations/create')}
         addLabel="Nouvelle réservation"
       />
       <CustomTable<Reservation>

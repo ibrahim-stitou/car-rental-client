@@ -4,6 +4,7 @@ import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import type { ClientFilters, CreateClientInput, UpdateClientInput } from '@/types/client.types';
 
+
 export const clientKeys = {
   all: ['clients'] as const,
   list: (filters?: ClientFilters) => [...clientKeys.all, 'list', filters] as const,
@@ -48,5 +49,37 @@ export function useClientReservations(id: string, params?: { per_page?: number; 
     queryKey: clientKeys.reservations(id),
     queryFn: () => apiClient.get(apiRoutes.clientsExt.reservations(id), { params }).then((r) => r.data),
     enabled: !!id,
+  });
+}
+
+export function useUploadIdDocument(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => clientService.uploadIdDocument(id, file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: clientKeys.all }),
+  });
+}
+
+export function useUploadDrivingLicense(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => clientService.uploadDrivingLicense(id, file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: clientKeys.all }),
+  });
+}
+
+export function useUploadSelfie(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => clientService.uploadSelfie(id, file),
+    onSuccess: () => qc.invalidateQueries({ queryKey: clientKeys.all }),
+  });
+}
+
+export function useDeleteClientMedia(clientId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mediaId: number) => clientService.deleteMedia(clientId, mediaId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: clientKeys.all }),
   });
 }

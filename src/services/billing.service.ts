@@ -1,7 +1,7 @@
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
-import type { BillingDocument, CreateBillingInput, UpdateBillingInput, MarkBillingPaidInput, BillingFilters, BillingStatistics } from '@/types/billing.types';
+import type { BillingDocument, BillingHistoryEntry, CreateBillingInput, UpdateBillingInput, MarkBillingPaidInput, BillingFilters, BillingStatistics } from '@/types/billing.types';
 
 export const billingService = {
   list: (filters?: BillingFilters) =>
@@ -18,6 +18,10 @@ export const billingService = {
     apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billing.markPaid(id), input).then((r) => r.data),
   approve: (id: string) =>
     apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billingExt.approve(id)).then((r) => r.data),
+  unapprove: (id: string, reason: string) =>
+    apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billing.unapprove(id), { reason }).then((r) => r.data),
+  history: (id: string) =>
+    apiClient.get<ApiResponse<BillingHistoryEntry[]>>(apiRoutes.billing.history(id)).then((r) => r.data),
   createFromReservation: (reservationId: string, type: string = 'FA') =>
     apiClient.post<ApiResponse<BillingDocument>>(apiRoutes.billingExt.fromReservation(reservationId), { type }).then((r) => r.data),
   viewPdf: (id: string) => `${apiRoutes.billingExt.viewPdf(id)}`,

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { useAgencyStatistics } from '../hooks/use-agencies';
+import { useEffect, useRef, useState } from 'react';
+import { useAgencyStatistics, useUploadAgencyLogo, useDeleteAgencyMedia } from '../hooks/use-agencies';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,6 +13,7 @@ import { PaymentDialog } from '@/features/reservations/components/payment-dialog
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
+import { Camera, Trash2 } from 'lucide-react';
 import {
   IconCar, IconCurrencyDirham, IconUsers, IconCalendar,
   IconArrowLeft, IconPlus, IconAlertTriangle, IconBuildingStore,
@@ -37,6 +38,13 @@ export function AgencyDetailView({ agencyId }: Props) {
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [paymentDialogId, setPaymentDialogId] = useState<{ id: string; ref: string } | null>(null);
 
+  const uploadLogo = useUploadAgencyLogo(agencyId);
+  const deleteLogo = useDeleteAgencyMedia(agencyId);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [logoMediaId, setLogoMediaId] = useState<number | null>(null);
+  const [logoDelConfirm, setLogoDelConfirm] = useState(false);
+
   const { data: reservationsRes } = useQuery({
     queryKey: ['agencies', agencyId, 'reservations'],
     queryFn: () => apiClient.get(apiRoutes.reservations.list, { params: { agency_id: agencyId, per_page: 10 } }).then((r) => r.data),
@@ -48,6 +56,11 @@ export function AgencyDetailView({ agencyId }: Props) {
   const reservations = (reservationsRes as any)?.data ?? [];
   const expenses = expensesRes?.data ?? [];
 
+  useEffect(() => {
+    setLogoUrl((agency as any)?.logo_url ?? null);
+    setLogoMediaId((agency as any)?.logo_media_id ?? null);
+  }, [(agency as any)?.logo_url, (agency as any)?.logo_media_id]);
+
   if (isLoading) {
     return <PageContainer><div className="p-6 space-y-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
   }
@@ -56,16 +69,66 @@ export function AgencyDetailView({ agencyId }: Props) {
 
   return (
     <PageContainer scrollable>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 w-full">
         {/* Header */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <Button variant="outline" size="sm" asChild>
             <Link href="/agencies"><IconArrowLeft className="h-4 w-4 mr-1" />Retour</Link>
           </Button>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <IconBuildingStore className="h-6 w-6" />{agency?.name}
-            </h1>
+
+          {/* Logo avatar with upload overlay */}
+          <div className="relative group flex-shrink-0">
+            <div className="h-16 w-16 rounded-xl overflow-hidden border bg-muted flex items-center justify-center">
+              {logoUrl
+                ? <img src={logoUrl} alt={agency?.name} className="h-full w-full object-cover" />
+                : <IconBuildingStore className="h-7 w-7 text-muted-foreground" />
+              }
+              <button
+                type="button"
+                onClick={() => logoInputRef.current?.click()}
+                disabled={uploadLogo.isPending}
+                className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer rounded-xl"
+              >
+                <Camera className="h-5 w-5 text-white" />
+              </button>
+            </div>
+            {logoUrl && (
+              <button
+                type="button"
+                onClick={() => setLogoDelConfirm(true)}
+                className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Trash2 className="h-3 w-3 text-white" />
+              </button>
+            )}
+          </div>
+          <input ref={logoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            uploadLogo.mutate(file, {
+              onSuccess: (res) => {
+                const updated = (res as any)?.data;
+                setLogoUrl(updated?.logo_url ?? null);
+                setLogoMediaId(updated?.logo_media_id ?? null);
+              },
+            });
+            e.target.value = '';
+          }} />
+
+          {/* Inline delete confirm */}
+          {logoDelConfirm && (
+            <div className="flex items-center gap-1.5 text-xs bg-red-50 border border-red-200 rounded-lg px-3 py-1.5">
+              <span className="text-red-700 font-medium">Supprimer le logo ?</span>
+              <Button type="button" variant="destructive" size="sm" className="h-6 text-xs px-2" disabled={deleteLogo.isPending}
+                onClick={() => deleteLogo.mutate(logoMediaId!, {
+                  onSuccess: () => { setLogoUrl(null); setLogoMediaId(null); setLogoDelConfirm(false); },
+                })}>Oui</Button>
+              <Button type="button" variant="outline" size="sm" className="h-6 text-xs px-2" onClick={() => setLogoDelConfirm(false)}>Non</Button>
+            </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl font-bold">{agency?.name}</h1>
             <p className="text-muted-foreground text-sm">{agency?.city} · {agency?.phone}</p>
           </div>
           <Badge variant={agency?.is_active ? 'default' : 'secondary'}>{agency?.is_active ? 'Active' : 'Inactive'}</Badge>

@@ -1,4 +1,4 @@
-export type IdType = 'CIN' | 'Passport' | 'Residence Permit';
+export type IdType = 'cin' | 'passport' | 'residence_permit';
 
 export interface Client {
   id: string;
@@ -22,6 +22,12 @@ export interface Client {
   is_blacklisted: boolean;
   blacklist_reason: string | null;
   notes: string | null;
+  id_document: string | null;
+  id_document_media_id: number | null;
+  driving_license_doc: string | null;
+  driving_license_media_id: number | null;
+  selfie: string | null;
+  selfie_media_id: number | null;
   reservations_count?: number;
   created_at: string;
   updated_at: string;

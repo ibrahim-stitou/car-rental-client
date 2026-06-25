@@ -31,4 +31,17 @@ export const agencyService = {
     apiClient
       .post<ApiResponse<Agency>>(apiRoutes.agencies.restore(id))
       .then((r) => r.data),
+
+  uploadLogo: (id: string, file: File) => {
+    const fd = new FormData();
+    fd.append('logo', file);
+    return apiClient
+      .post<ApiResponse<Agency>>(apiRoutes.agenciesExt.uploadLogo(id), fd)
+      .then((r) => r.data);
+  },
+
+  deleteMedia: (id: string, mediaId: number) =>
+    apiClient
+      .delete<ApiResponse<null>>(apiRoutes.agenciesExt.deleteMedia(id, mediaId))
+      .then((r) => r.data),
 };

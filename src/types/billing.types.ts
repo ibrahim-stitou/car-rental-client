@@ -17,6 +17,7 @@ export interface BillingDocumentItem {
   quantity: number;
   unit_price: number;
   total_price: number;
+  tax_rate: number;
 }
 
 export interface BillingDocument {
@@ -33,6 +34,7 @@ export interface BillingDocument {
   client_address: string | null;
   client_phone: string | null;
   client_email: string | null;
+  client_ice: string | null;
   issue_date: string;
   due_date: string | null;
   subtotal: number;
@@ -45,8 +47,11 @@ export interface BillingDocument {
   balance: number;
   payment_method: PaymentMethod | null;
   payment_reference: string | null;
+  approved_at: string | null;
+  approved_by: string | null;
+  unapprove_reason: string | null;
   notes: string | null;
-  items: BillingDocumentItem[];
+  items?: BillingDocumentItem[];
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -57,6 +62,7 @@ export interface BillingItemInput {
   quantity: number;
   unit_price: number;
   total_price: number;
+  tax_rate: number;
 }
 
 export interface CreateBillingInput {
@@ -68,12 +74,11 @@ export interface CreateBillingInput {
   client_address?: string;
   client_phone?: string;
   client_email?: string;
+  client_ice?: string;
   issue_date: string;
   due_date?: string;
-  tax_rate: number;
-  discount_percentage?: number;
+  delivery_date?: string;
   payment_method?: PaymentMethod;
-  notes?: string;
   items: BillingItemInput[];
 }
 
@@ -95,6 +100,16 @@ export interface BillingFilters {
   search?: string;
   per_page?: number;
   page?: number;
+}
+
+export interface BillingHistoryEntry {
+  id: number;
+  event: string;
+  type: 'default' | 'info' | 'success' | 'warning' | 'error';
+  label: string;
+  detail: string | null;
+  user: { id: string; name: string } | null;
+  created_at: string;
 }
 
 export interface BillingStatistics {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useClientStatistics, useClientReservations } from '../hooks/use-clients';
+import { useClientStatistics, useClientReservations, useUploadIdDocument, useUploadDrivingLicense, useUploadSelfie, useDeleteClientMedia } from '../hooks/use-clients';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,16 +9,25 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { PaymentDialog } from '@/features/reservations/components/payment-dialog';
+import { FileUploader } from '@/components/file-uploader';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { Trash2 } from 'lucide-react';
 import {
   IconCurrencyDirham, IconCalendar, IconArrowLeft, IconAlertTriangle,
-  IconUser, IconPhone, IconMail, IconId,
+  IconEdit, IconFileText,
 } from '@tabler/icons-react';
 import PageContainer from '@/components/layout/page-container';
 
 interface Props { clientId: string }
+
+const ID_TYPE_LABELS: Record<string, string> = {
+  cin: 'CIN',
+  passport: 'Passeport',
+  residence_permit: 'Titre de séjour',
+};
 
 function fmt(n: number | undefined) { return (n ?? 0).toLocaleString('fr-MA'); }
 function fdate(d: string | undefined) {
@@ -26,10 +35,125 @@ function fdate(d: string | undefined) {
   try { return format(new Date(d), 'dd MMM yyyy', { locale: fr }); } catch { return '—'; }
 }
 
+function DocViewer({ url, label }: { url: string; label: string }) {
+  const isPdf = url.toLowerCase().includes('.pdf') || url.includes('application/pdf');
+  return (
+    <div className="rounded-lg border overflow-hidden">
+      <div className="bg-muted px-3 py-2 text-xs font-medium text-muted-foreground">{label}</div>
+      {isPdf ? (
+        <iframe src={url} className="w-full h-72" title={label} />
+      ) : (
+        <img src={url} alt={label} className="w-full max-h-72 object-contain bg-gray-50" />
+      )}
+    </div>
+  );
+}
+
+function UploadSection({
+  label,
+  currentUrl,
+  onUpload,
+  onDelete,
+  isPending,
+  isDeleting,
+  accept,
+}: {
+  label: string;
+  currentUrl?: string | null;
+  onUpload: (file: File) => void;
+  onDelete?: () => void;
+  isPending: boolean;
+  isDeleting?: boolean;
+  accept?: Record<string, string[]>;
+}) {
+  const [files, setFiles] = useState<File[]>([]);
+  const [confirming, setConfirming] = useState(false);
+
+  const handleUpload = async (selected: File[]) => {
+    if (selected[0]) {
+      setFiles(selected);
+      onUpload(selected[0]);
+      setFiles([]);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      {currentUrl ? (
+        <div className="rounded-lg border overflow-hidden">
+          <div className="bg-muted px-3 py-2 flex items-center justify-between">
+            <span className="text-xs font-medium text-muted-foreground">{label}</span>
+            {onDelete && (
+              confirming ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground">Supprimer ?</span>
+                  <Button
+                    type="button" size="sm" variant="destructive"
+                    className="h-6 text-xs px-2"
+                    disabled={isDeleting}
+                    onClick={() => { onDelete(); setConfirming(false); }}
+                  >
+                    Oui
+                  </Button>
+                  <Button
+                    type="button" size="sm" variant="outline"
+                    className="h-6 text-xs px-2"
+                    onClick={() => setConfirming(false)}
+                  >
+                    Non
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  type="button" size="sm" variant="ghost"
+                  className="h-6 text-xs px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  disabled={isDeleting}
+                  onClick={() => setConfirming(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5 mr-1" />Supprimer
+                </Button>
+              )
+            )}
+          </div>
+          <DocViewer url={currentUrl} label={label} />
+        </div>
+      ) : (
+        <p className="text-xs text-muted-foreground italic">Aucun document</p>
+      )}
+      <div className="relative">
+        <FileUploader
+          value={files}
+          onValueChange={setFiles}
+          onUpload={handleUpload}
+          accept={accept ?? { 'image/*': [], 'application/pdf': ['.pdf'] }}
+          maxSize={5 * 1024 * 1024}
+          maxFiles={1}
+          disabled={isPending || isDeleting}
+        />
+        {(isPending || isDeleting) && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/70 rounded-lg">
+            <span className="text-sm text-muted-foreground">
+              {isDeleting ? 'Suppression…' : 'Téléversement…'}
+            </span>
+          </div>
+        )}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {currentUrl ? 'Déposer un nouveau fichier pour remplacer' : 'JPEG, PNG ou PDF — max 5 Mo'}
+      </p>
+    </div>
+  );
+}
+
 export function ClientDetailView({ clientId }: Props) {
   const { data: statsRes, isLoading } = useClientStatistics(clientId);
   const { data: reservationsRes } = useClientReservations(clientId, { per_page: 15 });
   const [paymentDialogId, setPaymentDialogId] = useState<{ id: string; ref: string } | null>(null);
+
+  const uploadId = useUploadIdDocument(clientId);
+  const uploadLicense = useUploadDrivingLicense(clientId);
+  const uploadSelfie = useUploadSelfie(clientId);
+  const deleteMedia = useDeleteClientMedia(clientId);
 
   const stats = statsRes?.data;
   const client = stats?.client;
@@ -37,14 +161,29 @@ export function ClientDetailView({ clientId }: Props) {
   const creditReservations = stats?.credit_reservations ?? [];
 
   if (isLoading) {
-    return <PageContainer><div className="p-6 space-y-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
+    return <PageContainer><div className="p-6 space-y-4 w-full">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
   }
 
   if (!stats) return <PageContainer><div className="p-6 text-muted-foreground">Client introuvable.</div></PageContainer>;
 
+  const handleUpload = (mutation: typeof uploadId, label: string) => async (file: File) => {
+    mutation.mutate(file, {
+      onSuccess: () => toast.success(`${label} téléversé avec succès`),
+      onError: () => toast.error('Échec du téléversement'),
+    });
+  };
+
+  const handleDelete = (mediaId: number | null | undefined, label: string) => () => {
+    if (!mediaId) return;
+    deleteMedia.mutate(mediaId, {
+      onSuccess: () => toast.success(`${label} supprimé`),
+      onError: () => toast.error('Échec de la suppression'),
+    });
+  };
+
   return (
     <PageContainer scrollable>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 w-full">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>
@@ -54,9 +193,14 @@ export function ClientDetailView({ clientId }: Props) {
             <h1 className="text-2xl font-bold">{client?.first_name} {client?.last_name}</h1>
             <p className="text-muted-foreground text-sm">{client?.phone}</p>
           </div>
-          {client?.is_blacklisted && (
-            <Badge variant="destructive">Blacklisté</Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {client?.is_blacklisted && <Badge variant="destructive">Blacklisté</Badge>}
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/clients/${clientId}/edit`}>
+                <IconEdit className="h-4 w-4 mr-1" />Modifier
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {/* KPI */}
@@ -80,6 +224,7 @@ export function ClientDetailView({ clientId }: Props) {
         <Tabs defaultValue="info">
           <TabsList>
             <TabsTrigger value="info">Informations</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="reservations">Réservations ({stats.reservations?.total ?? 0})</TabsTrigger>
             {creditReservations.length > 0 && (
               <TabsTrigger value="credits" className="text-orange-600">Crédits ({creditReservations.length})</TabsTrigger>
@@ -99,6 +244,7 @@ export function ClientDetailView({ clientId }: Props) {
                     ['Téléphone', client?.phone],
                     ['Date de naissance', fdate(client?.date_of_birth)],
                     ['Nationalité', client?.nationality ?? '—'],
+                    ['Adresse', client?.address ?? '—'],
                     ['Ville', client?.city ?? '—'],
                     ['Pays', client?.country ?? '—'],
                   ].map(([k, v]) => (
@@ -111,10 +257,10 @@ export function ClientDetailView({ clientId }: Props) {
               </Card>
 
               <Card>
-                <CardHeader><CardTitle className="text-base">Documents</CardTitle></CardHeader>
+                <CardHeader><CardTitle className="text-base">Documents officiels</CardTitle></CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   {[
-                    ['Type pièce d\'identité', client?.id_type ?? '—'],
+                    ['Type pièce d\'identité', client?.id_type ? ID_TYPE_LABELS[client.id_type] ?? client.id_type : '—'],
                     ['N° pièce d\'identité', client?.id_number ?? '—'],
                     ['Expiration CIN/Passeport', fdate(client?.id_expiry_date)],
                     ['N° permis', client?.driving_license_number ?? '—'],
@@ -126,18 +272,6 @@ export function ClientDetailView({ clientId }: Props) {
                       <span className="font-medium">{v as string}</span>
                     </div>
                   ))}
-                  <div className="mt-3 flex gap-2 flex-wrap">
-                    {client?.id_document && (
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={client.id_document} target="_blank" rel="noreferrer">Voir CIN/Passeport</a>
-                      </Button>
-                    )}
-                    {client?.driving_license_doc && (
-                      <Button size="sm" variant="outline" asChild>
-                        <a href={client.driving_license_doc} target="_blank" rel="noreferrer">Voir Permis</a>
-                      </Button>
-                    )}
-                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -157,6 +291,68 @@ export function ClientDetailView({ clientId }: Props) {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </TabsContent>
+
+          {/* Documents */}
+          <TabsContent value="documents" className="mt-4">
+            <div className="grid lg:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <IconFileText className="h-4 w-4" />CIN / Passeport
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UploadSection
+                    label="Pièce d'identité"
+                    currentUrl={client?.id_document}
+                    onUpload={handleUpload(uploadId, "Pièce d'identité")}
+                    onDelete={client?.id_document_media_id ? handleDelete(client.id_document_media_id, "Pièce d'identité") : undefined}
+                    isPending={uploadId.isPending}
+                    isDeleting={deleteMedia.isPending}
+                    accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <IconFileText className="h-4 w-4" />Permis de conduire
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UploadSection
+                    label="Permis de conduire"
+                    currentUrl={client?.driving_license_doc}
+                    onUpload={handleUpload(uploadLicense, 'Permis de conduire')}
+                    onDelete={client?.driving_license_media_id ? handleDelete(client.driving_license_media_id, 'Permis de conduire') : undefined}
+                    isPending={uploadLicense.isPending}
+                    isDeleting={deleteMedia.isPending}
+                    accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
+                  />
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <IconFileText className="h-4 w-4" />Photo (Selfie)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <UploadSection
+                    label="Selfie"
+                    currentUrl={client?.selfie}
+                    onUpload={handleUpload(uploadSelfie, 'Selfie')}
+                    onDelete={client?.selfie_media_id ? handleDelete(client.selfie_media_id, 'Selfie') : undefined}
+                    isPending={uploadSelfie.isPending}
+                    isDeleting={deleteMedia.isPending}
+                    accept={{ 'image/jpeg': [], 'image/png': [] }}
+                  />
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

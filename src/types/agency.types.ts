@@ -12,6 +12,7 @@ export interface Agency {
   manager_id: string | null;
   manager: AgencyManager | null;
   logo_url: string | null;
+  logo_media_id: number | null;
   vehicles_count?: number;
   created_at: string;
   updated_at: string;

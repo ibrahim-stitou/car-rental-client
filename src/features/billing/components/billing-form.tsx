@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
-import { useCreateBillingDocument, useUpdateBillingDocument } from '../hooks/use-billing';
+import { useCreateBillingDocument, useUpdateBillingDocument, useBillingDocument } from '../hooks/use-billing';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import type { BillingDocument } from '@/types/billing.types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -23,6 +23,7 @@ const itemSchema = z.object({
   description: z.string().min(1, 'Required'),
   quantity: z.coerce.number().min(1),
   unit_price: z.coerce.number().min(0),
+  tax_rate: z.coerce.number().min(0).max(100).optional().default(20),
   total_price: z.coerce.number().min(0),
 });
 
@@ -51,51 +52,63 @@ interface Props {
   onSuccess?: () => void;
 }
 
+const BLANK_ITEM = { description: '', quantity: 1, unit_price: 0, tax_rate: 20, total_price: 0 };
+const DEFAULT_FORM = {
+  type: 'FA' as const, agency_id: '', client_name: '', client_address: '', client_phone: '',
+  client_email: '', issue_date: new Date().toISOString().split('T')[0], due_date: '',
+  tax_rate: 20, discount_percentage: 0, payment_method: '', notes: '',
+  items: [BLANK_ITEM],
+};
+
 export function BillingForm({ open, onOpenChange, document, onSuccess }: Props) {
   const createMutation = useCreateBillingDocument();
   const updateMutation = useUpdateBillingDocument(document?.id ?? '');
+  // Fetch full document (with items) when editing — the list row may not include items
+  const { data: fullDocRes } = useBillingDocument(document?.id ?? '');
+  const fullDoc = fullDocRes?.data ?? null;
   const { data: agenciesRes } = useAgencies({ per_page: 100 });
   const agencies = agenciesRes?.data ?? [];
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      type: 'FA', agency_id: '', client_name: '', client_address: '', client_phone: '',
-      client_email: '', issue_date: new Date().toISOString().split('T')[0], due_date: '',
-      tax_rate: 20, discount_percentage: 0, payment_method: '', notes: '',
-      items: [{ description: '', quantity: 1, unit_price: 0, total_price: 0 }],
-    },
+    defaultValues: DEFAULT_FORM,
   });
 
   const { fields, append, remove } = useFieldArray({ control: form.control, name: 'items' });
 
   useEffect(() => {
-    if (document) {
+    // Use fullDoc (fetched with items) if available, otherwise fall back to prop
+    const doc = fullDoc ?? (document?.id ? document : null);
+    if (doc) {
+      const items = (doc.items?.length ?? 0) > 0
+        ? doc.items!.map((i) => ({
+            description: i.description,
+            quantity: i.quantity,
+            unit_price: i.unit_price,
+            tax_rate: i.tax_rate ?? 20,
+            total_price: i.total_price,
+          }))
+        : [BLANK_ITEM];
       form.reset({
-        type: document.type,
-        agency_id: document.agency_id,
-        client_name: document.client_name,
-        client_address: document.client_address ?? '',
-        client_phone: document.client_phone ?? '',
-        client_email: document.client_email ?? '',
-        issue_date: document.issue_date,
-        due_date: document.due_date ?? '',
-        tax_rate: Number(document.tax_rate),
-        discount_percentage: Number(document.discount_percentage),
-        payment_method: document.payment_method ?? '',
-        notes: document.notes ?? '',
-        items: document.items.length > 0 ? document.items : [{ description: '', quantity: 1, unit_price: 0, total_price: 0 }],
+        type: doc.type,
+        agency_id: (doc as any).agency_id ?? (doc as any).agency?.id ?? '',
+        client_name: doc.client_name,
+        client_address: doc.client_address ?? '',
+        client_phone: doc.client_phone ?? '',
+        client_email: doc.client_email ?? '',
+        issue_date: doc.issue_date,
+        due_date: doc.due_date ?? '',
+        tax_rate: Number((doc as any).tax_rate ?? 20),
+        discount_percentage: Number((doc as any).discount_percentage ?? 0),
+        payment_method: doc.payment_method ?? '',
+        notes: (doc as any).notes ?? '',
+        items,
       });
-    } else {
-      form.reset({
-        type: 'FA', agency_id: '', client_name: '', client_address: '', client_phone: '',
-        client_email: '', issue_date: new Date().toISOString().split('T')[0], due_date: '',
-        tax_rate: 20, discount_percentage: 0, payment_method: '', notes: '',
-        items: [{ description: '', quantity: 1, unit_price: 0, total_price: 0 }],
-      });
+    } else if (!document) {
+      form.reset(DEFAULT_FORM);
     }
-  }, [document, form, open]);
+  }, [fullDoc, document, form, open]);
 
   const onSubmit = (values: FormValues) => {
     const payload = { ...values, payment_method: values.payment_method || undefined } as any;
@@ -162,7 +175,7 @@ export function BillingForm({ open, onOpenChange, document, onSuccess }: Props) 
               <Separator />
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-muted-foreground">Items</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => append({ description: '', quantity: 1, unit_price: 0, total_price: 0 })}>
+                <Button type="button" variant="outline" size="sm" onClick={() => append(BLANK_ITEM)}>
                   <Plus className="mr-1 h-4 w-4" /> Add Item
                 </Button>
               </div>

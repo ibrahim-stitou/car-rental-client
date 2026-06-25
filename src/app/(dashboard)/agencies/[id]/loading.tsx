@@ -4,7 +4,7 @@ import PageContainer from '@/components/layout/page-container';
 export default function Loading() {
   return (
     <PageContainer>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 w-full">
         <div className="flex items-center gap-4">
           <Skeleton className="h-9 w-20" />
           <Skeleton className="h-8 w-56" />

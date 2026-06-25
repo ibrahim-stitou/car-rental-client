@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { SettingsView } from '@/features/settings/components/settings-view';
+import { SettingsLanding } from '@/features/settings/components/settings-landing';
 
-export const metadata: Metadata = { title: 'Settings | Car Rental' };
+export const metadata: Metadata = { title: 'Paramètres | Car Rental' };
 
 export default function SettingsPage() {
-  return <SettingsView />;
+  return <SettingsLanding />;
 }

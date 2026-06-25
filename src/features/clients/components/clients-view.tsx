@@ -4,22 +4,27 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Edit, Trash2, Eye } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { ClientForm } from './client-form';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
 import type { Client } from '@/types/client.types';
 
+const ID_TYPE_LABELS: Record<string, string> = {
+  cin: 'CIN',
+  passport: 'Passeport',
+  residence_permit: 'Titre de séjour',
+};
+
 export function ClientsView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Client>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editClient, setEditClient] = useState<Client | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -42,7 +47,7 @@ export function ClientsView() {
       label: 'Pièce d\'identité',
       sortable: false,
       render: (v) => v
-        ? <Badge variant="outline" className="text-xs">{v}</Badge>
+        ? <Badge variant="outline" className="text-xs">{ID_TYPE_LABELS[v as string] ?? v}</Badge>
         : <span className="text-muted-foreground text-sm">—</span>,
     },
     {
@@ -70,8 +75,8 @@ export function ClientsView() {
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => { setEditClient(row); setFormOpen(true); }}>
-                <Edit className="h-4 w-4" />
+              <Button variant="outline" className="h-8 w-8 p-1.5" asChild>
+                <Link href={`/clients/${row.id}/edit`}><Edit className="h-4 w-4" /></Link>
               </Button>
             </TooltipTrigger>
             <TooltipContent>Modifier</TooltipContent>
@@ -120,7 +125,7 @@ export function ClientsView() {
       <PageHeader
         title="Clients"
         description="Gestion de la base de données clients"
-        onAdd={() => { setEditClient(null); setFormOpen(true); }}
+        onAdd={() => router.push('/clients/new')}
         addLabel="Ajouter un client"
       />
 
@@ -129,13 +134,6 @@ export function ClientsView() {
         columns={columns}
         filters={filters}
         onInit={(instance) => setTableInstance(instance)}
-      />
-
-      <ClientForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        client={editClient}
-        onSuccess={() => tableInstance?.refresh?.()}
       />
 
       <CustomAlertDialog
