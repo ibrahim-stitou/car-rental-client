@@ -11,6 +11,8 @@ export interface NavItem {
   description?: string;
   isActive?: boolean;
   items?: NavItem[];
+  /** Permission name required to see this item in the sidebar (checked via session.user.permissions). Omit for items visible to everyone authenticated. */
+  permission?: string;
 }
 
 export interface NavItemWithChildren extends NavItem {

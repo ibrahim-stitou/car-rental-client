@@ -398,6 +398,7 @@ export function VehicleDetailView({ vehicleId }: Props) {
               initialDocuments={(stats?.documents ?? []).filter((d: any) => d.source === 'Véhicule' && d.source_label === 'Document')}
               accept="application/pdf,image/*"
               onRefresh={() => refetchStats()}
+              titled
             />
           </TabsContent>
         </Tabs>

@@ -51,7 +51,7 @@ export function MaintenanceDetailView({ maintenanceId }: Props) {
 
   return (
     <PageContainer scrollable>
-      <div className="p-6 space-y-6 w-full max-w-4xl">
+      <div className="p-6 space-y-6 w-full ">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" asChild>

@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { FormDatePicker } from '@/components/shared/form-date-picker';
 import { BILLING_TYPE_OPTIONS, PAYMENT_METHOD_OPTIONS } from '@/config/constants';
 
 const itemSchema = z.object({
@@ -166,8 +167,8 @@ export function BillingForm({ open, onOpenChange, document, onSuccess }: Props) 
               <Separator />
               <p className="text-sm font-medium text-muted-foreground">Dates & Financials</p>
               <div className="grid grid-cols-4 gap-4">
-                <FormField control={form.control} name="issue_date" render={({ field }) => (<FormItem><FormLabel>Date d'émission *</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={form.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Due Date</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="issue_date" render={({ field }) => (<FormItem><FormLabel>Date d'émission *</FormLabel><FormDatePicker value={field.value} onChange={field.onChange} /><FormMessage /></FormItem>)} />
+                <FormField control={form.control} name="due_date" render={({ field }) => (<FormItem><FormLabel>Date d'échéance</FormLabel><FormDatePicker value={field.value} onChange={field.onChange} /><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="tax_rate" render={({ field }) => (<FormItem><FormLabel>Tax Rate (%)</FormLabel><FormControl><Input type="number" min={0} max={100} {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={form.control} name="discount_percentage" render={({ field }) => (<FormItem><FormLabel>Discount (%)</FormLabel><FormControl><Input type="number" min={0} max={100} {...field} /></FormControl><FormMessage /></FormItem>)} />
               </div>

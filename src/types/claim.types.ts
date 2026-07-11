@@ -1,5 +1,6 @@
 export type ClaimStatus = 'open' | 'under_review' | 'insurance_claimed' | 'settled' | 'closed' | 'rejected';
-export type AccidentType = 'collision' | 'theft' | 'vandalism' | 'natural_disaster' | 'fire' | 'glass_damage' | 'parking' | 'other';
+/** Admin-configurable via the Parameter module (category "accident_type") — not a fixed enum. */
+export type AccidentType = string;
 
 export interface Claim {
   id: string;
@@ -47,6 +48,7 @@ export interface MediaItem {
   id: number;
   url: string;
   file_name: string;
+  name?: string;
   mime_type: string;
   size: number;
   collection_name: string;

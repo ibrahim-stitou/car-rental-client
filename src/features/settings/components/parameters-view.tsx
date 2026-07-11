@@ -29,6 +29,9 @@ const CATEGORIES: { key: ParameterCategory; label: string; description: string }
   { key: 'insurance_company', label: "Compagnies d'assurance", description: "Compagnies d'assurance disponibles dans les formulaires" },
   { key: 'inspection_center', label: 'Centres de visite technique', description: 'Centres de contrôle technique suggérés' },
   { key: 'expense_category', label: 'Catégories de dépense', description: 'Catégories utilisées pour classer les dépenses' },
+  { key: 'accident_type', label: "Types d'accident", description: 'Types de sinistre utilisés lors de la déclaration des accidents' },
+  { key: 'maintenance_type', label: 'Types de maintenance', description: 'Types utilisés lors de la création des maintenances' },
+  { key: 'maintenance_sub_type', label: 'Sous-types de maintenance', description: 'Sous-catégories détaillées des interventions de maintenance' },
 ];
 
 const schema = z.object({

@@ -105,112 +105,115 @@ export function InsuranceFormView({ insurance }: Props) {
 
   return (
     <PageContainer scrollable>
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6 max-w-3xl">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3">
-              <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
-                onClick={() => router.push('/insurances')}>
-                <ArrowLeft className="h-4 w-4" />Assurances
-              </Button>
-              <span className="text-muted-foreground">/</span>
-              <h1 className="text-lg font-bold">{insurance ? "Modifier l'assurance" : 'Nouvelle assurance'}</h1>
+      <div className="p-6 w-full space-y-6">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6 w-full">
+            <div className="flex items-center justify-between flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
+                        onClick={() => router.push('/insurances')}>
+                  <ArrowLeft className="h-4 w-4" />Assurances
+                </Button>
+                <span className="text-muted-foreground">/</span>
+                <h1 className="text-lg font-bold">{insurance ? "Modifier l'assurance" : 'Nouvelle assurance'}</h1>
+              </div>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => router.push('/insurances')}>Annuler</Button>
+                <Button type="submit" disabled={isPending} className="gap-1.5">
+                  {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  {isPending ? 'Enregistrement…' : insurance ? 'Mettre à jour' : 'Créer'}
+                </Button>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => router.push('/insurances')}>Annuler</Button>
-              <Button type="submit" disabled={isPending} className="gap-1.5">
-                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {isPending ? 'Enregistrement…' : insurance ? 'Mettre à jour' : 'Créer'}
-              </Button>
-            </div>
-          </div>
 
-          <Card>
-            <CardHeader><CardTitle className="text-base">Informations générales</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <FormField control={form.control} name="vehicle_id" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Véhicule *</FormLabel>
-                  <SelectField
-                    value={field.value}
-                    onChange={field.onChange}
-                    placeholder="Sélectionner un véhicule"
-                    options={vehicles.map(v => ({ value: v.id, label: `${v.brand} ${v.model}`, sub: v.registration_number }))}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )} />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField control={form.control} name="insurance_company" render={({ field }) => (
+            <Card>
+              <CardHeader><CardTitle className="text-base">Informations générales</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <FormField control={form.control} name="vehicle_id" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Compagnie d'assurance *</FormLabel>
+                    <FormLabel>Véhicule *</FormLabel>
                     <SelectField
                       value={field.value}
                       onChange={field.onChange}
-                      placeholder="Sélectionner une compagnie"
-                      options={companyOptions}
-                      onCreateNew={handleCreateCompany}
+                      placeholder="Sélectionner un véhicule"
+                      options={vehicles.map(v => ({ value: v.id, label: `${v.brand} ${v.model}`, sub: v.registration_number }))}
                     />
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="policy_number" render={({ field }) => (
-                  <FormItem><FormLabel>N° de police *</FormLabel><FormControl><Input placeholder="POL-12345" {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-              </div>
 
-              <FormField control={form.control} name="type" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Type *</FormLabel>
-                  <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un type" options={typeOptions} />
-                  <FormMessage />
-                </FormItem>
-              )} />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="insurance_company" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Compagnie d&apos;assurance *</FormLabel>
+                      <SelectField
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder="Sélectionner une compagnie"
+                        options={companyOptions}
+                        onCreateNew={handleCreateCompany}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="policy_number" render={({ field }) => (
+                    <FormItem><FormLabel>N° de police *</FormLabel><FormControl><Input placeholder="POL-12345" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField control={form.control} name="start_date" render={({ field }) => (
+                <FormField control={form.control} name="type" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date de début *</FormLabel>
-                    <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date de début" />
+                    <FormLabel>Type *</FormLabel>
+                    <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un type" options={typeOptions} />
                     <FormMessage />
                   </FormItem>
                 )} />
-                <FormField control={form.control} name="end_date" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Date de fin *</FormLabel>
-                    <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date de fin" />
-                    <FormMessage />
-                  </FormItem>
-                )} />
-              </div>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader><CardTitle className="text-base">Contact agent</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <FormField control={form.control} name="agent_name" render={({ field }) => (
-                  <FormItem><FormLabel>Nom de l'agent</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-                <FormField control={form.control} name="agent_phone" render={({ field }) => (
-                  <FormItem><FormLabel>Téléphone agent</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
-                )} />
-              </div>
-              <FormField control={form.control} name="notes" render={({ field }) => (
-                <FormItem><FormLabel>Commentaire</FormLabel><FormControl><Textarea rows={3} placeholder="Remarques…" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-            </CardContent>
-          </Card>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="start_date" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de début *</FormLabel>
+                      <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date de début" />
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="end_date" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de fin *</FormLabel>
+                      <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date de fin" />
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+              </CardContent>
+            </Card>
 
-          {!insurance && (
-            <p className="text-xs text-muted-foreground">
-              Vous pourrez ajouter les documents (police, carte verte, pièces jointes) une fois l'assurance créée.
-            </p>
-          )}
-        </form>
-      </Form>
+            <Card>
+              <CardHeader><CardTitle className="text-base">Contact agent</CardTitle></CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <FormField control={form.control} name="agent_name" render={({ field }) => (
+                    <FormItem><FormLabel>Nom de l&apos;agent</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="agent_phone" render={({ field }) => (
+                    <FormItem><FormLabel>Téléphone agent</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </div>
+                <FormField control={form.control} name="notes" render={({ field }) => (
+                  <FormItem><FormLabel>Commentaire</FormLabel><FormControl><Textarea rows={3} placeholder="Remarques…" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </CardContent>
+            </Card>
+
+            {!insurance && (
+              <p className="text-xs text-muted-foreground">
+                Vous pourrez ajouter les documents (police, carte verte, pièces jointes) une fois l&apos;assurance créée.
+              </p>
+            )}
+          </form>
+        </Form>
+      </div>
+
     </PageContainer>
   );
 }

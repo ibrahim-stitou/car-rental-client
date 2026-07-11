@@ -1,4 +1,11 @@
-export type ParameterCategory = 'insurance_type' | 'insurance_company' | 'inspection_center' | 'expense_category';
+export type ParameterCategory =
+  | 'insurance_type'
+  | 'insurance_company'
+  | 'inspection_center'
+  | 'expense_category'
+  | 'accident_type'
+  | 'maintenance_type'
+  | 'maintenance_sub_type';
 
 export interface Parameter {
   id: string;

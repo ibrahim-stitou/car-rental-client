@@ -57,18 +57,14 @@ export interface ReservationAgency {
 
 export interface ReservationVehicle {
   id: string;
-  brand: string;
-  model: string;
+  full_name: string;
   registration_number: string;
-  category: string;
 }
 
 export interface ReservationClient {
   id: string;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   phone: string;
-  email: string | null;
 }
 
 export interface CreateReservationInput {

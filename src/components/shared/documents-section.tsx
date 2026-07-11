@@ -6,6 +6,9 @@ import apiClient from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { IconUpload, IconTrash, IconFile, IconFileTypePdf, IconPhoto, IconDownload, IconPlus } from '@tabler/icons-react';
 import type { MediaItem } from '@/types/claim.types';
 
@@ -21,6 +24,8 @@ interface Props {
   compact?: boolean;
   /** Multipart field name expected by the backend endpoint (defaults to "documents", matching the generic documents[] collections). */
   fieldName?: string;
+  /** When true, each upload goes through a dialog asking for a title (one file at a time), sent as "names[]" alongside the file. */
+  titled?: boolean;
 }
 
 function getFileIcon(mimeType: string) {
@@ -46,20 +51,21 @@ export function DocumentsSection({
   onRefresh,
   compact = false,
   fieldName = 'documents',
+  titled = false,
 }: Props) {
   const [documents, setDocuments] = useState<MediaItem[]>(initialDocuments);
   const [uploading, setUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [pendingTitle, setPendingTitle] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (!files.length) return;
-
+  const doUpload = async (files: File[], names?: string[]) => {
     setUploading(true);
     try {
       const formData = new FormData();
       files.forEach(f => formData.append(`${fieldName}[]`, f));
+      names?.forEach(n => formData.append('names[]', n));
       // Do NOT set Content-Type manually — Axios sets multipart/form-data + boundary automatically
       const res = await apiClient.post(uploadUrl, formData);
       const newDocs = res.data?.data ?? [];
@@ -70,8 +76,29 @@ export function DocumentsSection({
       toast.error('Erreur lors du téléversement');
     } finally {
       setUploading(false);
-      e.target.value = '';
     }
+  };
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+
+    if (titled) {
+      setPendingFile(files[0]);
+      setPendingTitle(files[0].name.replace(/\.[^.]+$/, ''));
+      e.target.value = '';
+      return;
+    }
+
+    await doUpload(files);
+    e.target.value = '';
+  };
+
+  const confirmTitledUpload = async () => {
+    if (!pendingFile) return;
+    await doUpload([pendingFile], [pendingTitle || pendingFile.name]);
+    setPendingFile(null);
+    setPendingTitle('');
   };
 
   const handleDelete = async (mediaId: number) => {
@@ -117,7 +144,7 @@ export function DocumentsSection({
           ref={fileInputRef}
           type="file"
           accept={accept}
-          multiple
+          multiple={!titled}
           className="hidden"
           onChange={handleUpload}
         />
@@ -140,8 +167,10 @@ export function DocumentsSection({
               >
                 <div className="flex-shrink-0">{getFileIcon(doc.mime_type)}</div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{doc.file_name}</p>
-                  <p className="text-xs text-muted-foreground">{formatSize(doc.size)}</p>
+                  <p className="text-sm font-medium truncate">{doc.name || doc.file_name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {doc.name && doc.name !== doc.file_name ? `${doc.file_name} · ` : ''}{formatSize(doc.size)}
+                  </p>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button
@@ -171,6 +200,37 @@ export function DocumentsSection({
           </div>
         )}
       </CardContent>
+
+      {titled && (
+        <Dialog open={!!pendingFile} onOpenChange={(open) => { if (!open) { setPendingFile(null); setPendingTitle(''); } }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Titre du document</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground truncate">Fichier : {pendingFile?.name}</p>
+              <div className="space-y-1.5">
+                <Label htmlFor="doc-title">Titre</Label>
+                <Input
+                  id="doc-title"
+                  value={pendingTitle}
+                  onChange={(e) => setPendingTitle(e.target.value)}
+                  placeholder="ex. Carte grise, Assurance, Facture…"
+                  autoFocus
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => { setPendingFile(null); setPendingTitle(''); }} disabled={uploading}>
+                Annuler
+              </Button>
+              <Button type="button" onClick={confirmTitledUpload} disabled={uploading || !pendingTitle.trim()}>
+                {uploading ? 'Envoi…' : 'Téléverser'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 }

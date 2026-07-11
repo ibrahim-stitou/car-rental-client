@@ -10,6 +10,8 @@ export function useAuth() {
   const isSuperAdmin = hasRole('super-admin');
   const isAdmin = isSuperAdmin || hasRole('admin');
   const isManager = isAdmin || hasRole('manager');
+  const hasPermission = (permission: string) =>
+    isSuperAdmin || (session?.user?.permissions?.includes(permission) ?? false);
 
   return {
     session,
@@ -21,5 +23,7 @@ export function useAuth() {
     isAdmin,
     isManager,
     hasRole,
+    permissions: session?.user?.permissions ?? [],
+    hasPermission,
   };
 }

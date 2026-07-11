@@ -1,0 +1,22 @@
+<svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#142850"/>
+      <stop offset="100%" stop-color="#14B8A6"/>
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(10,15)">
+    <circle cx="160" cy="50" r="19" fill="none" stroke="#FB8B24" stroke-width="2" opacity="0.3"/>
+    <path d="M40,166 L40,50 L100,124 L160,50 L160,166"
+          fill="none" stroke="url(#mGrad)" stroke-width="24"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="160" cy="50" r="11" fill="#FB8B24"/>
+  </g>
+
+  <g font-family="'Inter','Segoe UI',Arial,sans-serif">
+    <text x="225" y="115" font-size="54" font-weight="700" fill="#142850" letter-spacing="-1">MyFleet</text>
+    <text x="437" y="115" font-size="54" font-weight="300" fill="#142850" letter-spacing="-1">Control</text>
+    <text x="226" y="150" font-size="16" font-weight="500" fill="#5B6B82" letter-spacing="3">GESTION DE FLOTTE &amp; LOCATION</text>
+  </g>
+</svg>

@@ -6,8 +6,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import { useCreateMaintenance, useUpdateMaintenance } from '../hooks/use-maintenances';
+import { useCreateMaintenance, useUpdateMaintenance, maintenanceKeys } from '../hooks/use-maintenances';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
 import type { Maintenance } from '@/types/maintenance.types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -20,11 +21,13 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SelectField } from '@/components/shared/select-field';
 import { FormDatePicker } from '@/components/shared/form-date-picker';
+import { DocumentsSection } from '@/components/shared/documents-section';
 import PageContainer from '@/components/layout/page-container';
 import { applyServerErrors } from '@/lib/form-errors';
+import { useParameterOptions } from '@/features/settings/hooks/use-parameters';
+import { apiRoutes } from '@/config/apiRoutes';
 import {
-  MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_PRIORITY_OPTIONS, MAINTENANCE_TYPE_OPTIONS,
-  MAINTENANCE_SUB_TYPE_OPTIONS, TIRE_POSITION_OPTIONS,
+  MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_PRIORITY_OPTIONS, TIRE_POSITION_OPTIONS,
 } from '@/config/constants';
 import { IconDroplet, IconCircleDot } from '@tabler/icons-react';
 
@@ -65,11 +68,14 @@ interface Props {
 
 export function MaintenanceFormView({ maintenance }: Props) {
   const router = useRouter();
+  const qc = useQueryClient();
   const createMutation = useCreateMaintenance();
   const updateMutation = useUpdateMaintenance(maintenance?.id ?? '');
   const { data: vehiclesRes } = useVehicles({ per_page: 200 });
   const vehicles = vehiclesRes?.data ?? [];
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const { options: maintenanceTypeOptions } = useParameterOptions('maintenance_type');
+  const { options: maintenanceSubTypeOptions } = useParameterOptions('maintenance_sub_type');
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: emptyValues });
 
@@ -168,23 +174,13 @@ export function MaintenanceFormView({ maintenance }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="type" render={({ field }) => (
                   <FormItem><FormLabel>Type *</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
-                      <SelectContent>{MAINTENANCE_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                    </Select><FormMessage /></FormItem>
+                    <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner" options={maintenanceTypeOptions} />
+                    <FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="sub_type" render={({ field }) => (
                   <FormItem><FormLabel>Sous-type</FormLabel>
-                    <Select
-                      value={field.value || '__none__'}
-                      onValueChange={v => field.onChange(v === '__none__' ? '' : v)}
-                    >
-                      <FormControl><SelectTrigger><SelectValue placeholder="Optionnel" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__">— Aucun —</SelectItem>
-                        {MAINTENANCE_SUB_TYPE_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select><FormMessage /></FormItem>
+                    <SelectField value={field.value ?? ''} onChange={field.onChange} placeholder="Optionnel" options={maintenanceSubTypeOptions} />
+                    <FormMessage /></FormItem>
                 )} />
               </div>
 
@@ -298,6 +294,50 @@ export function MaintenanceFormView({ maintenance }: Props) {
             <p className="text-xs text-muted-foreground">
               Vous pourrez ajouter les factures et photos une fois la maintenance créée.
             </p>
+          )}
+
+          {maintenance && (
+            <div className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents</h2>
+              <DocumentsSection
+                title="Factures"
+                entityId={maintenance.id}
+                uploadUrl={apiRoutes.maintenancesExt.uploadInvoices(maintenance.id)}
+                deleteUrlFn={(mid) => apiRoutes.maintenancesExt.deleteMedia(maintenance.id, mid)}
+                initialDocuments={maintenance.invoices ?? []}
+                fieldName="invoices"
+                accept="application/pdf"
+                onRefresh={() => qc.invalidateQueries({ queryKey: maintenanceKeys.detail(maintenance.id) })}
+              />
+              <DocumentsSection
+                title="Photos avant intervention"
+                entityId={maintenance.id}
+                uploadUrl={apiRoutes.maintenancesExt.uploadPhotosBefore(maintenance.id)}
+                deleteUrlFn={(mid) => apiRoutes.maintenancesExt.deleteMedia(maintenance.id, mid)}
+                initialDocuments={maintenance.photos_before ?? []}
+                fieldName="photos"
+                accept="image/*"
+                onRefresh={() => qc.invalidateQueries({ queryKey: maintenanceKeys.detail(maintenance.id) })}
+              />
+              <DocumentsSection
+                title="Photos après intervention"
+                entityId={maintenance.id}
+                uploadUrl={apiRoutes.maintenancesExt.uploadPhotosAfter(maintenance.id)}
+                deleteUrlFn={(mid) => apiRoutes.maintenancesExt.deleteMedia(maintenance.id, mid)}
+                initialDocuments={maintenance.photos_after ?? []}
+                fieldName="photos"
+                accept="image/*"
+                onRefresh={() => qc.invalidateQueries({ queryKey: maintenanceKeys.detail(maintenance.id) })}
+              />
+              <DocumentsSection
+                title="Autres documents"
+                entityId={maintenance.id}
+                uploadUrl={apiRoutes.maintenancesExt.uploadDocuments(maintenance.id)}
+                deleteUrlFn={(mid) => apiRoutes.maintenancesExt.deleteMedia(maintenance.id, mid)}
+                initialDocuments={maintenance.documents ?? []}
+                onRefresh={() => qc.invalidateQueries({ queryKey: maintenanceKeys.detail(maintenance.id) })}
+              />
+            </div>
           )}
         </form>
       </Form>

@@ -7,11 +7,11 @@ import type {
 import type { ReservationStatus, PaymentStatus, PaymentMethod, FuelLevel } from '@/types/reservation.types';
 import type { BillingDocumentType, BillingStatus } from '@/types/billing.types';
 import type { InsuranceType } from '@/types/insurance.types';
-import type { MaintenanceStatus, MaintenancePriority, MaintenanceType } from '@/types/maintenance.types';
+import type { MaintenanceStatus, MaintenancePriority } from '@/types/maintenance.types';
 import type { InspectionResult } from '@/types/technical-inspection.types';
 import type { VignettePaymentMethod } from '@/types/vignette.types';
 import type { UserRole } from '@/types/auth.types';
-import type { ClaimStatus, AccidentType } from '@/types/claim.types';
+import type { ClaimStatus } from '@/types/claim.types';
 
 export const VEHICLE_STATUS_OPTIONS: { value: VehicleStatus; label: string }[] = [
   { value: 'available', label: 'Disponible' },
@@ -112,17 +112,6 @@ export const MAINTENANCE_PRIORITY_OPTIONS: { value: MaintenancePriority; label: 
   { value: 'urgent', label: 'Urgente' },
 ];
 
-export const MAINTENANCE_TYPE_OPTIONS: { value: MaintenanceType; label: string }[] = [
-  { value: 'oil_change', label: 'Vidange' },
-  { value: 'tire_change', label: 'Changement de pneus' },
-  { value: 'brake_service', label: 'Révision des freins' },
-  { value: 'engine_repair', label: 'Réparation moteur' },
-  { value: 'body_repair', label: 'Carrosserie' },
-  { value: 'electrical', label: 'Électrique' },
-  { value: 'cleaning', label: 'Nettoyage' },
-  { value: 'other', label: 'Autre' },
-];
-
 export const INSPECTION_RESULT_OPTIONS: { value: InspectionResult; label: string }[] = [
   { value: 'passed', label: 'Réussi' },
   { value: 'failed', label: 'Échoué' },
@@ -150,28 +139,6 @@ export const CLAIM_STATUS_OPTIONS: { value: ClaimStatus; label: string; color: s
   { value: 'settled',           label: 'Réglé',                   color: 'bg-green-100 text-green-800' },
   { value: 'closed',            label: 'Clôturé',                 color: 'bg-gray-100 text-gray-800' },
   { value: 'rejected',          label: 'Rejeté',                  color: 'bg-red-100 text-red-800' },
-];
-
-export const ACCIDENT_TYPE_OPTIONS: { value: AccidentType; label: string }[] = [
-  { value: 'collision',        label: 'Collision' },
-  { value: 'theft',            label: 'Vol' },
-  { value: 'vandalism',        label: 'Vandalisme' },
-  { value: 'natural_disaster', label: 'Catastrophe naturelle' },
-  { value: 'fire',             label: 'Incendie' },
-  { value: 'glass_damage',     label: 'Bris de glace' },
-  { value: 'parking',          label: 'Accrochage parking' },
-  { value: 'other',            label: 'Autre' },
-];
-
-export const MAINTENANCE_SUB_TYPE_OPTIONS = [
-  { value: 'oil_change',       label: 'Vidange' },
-  { value: 'tire_change',      label: 'Changement pneus' },
-  { value: 'brake_service',    label: 'Freins' },
-  { value: 'filter_change',    label: 'Filtres' },
-  { value: 'battery',          label: 'Batterie' },
-  { value: 'timing_belt',      label: 'Courroie de distribution' },
-  { value: 'general_service',  label: 'Révision générale' },
-  { value: 'other',            label: 'Autre' },
 ];
 
 export const TIRE_POSITION_OPTIONS = [

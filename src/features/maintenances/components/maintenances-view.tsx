@@ -15,7 +15,8 @@ import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
 import type { Maintenance } from '@/types/maintenance.types';
-import { MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_PRIORITY_OPTIONS, MAINTENANCE_TYPE_OPTIONS } from '@/config/constants';
+import { MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_PRIORITY_OPTIONS } from '@/config/constants';
+import { useParameterOptions } from '@/features/settings/hooks/use-parameters';
 
 const STATUS_CLS: Record<string, string> = {
   scheduled:   'bg-blue-100 text-blue-800 border-blue-200',
@@ -38,6 +39,7 @@ export function MaintenancesView() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const { options: maintenanceTypeOptions } = useParameterOptions('maintenance_type');
 
   const doAction = async (id: string, url: string, msg: string) => {
     setPendingAction(id);
@@ -165,7 +167,7 @@ export function MaintenancesView() {
     { field: 'search', label: 'Rechercher une maintenance…', type: 'text' },
     { field: 'status',   label: 'Statut',   type: 'select', options: MAINTENANCE_STATUS_OPTIONS },
     { field: 'priority', label: 'Priorité', type: 'select', options: MAINTENANCE_PRIORITY_OPTIONS },
-    { field: 'type',     label: 'Type',     type: 'select', options: MAINTENANCE_TYPE_OPTIONS },
+    { field: 'type',     label: 'Type',     type: 'select', options: maintenanceTypeOptions },
   ];
 
   const handleConfirmDelete = async () => {

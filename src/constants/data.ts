@@ -8,6 +8,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['d', 'd'],
     items: [],
+    permission: 'view-dashboard',
   },
   {
     title: 'Agences',
@@ -16,6 +17,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['a', 'g'],
     items: [],
+    permission: 'view-agency',
   },
   {
     title: 'Véhicules',
@@ -24,6 +26,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['v', 'v'],
     items: [],
+    permission: 'view-vehicle',
   },
   {
     title: 'Clients',
@@ -32,6 +35,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['c', 'c'],
     items: [],
+    permission: 'view-client',
   },
   {
     title: 'Réservations',
@@ -43,6 +47,7 @@ export const navItems: NavItem[] = [
       { title: 'Liste', url: '/reservations' },
       { title: 'Calendrier', url: '/reservations/calendar' },
     ],
+    permission: 'view-reservation',
   },
   {
     title: 'Facturation',
@@ -51,6 +56,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['b', 'b'],
     items: [],
+    permission: 'view-billing',
   },
   {
     title: 'Dépenses',
@@ -59,6 +65,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['d', 'p'],
     items: [],
+    permission: 'view-expense',
   },
   {
     title: 'Assurances',
@@ -67,6 +74,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['i', 's'],
     items: [],
+    permission: 'view-insurance',
   },
   {
     title: 'Maintenances',
@@ -75,6 +83,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['m', 'm'],
     items: [],
+    permission: 'view-maintenance',
   },
   {
     title: 'Sinistres',
@@ -83,6 +92,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['s', 'n'],
     items: [],
+    permission: 'view-claim',
   },
   {
     title: 'Visites techniques',
@@ -91,6 +101,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['t', 'i'],
     items: [],
+    permission: 'view-technical-inspection',
   },
   {
     title: 'Vignettes',
@@ -99,6 +110,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['v', 'g'],
     items: [],
+    permission: 'view-vignette',
   },
   {
     title: 'Utilisateurs',
@@ -107,6 +119,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['u', 'u'],
     items: [],
+    permission: 'view-user',
   },
   {
     title: 'Rôles',
@@ -115,6 +128,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['r', 'o'],
     items: [],
+    permission: 'view-role',
   },
   {
     title: 'Notifications',
@@ -131,6 +145,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['l', 'g'],
     items: [],
+    permission: 'view-logs',
   },
   {
     title: 'Paramètres',
@@ -139,6 +154,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['s', 's'],
     items: [],
+    permission: 'manage-settings',
   },
   {
     title: 'Rapports',
@@ -155,5 +171,6 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['w', 'b'],
     items: [],
+    permission: 'manage-website',
   },
 ];

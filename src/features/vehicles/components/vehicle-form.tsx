@@ -167,7 +167,13 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
           const id = (res as any)?.data?.id ?? vehicle.id;
           if (photos.some(p => p.isNew)) {
             setUploadingPhotos(true);
-            try { await uploadPhotos(id); } finally { setUploadingPhotos(false); }
+            try {
+              await uploadPhotos(id);
+            } catch {
+              toast.error("Le véhicule a été mis à jour mais l'envoi des photos a échoué. Réessayez depuis la fiche du véhicule.");
+            } finally {
+              setUploadingPhotos(false);
+            }
           }
           toast.success('Véhicule mis à jour');
           onOpenChange(false);
@@ -181,7 +187,13 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
           const id = (res as any)?.data?.id;
           if (id && photos.some(p => p.isNew)) {
             setUploadingPhotos(true);
-            try { await uploadPhotos(id); } finally { setUploadingPhotos(false); }
+            try {
+              await uploadPhotos(id);
+            } catch {
+              toast.error("Le véhicule a été créé mais l'envoi des photos a échoué. Réessayez depuis la fiche du véhicule.");
+            } finally {
+              setUploadingPhotos(false);
+            }
           }
           toast.success('Véhicule créé');
           onOpenChange(false);

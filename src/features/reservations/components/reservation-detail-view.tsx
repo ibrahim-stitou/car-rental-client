@@ -7,7 +7,7 @@ import { fr } from 'date-fns/locale';
 import {
   ArrowLeft, Car, User, MapPin, Calendar, CreditCard, FileText,
   Download, Edit, Check, Play, Square, X, AlertTriangle, Clock,
-  Phone, Mail, Hash, DollarSign, UserPlus, Eye, Printer,
+  Phone, Hash, DollarSign, UserPlus, Eye, Printer,
   Info, CheckCheck, XCircle, ChevronDown, Loader2,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -230,7 +230,7 @@ export function ReservationDetailView({ id }: { id: string }) {
   if (!reservation) {
     return (
       <PageContainer scrollable>
-        <div className="p-6"><p className="text-muted-foreground">Réservation introuvable.</p></div>
+        <div className="p-6 w-ful"><p className="text-muted-foreground">Réservation introuvable.</p></div>
       </PageContainer>
     );
   }
@@ -242,7 +242,7 @@ export function ReservationDetailView({ id }: { id: string }) {
 
   return (
     <PageContainer scrollable>
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 w-full">
 
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 flex-wrap">
@@ -276,7 +276,7 @@ export function ReservationDetailView({ id }: { id: string }) {
             {/* Modifier */}
             {['pending', 'confirmed'].includes(reservation.status) && (
               <Button size="sm" variant="outline" className="gap-1 bg-white/60 hover:bg-white"
-                onClick={() => toast.info('Modification via le formulaire de liste')}>
+                onClick={() => router.push(`/reservations/${id}/edit`)}>
                 <Edit className="h-4 w-4" />Modifier
               </Button>
             )}
@@ -396,11 +396,10 @@ export function ReservationDetailView({ id }: { id: string }) {
                       <div className="sm:col-span-2">
                         <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Modèle</p>
                         <p className="text-base font-bold">
-                          {reservation.vehicle?.brand} {reservation.vehicle?.model}
+                          {reservation.vehicle?.full_name}
                         </p>
                         <p className="text-xs text-muted-foreground font-mono mt-0.5">{reservation.vehicle?.registration_number}</p>
                       </div>
-                      {reservation.vehicle?.category && <InfoRow label="Catégorie" value={reservation.vehicle.category} />}
                       {r.fuel_level_pickup && <InfoRow label="Carburant départ" value={FUEL_FR[r.fuel_level_pickup] ?? r.fuel_level_pickup} />}
                       {r.fuel_level_return && <InfoRow label="Carburant retour" value={FUEL_FR[r.fuel_level_return] ?? r.fuel_level_return} />}
                       {r.initial_mileage != null && <InfoRow label="Km départ" value={`${Number(r.initial_mileage).toLocaleString('fr-MA')} km`} />}
@@ -420,17 +419,12 @@ export function ReservationDetailView({ id }: { id: string }) {
                       <div className="sm:col-span-2">
                         <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider mb-1">Nom</p>
                         <p className="text-base font-bold">
-                          {reservation.client?.first_name} {reservation.client?.last_name}
+                          {reservation.client?.full_name}
                         </p>
                       </div>
                       {reservation.client?.phone && (
                         <InfoRow label="Téléphone"
                           value={<span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" />{reservation.client.phone}</span>}
-                        />
-                      )}
-                      {reservation.client?.email && (
-                        <InfoRow label="Email"
-                          value={<span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-muted-foreground" />{reservation.client.email}</span>}
                         />
                       )}
                     </div>

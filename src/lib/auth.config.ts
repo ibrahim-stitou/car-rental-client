@@ -1,8 +1,13 @@
 import type { NextAuthConfig } from 'next-auth';
+import { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import type { LoginResponse, UserRole } from '@/types/auth.types';
+
+export class AccountSuspendedError extends CredentialsSignin {
+  code = 'account-suspended';
+}
 
 export const authConfig = {
   providers: [
@@ -32,6 +37,7 @@ export const authConfig = {
             lastName: user.last_name,
             email: user.email,
             roles: user.roles,
+            permissions: user.permissions,
             agency: user.agency,
             avatarUrl: user.avatar_url,
             accessToken: access_token,
@@ -39,6 +45,9 @@ export const authConfig = {
         } catch (err: unknown) {
           const axiosErr = err as { response?: { data?: unknown; status?: number } };
           console.error('[auth] Login failed:', axiosErr?.response?.status, axiosErr?.response?.data ?? err);
+          if (axiosErr?.response?.status === 403) {
+            throw new AccountSuspendedError();
+          }
           return null;
         }
       },
@@ -53,6 +62,7 @@ export const authConfig = {
         token.lastName = (user as { lastName: string }).lastName;
         token.email = user.email as string;
         token.roles = (user as { roles: UserRole[] }).roles;
+        token.permissions = (user as { permissions: string[] }).permissions ?? [];
         token.agency = (user as { agency: unknown }).agency;
         token.avatarUrl = (user as { avatarUrl: string | null }).avatarUrl;
       }
@@ -68,6 +78,7 @@ export const authConfig = {
         lastName: token.lastName as string,
         email: token.email as string,
         roles: token.roles as UserRole[],
+        permissions: token.permissions as string[],
         agency: token.agency as null,
         avatarUrl: token.avatarUrl as string | null,
       } as typeof session.user;

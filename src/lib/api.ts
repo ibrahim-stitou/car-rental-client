@@ -41,9 +41,12 @@ apiClient.interceptors.request.use(
     }
 
     // For FormData uploads, remove Content-Type so the browser sets it
-    // automatically with the correct multipart boundary
+    // automatically with the correct multipart boundary, and use a longer
+    // timeout — media conversions (resize/sharpen) run synchronously server-side
+    // per file and can easily exceed the default 10s on multi-file uploads.
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
       delete config.headers['Content-Type'];
+      config.timeout = 60000;
     }
 
     config._requestTimestamp = Date.now();

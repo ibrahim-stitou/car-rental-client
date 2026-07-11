@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -9,13 +10,12 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { ClaimForm } from './claim-form';
-import { ClaimDetailDialog } from './claim-detail-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
 import type { Claim } from '@/types/claim.types';
-import { CLAIM_STATUS_OPTIONS, ACCIDENT_TYPE_OPTIONS } from '@/config/constants';
+import { CLAIM_STATUS_OPTIONS } from '@/config/constants';
+import { useParameterOptions } from '@/features/settings/hooks/use-parameters';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useClaimStatistics } from '../hooks/use-claims';
@@ -25,14 +25,13 @@ import { IconAlertTriangle, IconShield, IconCurrencyDirham } from '@tabler/icons
 function fmt(n: number | undefined) { return (n ?? 0).toLocaleString('fr-MA'); }
 
 export function ClaimsView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Claim>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editClaim, setEditClaim] = useState<Claim | null>(null);
-  const [detailClaim, setDetailClaim] = useState<Claim | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const { data: statsRes } = useClaimStatistics();
   const stats = statsRes?.data;
+  const { options: accidentTypeOptions } = useParameterOptions('accident_type');
 
   const columns: CustomTableColumn<Claim>[] = [
     {
@@ -77,7 +76,7 @@ export function ClaimsView() {
       label: 'Type',
       sortable: true,
       render: (v) => {
-        const opt = ACCIDENT_TYPE_OPTIONS.find(o => o.value === v);
+        const opt = accidentTypeOptions.find(o => o.value === v);
         return <Badge variant="outline" className="text-xs">{opt?.label ?? v}</Badge>;
       },
     },
@@ -113,12 +112,12 @@ export function ClaimsView() {
       render: (_, row) => (
         <div className="flex items-center gap-1">
           <Tooltip><TooltipTrigger asChild>
-            <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => setDetailClaim(row)}>
+            <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/claims/${row.id}`)}>
               <Eye className="h-4 w-4" />
             </Button>
           </TooltipTrigger><TooltipContent>Détails</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild>
-            <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => { setEditClaim(row); setFormOpen(true); }}>
+            <Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/claims/${row.id}/edit`)}>
               <Edit className="h-4 w-4" />
             </Button>
           </TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
@@ -136,7 +135,7 @@ export function ClaimsView() {
   const filters: CustomTableFilterConfig[] = [
     { field: 'search', label: 'Rechercher…', type: 'text' },
     { field: 'status', label: 'Statut', type: 'select', options: CLAIM_STATUS_OPTIONS },
-    { field: 'accident_type', label: 'Type', type: 'select', options: ACCIDENT_TYPE_OPTIONS },
+    { field: 'accident_type', label: 'Type', type: 'select', options: accidentTypeOptions },
   ];
 
   const handleConfirmDelete = async () => {
@@ -154,7 +153,7 @@ export function ClaimsView() {
       <PageHeader
         title="Sinistres"
         description="Gestion des accidents et sinistres véhicules"
-        onAdd={() => { setEditClaim(null); setFormOpen(true); }}
+        onAdd={() => router.push('/claims/new')}
         addLabel="Déclarer un sinistre"
       />
 
@@ -181,16 +180,7 @@ export function ClaimsView() {
       )}
 
       <CustomTable<Claim> url={apiRoutes.claims.list} columns={columns} filters={filters} onInit={(i) => setTableInstance(i)} />
-      <ClaimForm open={formOpen} onOpenChange={setFormOpen} claim={editClaim} onSuccess={() => tableInstance?.refresh?.()} />
       <CustomAlertDialog title="Supprimer le sinistre ?" description="Action irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
-      {detailClaim && (
-        <ClaimDetailDialog
-          open={!!detailClaim}
-          onOpenChange={(o) => !o && setDetailClaim(null)}
-          claim={detailClaim}
-          onEdit={(c) => { setDetailClaim(null); setEditClaim(c); setFormOpen(true); }}
-        />
-      )}
     </div>
   );
 }

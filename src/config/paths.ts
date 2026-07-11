@@ -27,7 +27,7 @@ export const paths = {
   },
   reservations: {
     list: '/reservations',
-    create: '/reservations/new',
+    create: '/reservations/create',
     detail: (id: string) => `/reservations/${id}`,
     edit: (id: string) => `/reservations/${id}/edit`,
     calendar: '/reservations/calendar',

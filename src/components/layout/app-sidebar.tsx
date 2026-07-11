@@ -43,6 +43,12 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { state } = useSidebar();
 
+  const isSuperAdmin = session?.user?.roles?.includes('super-admin') ?? false;
+  const permissions = session?.user?.permissions ?? [];
+  const visibleNavItems = navItems.filter(
+    (item) => isSuperAdmin || !item.permission || permissions.includes(item.permission)
+  );
+
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -73,7 +79,7 @@ export default function AppSidebar() {
       <SidebarContent className="overflow-x-hidden">
         <SidebarGroup>
           <SidebarMenu>
-            {navItems.map((item) => {
+            {visibleNavItems.map((item) => {
               const Icon = item.icon ? Icons[item.icon] : Icons.logo;
 
               return item?.items && item?.items?.length > 0 ? (

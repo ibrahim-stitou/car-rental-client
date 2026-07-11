@@ -11,7 +11,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { ReservationForm } from './reservation-form';
 import { PaymentDialog } from './payment-dialog';
 import { CompleteReservationDialog } from './complete-reservation-dialog';
 import { ExtendReservationDialog } from './extend-reservation-dialog';
@@ -45,8 +44,6 @@ const PAY_FR: Record<string, string> = { pending: 'Non payé', partial: 'Partiel
 export function ReservationsView() {
   const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Reservation>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editRes, setEditRes] = useState<Reservation | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<{ id: string; ref: string } | null>(null);
@@ -186,7 +183,7 @@ export function ReservationsView() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" className="h-8 w-8 p-1.5"
-                  onClick={() => { setEditRes(row); setFormOpen(true); }}>
+                  onClick={() => router.push(`/reservations/${row.id}/edit`)}>
                   <Edit className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
@@ -360,7 +357,6 @@ export function ReservationsView() {
         filters={filters}
         onInit={(i) => setTableInstance(i)}
       />
-      <ReservationForm open={formOpen} onOpenChange={setFormOpen} reservation={editRes} onSuccess={() => tableInstance?.refresh?.()} />
       <CustomAlertDialog title="Supprimer la réservation ?" description="Cette action est irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
       {paymentDialog && (
         <PaymentDialog

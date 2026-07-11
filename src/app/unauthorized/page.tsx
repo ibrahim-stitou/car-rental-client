@@ -3,10 +3,16 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { APP_NAME } from '@/config/brand';
+import { usePermissions } from '@/features/roles/hooks/use-roles';
 
 export default function UnauthorizedPage() {
   const [year, setYear] = useState(new Date().getFullYear());
+  const searchParams = useSearchParams();
+  const missingPermission = searchParams.get('missing');
+  const { data: permissionsRes } = usePermissions();
+  const missingLabel = permissionsRes?.data?.find((p) => p.name === missingPermission)?.label ?? missingPermission;
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -53,11 +59,11 @@ export default function UnauthorizedPage() {
 
           {/* Content section */}
           <div className="p-8 md:p-12">
-            <h1 className="text-4xl font-extrabold text-white text-center mb-4">Access Denied</h1>
+            <h1 className="text-4xl font-extrabold text-white text-center mb-4">Accès refusé</h1>
 
             <div className="mb-8 space-y-6">
                 <p className={"text-white/90 text-xl text-center"}>
-                Looks like you&apos;ve tried to enter a restricted area of {APP_NAME}.
+                Vous avez tenté d&apos;accéder à une zone restreinte de {APP_NAME}.
                 </p>
 
               <div className="relative">
@@ -69,11 +75,17 @@ export default function UnauthorizedPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h2 className="text-xl font-bold text-white">Why am I seeing this?</h2>
+                    <h2 className="text-xl font-bold text-white">Pourquoi voyez-vous ce message ?</h2>
                   </div>
                     <p className={"text-white/80"}>
-                    You do not have the necessary permissions to access this resource. If you believe this is an error, please contact your administrator or our support team.
+                    Vous n&apos;avez pas la permission nécessaire pour accéder à cette page. Contactez votre administrateur pour qu&apos;il vous accorde cette permission.
                     </p>
+                    {missingPermission && (
+                      <div className="mt-4 flex items-center gap-2 bg-white/10 rounded-lg px-4 py-2.5">
+                        <span className="text-white/60 text-sm">Permission manquante :</span>
+                        <span className="text-white font-semibold text-sm">{missingLabel}</span>
+                      </div>
+                    )}
                 </div>
               </div>
 
@@ -86,13 +98,13 @@ export default function UnauthorizedPage() {
             {/* Action buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
-                href="/"
+                href="/dashboard"
                 className="group px-8 py-4 bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-medium rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 transition-all duration-300 flex items-center justify-center"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
-                Return to Homepage
+                Retour au tableau de bord
               </Link>
             </div>
           </div>

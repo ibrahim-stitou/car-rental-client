@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { Trash2, Plus, CreditCard, AlertCircle } from 'lucide-react';
+import { Trash2, Plus, CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useReservationPayments, useAddPayment, useDeletePayment } from '../hooks/use-payments';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FormDatePicker } from '@/components/shared/form-date-picker';
+import { applyServerErrors } from '@/lib/form-errors';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -65,6 +67,10 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
   });
 
   const onSubmit = async (values: FormValues) => {
+    if (summary && values.amount > summary.balance) {
+      form.setError('amount', { message: `Le montant ne peut pas dépasser le solde restant (${summary.balance.toLocaleString('fr-MA')} MAD)` });
+      return;
+    }
     try {
       await addPayment.mutateAsync({
         ...values,
@@ -73,8 +79,8 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
       toast.success('Paiement enregistré');
       form.reset({ amount: 0, payment_method: '', payment_date: new Date().toISOString().split('T')[0], reference: '', notes: '' });
       setShowForm(false);
-    } catch {
-      toast.error("Erreur lors de l'enregistrement du paiement");
+    } catch (err) {
+      applyServerErrors(err, form, "Erreur lors de l'enregistrement du paiement");
     }
   };
 
@@ -169,14 +175,15 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
                     <FormField control={form.control} name="amount" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Montant (MAD) *</FormLabel>
-                        <FormControl><Input type="number" step="0.01" {...field} /></FormControl>
+                        <FormControl><Input type="number" step="0.01" min={0.01} max={summary?.balance} {...field} /></FormControl>
+                        {summary && <p className="text-xs text-muted-foreground">Solde restant : {summary.balance.toLocaleString('fr-MA')} MAD</p>}
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="payment_date" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Date *</FormLabel>
-                        <FormControl><Input type="date" {...field} /></FormControl>
+                        <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date" />
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -209,6 +216,11 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
                   </div>
                 </form>
               </Form>
+            ) : summary?.is_fully_paid ? (
+              <div className="flex items-center justify-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg py-2.5">
+                <CheckCircle2 className="h-4 w-4" />
+                Réservation entièrement payée
+              </div>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setShowForm(true)} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />

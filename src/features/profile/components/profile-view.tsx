@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { IconPencil, IconTrash, IconUpload, IconAlertTriangle, IconCheck } from '@tabler/icons-react';
+import PageContainer from '@/components/layout/page-container';
 
 const schema = z.object({
   first_name: z.string().min(1, 'Prénom requis'),
@@ -167,7 +168,8 @@ export function ProfileView() {
   const hasStamp     = !!stampUrl;
 
   return (
-    <div className="p-6 max-w-2xl space-y-6">
+    <PageContainer>
+    <div className="p-6 w-full space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Profil</h1>
         <p className="text-muted-foreground text-sm mt-1">Gérez vos informations et votre signature pour les contrats</p>
@@ -267,5 +269,6 @@ export function ProfileView() {
         </CardContent>
       </Card>
     </div>
+    </PageContainer>
   );
 }

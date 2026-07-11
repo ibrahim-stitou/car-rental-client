@@ -35,8 +35,12 @@ export default function SignInForm() {
         });
 
         if (result?.error) {
-          toast.error('Email ou mot de passe incorrect');
-          form.setError('password', { message: 'Identifiants invalides' });
+          if (result.code === 'account-suspended') {
+            toast.error('Votre compte a été suspendu. Veuillez contacter l\'administrateur.');
+          } else {
+            toast.error('Email ou mot de passe incorrect');
+            form.setError('password', { message: 'Identifiants invalides' });
+          }
         } else {
           toast.success('Connexion réussie !');
           window.location.href = paths.dashboard.root;

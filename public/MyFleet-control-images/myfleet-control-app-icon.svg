@@ -1,0 +1,16 @@
+<svg viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mGradIcon" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#5EEAD4"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="220" height="220" rx="40" fill="#142850"/>
+  <g transform="translate(20,25)">
+    <circle cx="160" cy="50" r="19" fill="none" stroke="#FB8B24" stroke-width="2" opacity="0.4"/>
+    <path d="M40,166 L40,50 L100,124 L160,50 L160,166"
+          fill="none" stroke="url(#mGradIcon)" stroke-width="24"
+          stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="160" cy="50" r="11" fill="#FB8B24"/>
+  </g>
+</svg>

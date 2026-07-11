@@ -1,7 +1,7 @@
 ﻿import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import type { ApiResponse, PaginatedResponse } from '@/types/api.types';
-import type { Role, Permission, CreateRoleInput, UpdateRoleInput, AssignPermissionsInput } from '@/types/role.types';
+import type { Role, RoleUser, Permission, CreateRoleInput, UpdateRoleInput, AssignPermissionsInput } from '@/types/role.types';
 
 export const roleService = {
   list: () =>
@@ -18,4 +18,10 @@ export const roleService = {
     apiClient.post<ApiResponse<Role>>(apiRoutes.roles.assignPermissions(id), input).then((r) => r.data),
   permissions: () =>
     apiClient.get<ApiResponse<Permission[]>>(apiRoutes.permissions.list).then((r) => r.data),
+  users: (id: string) =>
+    apiClient.get<ApiResponse<RoleUser[]>>(apiRoutes.roles.users(id)).then((r) => r.data),
+  attachUser: (id: string, userId: string) =>
+    apiClient.post<ApiResponse<RoleUser[]>>(apiRoutes.roles.attachUser(id), { user_id: userId }).then((r) => r.data),
+  detachUser: (id: string, userId: string) =>
+    apiClient.delete<ApiResponse<RoleUser[]>>(apiRoutes.roles.detachUser(id, userId)).then((r) => r.data),
 };

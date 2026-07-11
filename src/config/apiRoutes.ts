@@ -146,6 +146,9 @@ export const apiRoutes = {
     update: (id: string) => `${BASE}/roles/${id}`,
     delete: (id: string) => `${BASE}/roles/${id}`,
     assignPermissions: (id: string) => `${BASE}/roles/${id}/permissions`,
+    users: (id: string) => `${BASE}/roles/${id}/users`,
+    attachUser: (id: string) => `${BASE}/roles/${id}/users`,
+    detachUser: (id: string, userId: string) => `${BASE}/roles/${id}/users/${userId}`,
   },
   permissions: {
     list: `${BASE}/permissions`,

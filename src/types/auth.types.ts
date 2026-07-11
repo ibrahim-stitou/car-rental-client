@@ -1,4 +1,6 @@
-export type UserRole = 'super-admin' | 'admin' | 'manager' | 'agent' | 'viewer';
+/** Admin-configurable via the Roles module — not a fixed enum. The five names below
+ * remain as documentation of the seeded defaults, but any custom role name is valid. */
+export type UserRole = string;
 
 export interface Agency {
   id: string;
@@ -17,6 +19,7 @@ export interface AuthUser {
   phone: string | null;
   is_active: boolean;
   roles: UserRole[];
+  permissions: string[];
   agency: Agency | null;
   avatar_url: string | null;
 }

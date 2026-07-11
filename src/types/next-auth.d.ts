@@ -10,6 +10,7 @@ declare module 'next-auth' {
       lastName: string;
       email: string;
       roles: UserRole[];
+      permissions: string[];
       agency: Agency | null;
       avatarUrl: string | null;
     } & DefaultSession['user'];
@@ -21,6 +22,7 @@ declare module 'next-auth' {
     lastName: string;
     email?: string | null;
     roles: UserRole[];
+    permissions: string[];
     agency: Agency | null;
     avatarUrl: string | null;
     accessToken: string;
@@ -34,6 +36,7 @@ declare module 'next-auth/jwt' {
     firstName: string;
     lastName: string;
     roles: UserRole[];
+    permissions: string[];
     agency: Agency | null;
     avatarUrl: string | null;
   }
