@@ -34,21 +34,15 @@ export default function UnauthorizedPage() {
       <div className="relative z-10 max-w-2xl w-full mx-auto">
         {/* Main content container */}
         <div className="backdrop-blur-xl bg-white/10 rounded-3xl shadow-2xl overflow-hidden border border-white/20">
-          {/* Header section with "403" */}
-          <div className="relative h-32 bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
+          {/* Header section with brand logo */}
+          <div className="relative h-40 bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center overflow-hidden">
             <div className="absolute inset-0 bg-black/10"></div>
-            <div className="relative z-10 flex items-center">
-              <span className="text-8xl font-black tracking-tighter text-white">4</span>
-              <div className="mx-2 relative">
-                <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center animate-spin">
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-3V9m0 0V7m0 2h2m-2 0H9" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-              <span className="text-8xl font-black tracking-tighter text-white">3</span>
+            <div className="relative z-10 flex items-center justify-center bg-white/10 backdrop-blur-sm rounded-2xl p-4">
+              <img
+                src="/MyFleet-control-images/myfleet-control-logo-fond-sombre.svg"
+                alt={APP_NAME}
+                className="h-20 w-auto"
+              />
             </div>
 
             {/* Decorative elements */}

@@ -76,6 +76,22 @@ apiClient.interceptors.response.use(
         console.error('Error during sign out:', signOutError);
       }
     }
+
+    // Only redirect for true permission-denial 403s (the backend includes
+    // required_permissions exclusively for Spatie's UnauthorizedException).
+    // Business-logic 403s (e.g. "already fully paid", "cannot delete system role")
+    // don't carry this field and are left to their local try/catch + toast handling.
+    const requiredPermissions = error.response?.data?.required_permissions;
+    if (
+      error.response?.status === 403 &&
+      Array.isArray(requiredPermissions) &&
+      requiredPermissions.length > 0 &&
+      typeof window !== 'undefined' &&
+      window.location.pathname !== '/unauthorized'
+    ) {
+      window.location.href = `/unauthorized?missing=${encodeURIComponent(requiredPermissions[0])}`;
+    }
+
     return Promise.reject(error);
   }
 );

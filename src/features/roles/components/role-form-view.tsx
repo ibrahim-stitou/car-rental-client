@@ -110,7 +110,7 @@ export function RoleFormView({ role }: Props) {
   return (
     <PageContainer scrollable>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6 max-w-4xl">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6 w-full">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
               <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
