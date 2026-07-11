@@ -9,8 +9,8 @@ import Logo from '@/components/logo';
 import { IconBrandGoogle } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
-  title: 'Authentication - Inginuity',
-  description: 'Secure login to your Inginuity account',
+  title: 'Authentication - MyFleet-Control',
+  description: 'Secure login to your MyFleet-Control account',
 };
 
 export default function SignInViewPage({ stars }: { stars: number }) {

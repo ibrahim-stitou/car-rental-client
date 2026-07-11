@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { SelectField } from '@/components/shared/select-field';
 import { Switch } from '@/components/ui/switch';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -23,11 +24,13 @@ import {
 } from '@/config/constants';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
+import { applyServerErrors } from '@/lib/form-errors';
+import { RichTextEditor } from '@/components/shared/rich-text-editor';
 import { IconUpload, IconX, IconPhoto, IconAlertTriangle } from '@tabler/icons-react';
 
 const schema = z.object({
-  agency_id: z.string().min(1, 'Agency is required'),
-  brand: z.string().min(1, 'Brand is required'),
+  agency_id: z.string().min(1, 'Agence requise'),
+  brand: z.string().min(1, 'Marque requise'),
   model: z.string().min(1, 'Modèle requis'),
   year: z.coerce.number().min(2000).max(new Date().getFullYear() + 1),
   registration_number: z.string().min(1, 'Immatriculation requise'),
@@ -40,6 +43,7 @@ const schema = z.object({
   daily_rate: z.coerce.number().min(0),
   deposit_amount: z.coerce.number().min(0),
   mileage: z.coerce.number().min(0),
+  average_consumption: z.coerce.number().min(0).optional(),
   has_adblue: z.boolean().optional(),
   notes: z.string().optional(),
   description: z.string().optional(),
@@ -75,6 +79,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
       agency_id: '', brand: '', model: '', year: new Date().getFullYear(),
       registration_number: '', vin: '', color: '', category: '', fuel_type: '',
       transmission: '', seats: 5, daily_rate: 0, deposit_amount: 0, mileage: 0,
+      average_consumption: undefined,
       has_adblue: false, notes: '', description: '',
       show_on_website: false, website_description: '', website_price_override: undefined,
     },
@@ -97,6 +102,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
         daily_rate: Number(vehicle.daily_rate),
         deposit_amount: Number(vehicle.deposit_amount),
         mileage: vehicle.mileage,
+        average_consumption: (vehicle as any).average_consumption != null ? Number((vehicle as any).average_consumption) : undefined,
         has_adblue: vehicle.has_adblue ?? false,
         notes: vehicle.notes ?? '',
         description: vehicle.description ?? '',
@@ -111,6 +117,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
         agency_id: '', brand: '', model: '', year: new Date().getFullYear(),
         registration_number: '', vin: '', color: '', category: '', fuel_type: '',
         transmission: '', seats: 5, daily_rate: 0, deposit_amount: 0, mileage: 0,
+        average_consumption: undefined,
         has_adblue: false, notes: '', description: '',
         show_on_website: false, website_description: '',
       });
@@ -166,7 +173,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
           onOpenChange(false);
           onSuccess?.();
         },
-        onError: () => toast.error('Échec de la mise à jour'),
+        onError: (err) => applyServerErrors(err, form, 'Échec de la mise à jour du véhicule'),
       });
     } else {
       createMutation.mutate(values as any, {
@@ -181,7 +188,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
           form.reset();
           onSuccess?.();
         },
-        onError: () => toast.error('Impossible de créer le véhicule'),
+        onError: (err) => applyServerErrors(err, form, 'Impossible de créer le véhicule'),
       });
     }
   };
@@ -204,16 +211,12 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
               <FormField control={form.control} name="agency_id" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Agence *</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl>
-                      <SelectTrigger><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {agencies.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SelectField
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner une agence"
+                    options={agencies.map(a => ({ value: a.id, label: a.name, sub: (a as any).city }))}
+                  />
                   <FormMessage />
                 </FormItem>
               )} />
@@ -300,7 +303,7 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
               <Separator />
               <p className="text-sm font-medium text-muted-foreground">Tarification & État</p>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <FormField control={form.control} name="daily_rate" render={({ field }) => (
                   <FormItem><FormLabel>Tarif/jour (MAD) *</FormLabel><FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
@@ -310,6 +313,13 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
                 <FormField control={form.control} name="mileage" render={({ field }) => (
                   <FormItem><FormLabel>Kilométrage (km) *</FormLabel><FormControl><Input type="number" min={0} {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
+                <FormField control={form.control} name="average_consumption" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Consommation moyenne (L/100km)</FormLabel>
+                    <FormControl><Input type="number" min={0} step={0.1} placeholder="ex. 6.5" {...field} value={field.value ?? ''} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
 
               <FormField control={form.control} name="notes" render={({ field }) => (
@@ -317,7 +327,13 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
               )} />
 
               <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem><FormLabel>Description libre (agent)</FormLabel><FormControl><Textarea placeholder="Description, remarques spécifiques…" rows={2} {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <RichTextEditor value={field.value ?? ''} onChange={field.onChange} placeholder="Description détaillée du véhicule…" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )} />
 
               {/* Photos section */}
@@ -383,7 +399,13 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
               </div>
 
               <FormField control={form.control} name="website_description" render={({ field }) => (
-                <FormItem><FormLabel>Description site web</FormLabel><FormControl><Textarea placeholder="Description sur le site public…" rows={2} {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Description site web</FormLabel>
+                  <FormControl>
+                    <RichTextEditor value={field.value ?? ''} onChange={field.onChange} placeholder="Description telle qu'affichée sur le site public…" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )} />
 
               <div className="flex justify-end gap-3 pt-2">

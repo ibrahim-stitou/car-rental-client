@@ -8,6 +8,7 @@ import { cookies } from 'next/headers';
 import { cn } from '@/lib/utils';
 import ThemeInitializer from '@/components/custom/ThemeInitialize';
 import { fontVariables } from '@/lib/font';
+import { APP_NAME, APP_DESCRIPTION } from '@/config/brand';
 import './globals.css';
 import './theme.css';
 
@@ -17,8 +18,8 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'Car Rental',
-  description: 'Car Rental Management Application',
+  title: APP_NAME,
+  description: APP_DESCRIPTION,
   icons: {
     icon: '/logo/small-logo-black.svg'
   }

@@ -16,6 +16,8 @@ import { apiRoutes } from '@/config/apiRoutes';
 import { paths } from '@/config/paths';
 import { IconCar } from '@tabler/icons-react';
 import { ModeToggle } from '@/components/layout/ThemeToggle/theme-toggle';
+import { ContactFooter } from '@/components/layout/contact-footer';
+import { APP_NAME, WEBSITE_DOMAIN } from '@/config/brand';
 
 const schema = z.object({
   email: z.string().email({ message: 'Veuillez saisir une adresse email valide' }),
@@ -59,8 +61,8 @@ export default function ForgotPasswordView() {
             <IconCar className="h-5 w-5 text-white" />
           </div>
           <div>
-            <div className="text-lg font-bold text-white tracking-tight">GES-CARS</div>
-            <div className="text-xs text-slate-400 -mt-0.5">Plateforme de gestion 2026</div>
+            <div className="text-lg font-bold text-white tracking-tight">{APP_NAME}</div>
+            <div className="text-xs text-slate-400 -mt-0.5">{WEBSITE_DOMAIN}</div>
           </div>
         </div>
 
@@ -79,7 +81,7 @@ export default function ForgotPasswordView() {
           </p>
         </div>
 
-        <p className="text-center text-xs text-slate-500">© 2026 GES-CARS · Tous droits réservés</p>
+        <ContactFooter dark />
       </div>
 
       {/* Right panel */}
@@ -89,7 +91,7 @@ export default function ForgotPasswordView() {
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
               <IconCar className="h-4 w-4 text-white" />
             </div>
-            <span className="font-bold text-sm">GES-CARS</span>
+            <span className="font-bold text-sm">{APP_NAME}</span>
           </div>
           <div className="hidden lg:block" />
           <ModeToggle />
@@ -145,6 +147,7 @@ export default function ForgotPasswordView() {
                     Retour à la connexion
                   </Link>
                 </div>
+                <ContactFooter className="mt-6 lg:hidden" />
               </>
             ) : (
               <div className="rounded-2xl border border-border bg-card p-8 shadow-sm text-center space-y-4">

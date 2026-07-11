@@ -17,14 +17,14 @@
   <line x1="146" y1="148" x2="192" y2="148" stroke="#FFFFFF" stroke-width="1.2"/>
 
   <!-- Brand name - stacked vertical -->
-  <text x="110" y="178" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="13" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="3">LIMITLESS</text>
-  <text x="110" y="196" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="13" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="3">RENT CAR</text>
+  <text x="110" y="178" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="13" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="3">MYFLEET-</text>
+  <text x="110" y="196" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="13" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="3">CONTROL</text>
 
   <!-- Separator line -->
   <line x1="40" y1="208" x2="180" y2="208" stroke="#FFFFFF" stroke-width="0.8"/>
 
   <!-- Tagline -->
-  <text x="110" y="226" font-family="'Courier New', monospace" font-size="7.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="1">" Make the better move "</text>
+  <text x="110" y="226" font-family="'Courier New', monospace" font-size="7.5" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="1">" Fleet, under control "</text>
 
   <!-- Stars -->
   <g fill="#FFFFFF" transform="translate(110, 248) translate(-33, 0)">

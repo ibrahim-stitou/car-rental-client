@@ -2,8 +2,8 @@
 import SignInViewPage from '@/features/auth/components/sign-in-view';
 
 export const metadata: Metadata = {
-  title: 'Sign In | Car Rental',
-  description: 'Sign in to the Car Rental Management System.',
+  title: 'Sign In | MyFleet-Control',
+  description: 'Sign in to the MyFleet-Control Management System.',
 };
 
 export default function SignInPage() {

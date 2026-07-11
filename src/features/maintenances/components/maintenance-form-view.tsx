@@ -1,22 +1,27 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useCreateMaintenance, useUpdateMaintenance } from '../hooks/use-maintenances';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
 import type { Maintenance } from '@/types/maintenance.types';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { SelectField } from '@/components/shared/select-field';
+import { FormDatePicker } from '@/components/shared/form-date-picker';
+import PageContainer from '@/components/layout/page-container';
+import { applyServerErrors } from '@/lib/form-errors';
 import {
   MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_PRIORITY_OPTIONS, MAINTENANCE_TYPE_OPTIONS,
   MAINTENANCE_SUB_TYPE_OPTIONS, TIRE_POSITION_OPTIONS,
@@ -45,35 +50,30 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const emptyValues: FormValues = {
+  vehicle_id: '', title: '', type: '', sub_type: '',
+  description: '', agent_notes: '', maintenance_date: '',
+  mileage_at_service: undefined, next_service_mileage: undefined,
+  next_oil_change_mileage: undefined, tire_position: '',
+  next_service_date: '', cost: 0, actual_cost: undefined,
+  service_provider: '', status: 'scheduled', priority: 'medium',
+};
+
 interface Props {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   maintenance?: Maintenance | null;
-  defaultVehicleId?: string;
-  onSuccess?: () => void;
 }
 
-export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicleId, onSuccess }: Props) {
+export function MaintenanceFormView({ maintenance }: Props) {
+  const router = useRouter();
   const createMutation = useCreateMaintenance();
   const updateMutation = useUpdateMaintenance(maintenance?.id ?? '');
   const { data: vehiclesRes } = useVehicles({ per_page: 200 });
   const vehicles = vehiclesRes?.data ?? [];
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      vehicle_id: defaultVehicleId ?? '', title: '', type: '', sub_type: '',
-      description: '', agent_notes: '', maintenance_date: '',
-      mileage_at_service: undefined, next_service_mileage: undefined,
-      next_oil_change_mileage: undefined, tire_position: '',
-      next_service_date: '', cost: 0, actual_cost: undefined,
-      service_provider: '', status: 'scheduled', priority: 'medium',
-    },
-  });
+  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: emptyValues });
 
   useEffect(() => {
-    if (!open) return;
     if (maintenance) {
       form.reset({
         vehicle_id: maintenance.vehicle_id,
@@ -95,16 +95,9 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
         priority: maintenance.priority,
       });
     } else {
-      form.reset({
-        vehicle_id: defaultVehicleId ?? '', title: '', type: '', sub_type: '',
-        description: '', agent_notes: '', maintenance_date: '',
-        mileage_at_service: undefined, next_service_mileage: undefined,
-        next_oil_change_mileage: undefined, tire_position: '',
-        next_service_date: '', cost: 0, actual_cost: undefined,
-        service_provider: '', status: 'scheduled', priority: 'medium',
-      });
+      form.reset(emptyValues);
     }
-  }, [maintenance, open]);
+  }, [maintenance, form]);
 
   const subType = form.watch('sub_type');
   const isOilChange = subType === 'oil_change';
@@ -119,41 +112,60 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
     } as any;
     if (maintenance) {
       updateMutation.mutate(payload, {
-        onSuccess: () => { toast.success('Maintenance mise à jour'); onOpenChange(false); onSuccess?.(); },
-        onError: () => toast.error('Échec de la mise à jour'),
+        onSuccess: () => { toast.success('Maintenance mise à jour'); router.push(`/maintenances/${maintenance.id}`); },
+        onError: (err) => applyServerErrors(err, form, 'Échec de la mise à jour'),
       });
     } else {
       createMutation.mutate(payload, {
-        onSuccess: () => { toast.success('Maintenance créée'); onOpenChange(false); form.reset(); onSuccess?.(); },
-        onError: () => toast.error('Impossible de créer'),
+        onSuccess: (res) => { toast.success('Maintenance créée'); router.push(`/maintenances/${(res as any)?.data?.id}`); },
+        onError: (err) => applyServerErrors(err, form, 'Impossible de créer la maintenance'),
       });
     }
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg p-0">
-        <SheetHeader className="px-6 py-4 border-b">
-          <SheetTitle>{maintenance ? 'Modifier la maintenance' : 'Ajouter une maintenance'}</SheetTitle>
-          <SheetDescription>{maintenance ? 'Mettre à jour le dossier' : 'Enregistrer une nouvelle maintenance'}</SheetDescription>
-        </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-140px)]">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-4">
-              {/* Vehicle */}
+    <PageContainer scrollable>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6 max-w-3xl">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
+                onClick={() => router.push('/maintenances')}>
+                <ArrowLeft className="h-4 w-4" />Maintenances
+              </Button>
+              <span className="text-muted-foreground">/</span>
+              <h1 className="text-lg font-bold">{maintenance ? 'Modifier la maintenance' : 'Nouvelle maintenance'}</h1>
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => router.push('/maintenances')}>Annuler</Button>
+              <Button type="submit" disabled={isPending} className="gap-1.5">
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isPending ? 'Enregistrement…' : maintenance ? 'Mettre à jour' : 'Créer'}
+              </Button>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Informations générales</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
               <FormField control={form.control} name="vehicle_id" render={({ field }) => (
-                <FormItem><FormLabel>Véhicule *</FormLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un véhicule" /></SelectTrigger></FormControl>
-                    <SelectContent>{vehicles.map(v => <SelectItem key={v.id} value={v.id}>{v.brand} {v.model} — {v.registration_number}</SelectItem>)}</SelectContent>
-                  </Select><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Véhicule *</FormLabel>
+                  <SelectField
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner un véhicule"
+                    options={vehicles.map(v => ({ value: v.id, label: `${v.brand} ${v.model}`, sub: v.registration_number }))}
+                  />
+                  <FormMessage />
+                </FormItem>
               )} />
 
               <FormField control={form.control} name="title" render={({ field }) => (
                 <FormItem><FormLabel>Titre</FormLabel><FormControl><Input placeholder="Ex: Vidange 80 000 km" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="type" render={({ field }) => (
                   <FormItem><FormLabel>Type *</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
@@ -176,7 +188,6 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
                 )} />
               </div>
 
-              {/* Oil change specific fields */}
               {isOilChange && (
                 <Alert className="border-yellow-200 bg-yellow-50">
                   <IconDroplet className="h-4 w-4 text-yellow-600" />
@@ -186,7 +197,6 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
                 </Alert>
               )}
 
-              {/* Tire change specific */}
               {isTireChange && (
                 <>
                   <Alert className="border-blue-200 bg-blue-50">
@@ -206,14 +216,18 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
               )}
 
               <FormField control={form.control} name="maintenance_date" render={({ field }) => (
-                <FormItem><FormLabel>Date *</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Date *</FormLabel>
+                  <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date" />
+                  <FormMessage />
+                </FormItem>
               )} />
 
               <FormField control={form.control} name="description" render={({ field }) => (
-                <FormItem><FormLabel>Description *</FormLabel><FormControl><Textarea rows={2} placeholder="Travaux effectués…" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Description *</FormLabel><FormControl><Textarea rows={3} placeholder="Travaux effectués…" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="status" render={({ field }) => (
                   <FormItem><FormLabel>Statut *</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
@@ -230,7 +244,7 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
                 )} />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="cost" render={({ field }) => (
                   <FormItem><FormLabel>Coût estimé (MAD)</FormLabel><FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
@@ -246,7 +260,7 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
               <Separator />
               <p className="text-sm font-medium text-muted-foreground">Kilométrage & Prochaine révision</p>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <FormField control={form.control} name="mileage_at_service" render={({ field }) => (
                   <FormItem><FormLabel>Km à l'intervention</FormLabel><FormControl><Input type="number" min={0} {...field} value={field.value ?? ''} /></FormControl><FormMessage /></FormItem>
                 )} />
@@ -267,21 +281,26 @@ export function MaintenanceForm({ open, onOpenChange, maintenance, defaultVehicl
               )}
 
               <FormField control={form.control} name="next_service_date" render={({ field }) => (
-                <FormItem><FormLabel>Date prochaine révision</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem>
+                  <FormLabel>Date prochaine révision</FormLabel>
+                  <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date (optionnel)" />
+                  <FormMessage />
+                </FormItem>
               )} />
 
               <FormField control={form.control} name="agent_notes" render={({ field }) => (
-                <FormItem><FormLabel>Notes agent (libre)</FormLabel><FormControl><Textarea rows={2} placeholder="Observations, remarques…" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Commentaire</FormLabel><FormControl><Textarea rows={3} placeholder="Observations, remarques…" {...field} /></FormControl><FormMessage /></FormItem>
               )} />
+            </CardContent>
+          </Card>
 
-              <div className="flex justify-end gap-3 pt-2">
-                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Annuler</Button>
-                <Button type="submit" disabled={isPending}>{isPending ? 'Enregistrement…' : maintenance ? 'Mettre à jour' : 'Créer'}</Button>
-              </div>
-            </form>
-          </Form>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
+          {!maintenance && (
+            <p className="text-xs text-muted-foreground">
+              Vous pourrez ajouter les factures et photos une fois la maintenance créée.
+            </p>
+          )}
+        </form>
+      </Form>
+    </PageContainer>
   );
 }

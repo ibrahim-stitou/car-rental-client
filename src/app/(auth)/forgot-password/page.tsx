@@ -3,7 +3,7 @@ import ForgotPasswordView from '@/features/auth/components/forgot-password-view'
 import { IconCar } from '@tabler/icons-react';
 
 export const metadata: Metadata = {
-  title: 'Forgot Password | Car Rental',
+  title: 'Forgot Password | MyFleet-Control',
 };
 
 export default function ForgotPasswordPage() {

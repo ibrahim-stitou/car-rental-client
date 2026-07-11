@@ -19,6 +19,8 @@ interface Props {
   maxFiles?: number;
   onRefresh?: () => void;
   compact?: boolean;
+  /** Multipart field name expected by the backend endpoint (defaults to "documents", matching the generic documents[] collections). */
+  fieldName?: string;
 }
 
 function getFileIcon(mimeType: string) {
@@ -43,6 +45,7 @@ export function DocumentsSection({
   maxFiles = 10,
   onRefresh,
   compact = false,
+  fieldName = 'documents',
 }: Props) {
   const [documents, setDocuments] = useState<MediaItem[]>(initialDocuments);
   const [uploading, setUploading] = useState(false);
@@ -56,7 +59,7 @@ export function DocumentsSection({
     setUploading(true);
     try {
       const formData = new FormData();
-      files.forEach(f => formData.append('documents[]', f));
+      files.forEach(f => formData.append(`${fieldName}[]`, f));
       // Do NOT set Content-Type manually — Axios sets multipart/form-data + boundary automatically
       const res = await apiClient.post(uploadUrl, formData);
       const newDocs = res.data?.data ?? [];

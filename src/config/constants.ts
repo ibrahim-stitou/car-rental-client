@@ -114,13 +114,12 @@ export const MAINTENANCE_PRIORITY_OPTIONS: { value: MaintenancePriority; label: 
 
 export const MAINTENANCE_TYPE_OPTIONS: { value: MaintenanceType; label: string }[] = [
   { value: 'oil_change', label: 'Vidange' },
-  { value: 'tire_rotation', label: 'Rotation des pneus' },
+  { value: 'tire_change', label: 'Changement de pneus' },
   { value: 'brake_service', label: 'Révision des freins' },
-  { value: 'engine_service', label: 'Révision moteur' },
-  { value: 'transmission_service', label: 'Révision transmission' },
-  { value: 'battery_replacement', label: 'Remplacement batterie' },
+  { value: 'engine_repair', label: 'Réparation moteur' },
   { value: 'body_repair', label: 'Carrosserie' },
-  { value: 'general_inspection', label: 'Inspection générale' },
+  { value: 'electrical', label: 'Électrique' },
+  { value: 'cleaning', label: 'Nettoyage' },
   { value: 'other', label: 'Autre' },
 ];
 

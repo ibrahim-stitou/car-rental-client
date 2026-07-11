@@ -37,7 +37,7 @@ export interface CreateInsuranceInput {
   type: InsuranceType;
   start_date: string;
   end_date: string;
-  premium_amount: number;
+  premium_amount?: number;
   deductible_amount?: number;
   coverage_details?: Record<string, boolean>;
   agent_name?: string;

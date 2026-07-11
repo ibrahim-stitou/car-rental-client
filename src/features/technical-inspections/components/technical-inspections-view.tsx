@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { TechnicalInspectionForm } from './technical-inspection-form';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -24,9 +24,8 @@ const RESULT_CLS: Record<string, string> = {
 const RESULT_FR: Record<string, string> = { passed: 'Réussi', failed: 'Échoué', pending: 'En attente' };
 
 export function TechnicalInspectionsView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<TechnicalInspection>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editInspection, setEditInspection] = useState<TechnicalInspection | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -48,7 +47,8 @@ export function TechnicalInspectionsView() {
       data: 'actions', label: 'Actions', sortable: false,
       render: (_v, row) => (
         <div className="flex items-center gap-1">
-          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => { setEditInspection(row); setFormOpen(true); }}><Edit className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/technical-inspections/${row.id}`)}><Eye className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Voir</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/technical-inspections/${row.id}/edit`)}><Edit className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5 text-red-600 hover:bg-red-50" onClick={() => { setDeleteId(row.id); setOpenDeleteModal(true); }}><Trash2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Supprimer</TooltipContent></Tooltip>
         </div>
       ),
@@ -71,9 +71,9 @@ export function TechnicalInspectionsView() {
 
   return (
     <div className="flex flex-1 flex-col space-y-4 p-6">
-      <PageHeader title="Visites techniques" description="Suivi des visites techniques de la flotte" onAdd={() => { setEditInspection(null); setFormOpen(true); }} addLabel="Ajouter une visite" />
+      <PageHeader title="Visites techniques" description="Suivi des visites techniques de la flotte"
+        actions={<Button size="sm" onClick={() => router.push('/technical-inspections/new')}><Plus className="h-4 w-4 mr-1.5" />Ajouter une visite</Button>} />
       <CustomTable<TechnicalInspection> url={apiRoutes.technicalInspections.list} columns={columns} filters={filters} onInit={(i) => setTableInstance(i)} />
-      <TechnicalInspectionForm open={formOpen} onOpenChange={setFormOpen} inspection={editInspection} onSuccess={() => tableInstance?.refresh?.()} />
       <CustomAlertDialog title="Supprimer la visite technique ?" description="Cette action est irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
     </div>
   );

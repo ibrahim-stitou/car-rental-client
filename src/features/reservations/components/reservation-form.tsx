@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { Loader2, Search, ChevronDown } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useCreateReservation, useUpdateReservation } from '../hooks/use-reservations';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
@@ -22,12 +22,11 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { SelectField } from '@/components/shared/select-field';
 import { PAYMENT_METHOD_OPTIONS, FUEL_LEVEL_OPTIONS } from '@/config/constants';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
-import { cn } from '@/lib/utils';
+import { applyServerErrors } from '@/lib/form-errors';
 import {
   IconAlertTriangle, IconCoin, IconUser, IconCurrencyDirham,
   IconCalendarX, IconUsers,
@@ -61,46 +60,6 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-function SearchableSelect({
-  value, onChange, placeholder, items, disabled,
-}: {
-  value: string; onChange: (v: string) => void; placeholder: string;
-  items: Array<{ id: string; label: string; sub?: string }>; disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const filtered = items.filter(i =>
-    i.label.toLowerCase().includes(search.toLowerCase()) ||
-    (i.sub ?? '').toLowerCase().includes(search.toLowerCase())
-  );
-  const selected = items.find(i => i.id === value);
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" className={cn('w-full justify-between font-normal h-10', !value && 'text-muted-foreground')} disabled={disabled}>
-          <span className="truncate">{selected ? selected.label : placeholder}</span>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[320px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Rechercher..." value={search} onValueChange={setSearch} />
-          <CommandList>
-            <CommandEmpty>Aucun résultat</CommandEmpty>
-            <CommandGroup>
-              {filtered.slice(0, 50).map(item => (
-                <CommandItem key={item.id} value={item.id} onSelect={v => { onChange(v); setOpen(false); setSearch(''); }}>
-                  <div><div className="text-sm font-medium">{item.label}</div>{item.sub && <div className="text-xs text-muted-foreground">{item.sub}</div>}</div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
-
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -117,9 +76,9 @@ export function ReservationForm({ open, onOpenChange, reservation, onSuccess }: 
   const [showSecondDriver, setShowSecondDriver] = useState(false);
   const [conflictDismissed, setConflictDismissed] = useState(false);
 
-  const agencies  = (agenciesRes?.data ?? []).map(a => ({ id: a.id, label: a.name, sub: a.city }));
-  const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ id: v.id, label: `${v.brand} ${v.model} ${v.year}`, sub: v.registration_number }));
-  const clients   = (clientsRes?.data ?? []).map(c => ({ id: c.id, label: `${(c as any).first_name} ${(c as any).last_name}`, sub: (c as any).phone }));
+  const agencies  = (agenciesRes?.data ?? []).map(a => ({ value: a.id, label: a.name, sub: a.city }));
+  const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ value: v.id, label: `${v.brand} ${v.model} ${v.year}`, sub: v.registration_number }));
+  const clients   = (clientsRes?.data ?? []).map(c => ({ value: c.id, label: `${(c as any).first_name} ${(c as any).last_name}`, sub: (c as any).phone }));
   const rawVehicles = vehiclesRes?.data ?? [];
   const rawClients  = clientsRes?.data ?? [];
   const isPending = createMutation.isPending || updateMutation.isPending;
@@ -264,7 +223,7 @@ export function ReservationForm({ open, onOpenChange, reservation, onSuccess }: 
     if (reservation) {
       updateMutation.mutate(payload as any, {
         onSuccess: () => { toast.success('Réservation mise à jour'); onOpenChange(false); onSuccess?.(); },
-        onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Échec de la mise à jour'),
+        onError: (err: any) => applyServerErrors(err, form, 'Échec de la mise à jour'),
       });
     } else {
       createMutation.mutate(payload as any, {
@@ -285,7 +244,7 @@ export function ReservationForm({ open, onOpenChange, reservation, onSuccess }: 
           form.reset();
           onSuccess?.();
         },
-        onError: (err: any) => toast.error(err?.response?.data?.message ?? 'Impossible de créer la réservation'),
+        onError: (err: any) => applyServerErrors(err, form, 'Impossible de créer la réservation'),
       });
     }
   };
@@ -304,7 +263,7 @@ export function ReservationForm({ open, onOpenChange, reservation, onSuccess }: 
               {/* Agency */}
               <FormField control={form.control} name="agency_id" render={({ field }) => (
                 <FormItem><FormLabel>Agence *</FormLabel><FormControl>
-                  <SearchableSelect value={field.value} onChange={field.onChange} placeholder="Sélectionner une agence" items={agencies} />
+                  <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner une agence" options={agencies} />
                 </FormControl><FormMessage /></FormItem>
               )} />
 
@@ -312,12 +271,12 @@ export function ReservationForm({ open, onOpenChange, reservation, onSuccess }: 
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="vehicle_id" render={({ field }) => (
                   <FormItem><FormLabel>Véhicule *</FormLabel><FormControl>
-                    <SearchableSelect value={field.value} onChange={field.onChange} placeholder="Sélectionner un véhicule" items={vehicles} />
+                    <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un véhicule" options={vehicles} />
                   </FormControl><FormMessage /></FormItem>
                 )} />
                 <FormField control={form.control} name="client_id" render={({ field }) => (
                   <FormItem><FormLabel>Client *</FormLabel><FormControl>
-                    <SearchableSelect value={field.value} onChange={field.onChange} placeholder="Sélectionner un client" items={clients} />
+                    <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un client" options={clients} />
                   </FormControl><FormMessage /></FormItem>
                 )} />
               </div>
@@ -407,7 +366,7 @@ export function ReservationForm({ open, onOpenChange, reservation, onSuccess }: 
                 <div className="border rounded-lg p-4 space-y-3 bg-muted/20">
                   <FormField control={form.control} name="second_driver_id" render={({ field }) => (
                     <FormItem><FormLabel>Client enregistré (optionnel)</FormLabel><FormControl>
-                      <SearchableSelect value={field.value ?? ''} onChange={v => { field.onChange(v); if (v) { form.setValue('second_driver_name', ''); } }} placeholder="Sélectionner ou laisser vide" items={clients} />
+                      <SelectField value={field.value ?? ''} onChange={v => { field.onChange(v); if (v) { form.setValue('second_driver_name', ''); } }} placeholder="Sélectionner ou laisser vide" options={clients} />
                     </FormControl><FormMessage /></FormItem>
                   )} />
 

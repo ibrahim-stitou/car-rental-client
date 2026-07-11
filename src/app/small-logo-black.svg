@@ -8,12 +8,12 @@
     <path d="M 90,490 C 90,490 120,460 180,450 C 240,440 280,435 340,425 C 400,415 470,390 530,375 C 590,360 670,330 750,335 C 830,340 880,365 920,380 C 960,395 1070,410 1120,420 C 1170,430 1210,470 1200,500 C 1190,515 1160,545 1160,545 L 1145,525 C 1145,525 1170,500 1165,485 C 1160,470 1130,455 1090,445 C 1050,435 950,420 900,410 C 850,400 810,370 760,365 C 710,360 620,370 560,395 C 500,420 375,445 280,460 C 185,475 140,515 140,515 L 155,545 L 125,545 Z" fill="#FFFFFF"/>
     <path d="M 545,410 C 580,380 650,355 745,360 L 710,395 Z" fill="#FFFFFF"/>
 
-    <text x="640" y="590" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="52" fill="#C5A059" font-weight="bold" text-anchor="middle" letter-spacing="4">LIMITLESS RENT CAR</text>
-    
+    <text x="640" y="590" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="46" fill="#C5A059" font-weight="bold" text-anchor="middle" letter-spacing="3">MYFLEET-CONTROL</text>
+
     <line x1="160" y1="572" x2="330" y2="572" stroke="#FFFFFF" stroke-width="4"/>
     <line x1="950" y1="572" x2="1120" y2="572" stroke="#FFFFFF" stroke-width="4"/>
 
-    <text x="640" y="650" font-family="'Courier New', monospace" font-size="30" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="2">" Make the better move "</text>
+    <text x="640" y="650" font-family="'Courier New', monospace" font-size="26" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="2">" Fleet, under control "</text>
 
     <g fill="#C5A059" transform="translate(440, 690)">
       <polygon points="40,5 52,30 80,30 57,47 66,74 40,57 14,74 23,47 0,30 28,30" transform="translate(0,0) scale(0.6)"/>

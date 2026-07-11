@@ -3,6 +3,7 @@ import { BillingDetailView } from '@/features/billing/components/billing-detail-
 
 export const metadata: Metadata = { title: 'Détail du document | Facturation' };
 
-export default function BillingDetailPage({ params }: { params: { id: string } }) {
-  return <BillingDetailView id={params.id} />;
+export default async function BillingDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <BillingDetailView id={id} />;
 }

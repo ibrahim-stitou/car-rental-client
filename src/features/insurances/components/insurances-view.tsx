@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { InsuranceForm } from './insurance-form';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -17,9 +17,8 @@ import type { Insurance } from '@/types/insurance.types';
 import { INSURANCE_TYPE_OPTIONS } from '@/config/constants';
 
 export function InsurancesView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Insurance>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editInsurance, setEditInsurance] = useState<Insurance | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -29,7 +28,6 @@ export function InsurancesView() {
     { data: 'policy_number', label: 'N° Police', sortable: true, render: (v) => <span className="font-mono text-sm">{v}</span> },
     { data: 'type', label: 'Type', sortable: true, render: (v) => <Badge variant="outline" className="text-xs capitalize">{v?.replace(/_/g, ' ')}</Badge> },
     { data: 'end_date', label: 'Expiration', sortable: true, render: (v) => <span className="text-sm">{v}</span> },
-    { data: 'premium_amount', label: 'Prime', sortable: true, render: (v) => <span className="font-medium">{Number(v).toLocaleString('fr-MA')} MAD</span> },
     {
       data: 'is_expired', label: 'Statut', sortable: false,
       render: (_v, row) => row.is_expired
@@ -42,7 +40,8 @@ export function InsurancesView() {
       data: 'actions', label: 'Actions', sortable: false,
       render: (_v, row) => (
         <div className="flex items-center gap-1">
-          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => { setEditInsurance(row); setFormOpen(true); }}><Edit className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/insurances/${row.id}`)}><Eye className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Voir</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/insurances/${row.id}/edit`)}><Edit className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5 text-red-600 hover:bg-red-50" onClick={() => { setDeleteId(row.id); setOpenDeleteModal(true); }}><Trash2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Supprimer</TooltipContent></Tooltip>
         </div>
       ),
@@ -65,9 +64,9 @@ export function InsurancesView() {
 
   return (
     <div className="flex flex-1 flex-col space-y-4 p-6">
-      <PageHeader title="Assurances" description="Suivi des polices d'assurance véhicules" onAdd={() => { setEditInsurance(null); setFormOpen(true); }} addLabel="Ajouter une assurance" />
+      <PageHeader title="Assurances" description="Suivi des polices d'assurance véhicules"
+        actions={<Button size="sm" onClick={() => router.push('/insurances/new')}><Plus className="h-4 w-4 mr-1.5" />Ajouter une assurance</Button>} />
       <CustomTable<Insurance> url={apiRoutes.insurances.list} columns={columns} filters={filters} onInit={(i) => setTableInstance(i)} />
-      <InsuranceForm open={formOpen} onOpenChange={setFormOpen} insurance={editInsurance} onSuccess={() => tableInstance?.refresh?.()} />
       <CustomAlertDialog title="Supprimer l'assurance ?" description="Cette action est irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
     </div>
   );

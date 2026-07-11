@@ -23,6 +23,7 @@ import { useExpenses } from '@/features/expenses/hooks/use-expenses';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
+import { AgencyStatDialog, type AgencyStatType } from './agency-stat-dialog';
 
 interface Props { agencyId: string }
 
@@ -37,6 +38,7 @@ export function AgencyDetailView({ agencyId }: Props) {
   const { data: expensesRes } = useExpenses({ agency_id: agencyId, per_page: 15 });
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [paymentDialogId, setPaymentDialogId] = useState<{ id: string; ref: string } | null>(null);
+  const [statDialogType, setStatDialogType] = useState<AgencyStatType | null>(null);
 
   const uploadLogo = useUploadAgencyLogo(agencyId);
   const deleteLogo = useDeleteAgencyMedia(agencyId);
@@ -155,13 +157,14 @@ export function AgencyDetailView({ agencyId }: Props) {
         {/* Stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {[
-            { label: 'Véhicules', value: stats.vehicles?.total ?? 0, sub: `${stats.vehicles?.available ?? 0} dispo` },
-            { label: 'Loués', value: stats.vehicles?.rented ?? 0, sub: `${stats.vehicles?.maintenance ?? 0} maint.` },
-            { label: 'Réservations', value: stats.reservations?.total ?? 0, sub: `${stats.reservations?.active ?? 0} actives` },
-            { label: 'En retard', value: stats.reservations?.overdue ?? 0, sub: '' },
-            { label: 'Clients', value: stats.clients?.total ?? 0, sub: `${stats.clients?.blacklisted ?? 0} blacklistés` },
-          ].map(({ label, value, sub }) => (
-            <Card key={label} className="text-center">
+            { label: 'Véhicules', value: stats.vehicles?.total ?? 0, sub: `${stats.vehicles?.available ?? 0} dispo`, type: 'vehicles' as AgencyStatType },
+            { label: 'Loués', value: stats.vehicles?.rented ?? 0, sub: `${stats.vehicles?.maintenance ?? 0} maint.`, type: 'rented' as AgencyStatType },
+            { label: 'Réservations', value: stats.reservations?.total ?? 0, sub: `${stats.reservations?.active ?? 0} actives`, type: 'reservations' as AgencyStatType },
+            { label: 'En retard', value: stats.reservations?.overdue ?? 0, sub: '', type: 'overdue' as AgencyStatType },
+            { label: 'Clients', value: stats.clients?.total ?? 0, sub: `${stats.clients?.blacklisted ?? 0} blacklistés`, type: 'clients' as AgencyStatType },
+          ].map(({ label, value, sub, type }) => (
+            <Card key={label} className="text-center cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all"
+              onClick={() => setStatDialogType(type)}>
               <CardContent className="pt-4 pb-3">
                 <div className="text-2xl font-bold">{value}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{label}</div>
@@ -277,6 +280,8 @@ export function AgencyDetailView({ agencyId }: Props) {
           reservationRef={paymentDialogId.ref}
         />
       )}
+
+      <AgencyStatDialog agencyId={agencyId} type={statDialogType} onOpenChange={(o) => !o && setStatDialogType(null)} />
     </PageContainer>
   );
 }

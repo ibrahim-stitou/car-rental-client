@@ -28,7 +28,7 @@ import {
   SidebarRail
 } from '@/components/ui/sidebar';
 import { navItems } from '@/constants/data';
-import { IconChevronRight, IconChevronsDown, IconLogout } from '@tabler/icons-react';
+import { IconChevronRight, IconChevronsDown, IconLogout, IconMail } from '@tabler/icons-react';
 import { signOut, useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -36,6 +36,7 @@ import * as React from 'react';
 import { Icons } from '../icons';
 import { useSidebar } from '@/components/ui/sidebar';
 import Logowhite from '@/components/logowhite';
+import { APP_NAME, CONTACT_EMAILS, WEBSITE_DOMAIN } from '@/config/brand';
 
 export default function AppSidebar() {
   const { data: session } = useSession();
@@ -163,6 +164,12 @@ export default function AppSidebar() {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <a href={`mailto:${CONTACT_EMAILS[0].email}`}>
+                    <IconMail className="mr-2 w-5 h-5" />
+                    Nous contacter
+                  </a>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => { window.location.href = '/api/auth/logout'; }}>
                   <IconLogout className="mr-2 w-5 h-5" />
                   Logout
@@ -171,6 +178,11 @@ export default function AppSidebar() {
             </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
+        {state === 'expanded' && (
+          <p className="px-2 pb-1 text-[10px] text-sidebar-foreground/50 text-center truncate">
+            {APP_NAME} &middot; {WEBSITE_DOMAIN}
+          </p>
+        )}
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

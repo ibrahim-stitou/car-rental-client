@@ -20,12 +20,14 @@ export interface Vehicle {
   daily_rate: number;
   deposit_amount: number;
   mileage: number;
+  average_consumption: number | null;
   status: VehicleStatus;
   is_active: boolean;
   has_adblue: boolean;
   notes: string | null;
   description: string | null;
   photos: VehiclePhoto[];
+  documents_count?: number;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -40,6 +42,7 @@ export interface VehicleAgency {
   id: string;
   name: string;
   city: string;
+  phone?: string;
 }
 
 export interface VehiclePhoto {
@@ -63,6 +66,7 @@ export interface CreateVehicleInput {
   daily_rate: number;
   deposit_amount: number;
   mileage: number;
+  average_consumption?: number;
   notes?: string;
   description?: string;
   has_adblue?: boolean;

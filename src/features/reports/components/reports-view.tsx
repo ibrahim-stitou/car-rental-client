@@ -93,7 +93,7 @@ export function ReportsView() {
 
         {/* KPIs */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {loadingDash ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24" />) : (
+          {loadingDash ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />) : (
             <>
               <KpiCard label="Revenu total" value={`${fmt(dash?.billing?.total_revenue)} MAD`} sub={`${fmt(dash?.billing?.revenue_this_month)} ce mois`} icon={IconCurrencyDirham} color="bg-emerald-500" />
               <KpiCard label="Total dépenses" value={`${fmt(expStats?.total)} MAD`} sub={`${fmt(expStats?.thisMonth)} ce mois`} icon={IconCurrencyDirham} color="bg-red-500" />

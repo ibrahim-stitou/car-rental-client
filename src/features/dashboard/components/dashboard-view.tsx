@@ -265,7 +265,7 @@ export function DashboardView() {
             <CardDescription>Documents à renouveler</CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12" />) : (
+            {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />) : (
               <>
                 {[
                   { label: 'Assurances', value: s?.expiring.insurances ?? 0, icon: IconShield, color: 'text-blue-500', path: paths.insurances.list },

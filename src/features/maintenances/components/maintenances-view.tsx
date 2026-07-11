@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Edit, Trash2, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Eye, Edit, Trash2, CheckCircle2, XCircle, Loader2, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { MaintenanceForm } from './maintenance-form';
 import { OilChangeAlerts } from './oil-change-alerts';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
@@ -33,9 +33,8 @@ const PRIORITY_CLS: Record<string, string> = {
 const PRIORITY_FR: Record<string, string> = { low: 'Faible', medium: 'Moyenne', high: 'Élevée', urgent: 'Urgente' };
 
 export function MaintenancesView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Maintenance>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editMaintenance, setEditMaintenance] = useState<Maintenance | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
@@ -127,11 +126,21 @@ export function MaintenancesView() {
               <TooltipContent>Annuler</TooltipContent>
             </Tooltip>
           )}
+          {/* Voir */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" className="h-8 w-8 p-1.5"
+                onClick={() => router.push(`/maintenances/${row.id}`)}>
+                <Eye className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Voir</TooltipContent>
+          </Tooltip>
           {/* Modifier */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" className="h-8 w-8 p-1.5"
-                onClick={() => { setEditMaintenance(row); setFormOpen(true); }}>
+                onClick={() => router.push(`/maintenances/${row.id}/edit`)}>
                 <Edit className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -174,8 +183,7 @@ export function MaintenancesView() {
       <PageHeader
         title="Maintenances"
         description="Suivi des maintenances et réparations de la flotte"
-        onAdd={() => { setEditMaintenance(null); setFormOpen(true); }}
-        addLabel="Ajouter une maintenance"
+        actions={<Button size="sm" onClick={() => router.push('/maintenances/new')}><Plus className="h-4 w-4 mr-1.5" />Ajouter une maintenance</Button>}
       />
       <OilChangeAlerts />
       <CustomTable<Maintenance>
@@ -184,7 +192,6 @@ export function MaintenancesView() {
         filters={filters}
         onInit={(i) => setTableInstance(i)}
       />
-      <MaintenanceForm open={formOpen} onOpenChange={setFormOpen} maintenance={editMaintenance} onSuccess={() => tableInstance?.refresh?.()} />
       <CustomAlertDialog title="Supprimer la maintenance ?" description="Cette action est irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
     </div>
   );

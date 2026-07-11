@@ -12,14 +12,14 @@
     <path d="M 545,410 C 580,380 650,355 745,360 L 710,395 Z" fill="#FFFFFF"/>
 
     <!-- Brand name -->
-    <text x="640" y="590" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="52" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="4">LIMITLESS RENT CAR</text>
-    
+    <text x="640" y="590" font-family="'Cinzel', 'Georgia', 'Times New Roman', serif" font-size="46" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="3">MYFLEET-CONTROL</text>
+
     <!-- Decorative lines -->
     <line x1="160" y1="572" x2="330" y2="572" stroke="#FFFFFF" stroke-width="4"/>
     <line x1="950" y1="572" x2="1120" y2="572" stroke="#FFFFFF" stroke-width="4"/>
 
     <!-- Tagline -->
-    <text x="640" y="650" font-family="'Courier New', monospace" font-size="30" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="2">" Make the better move "</text>
+    <text x="640" y="650" font-family="'Courier New', monospace" font-size="26" fill="#FFFFFF" font-weight="bold" text-anchor="middle" letter-spacing="2">" Fleet, under control "</text>
 
     <!-- Stars -->
     <g fill="#FFFFFF" transform="translate(440, 690)">

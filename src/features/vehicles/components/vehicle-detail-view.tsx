@@ -10,14 +10,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ExpenseForm } from '@/features/expenses/components/expense-form';
 import { PaymentDialog } from '@/features/reservations/components/payment-dialog';
+import { DocumentsSection } from '@/components/shared/documents-section';
+import { RichTextContent } from '@/components/shared/rich-text-content';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import {
   IconCar, IconCurrencyDirham, IconTool, IconShield, IconCertificate,
   IconCalendar, IconReceipt, IconArrowLeft, IconPlus, IconGauge,
+  IconBuildingStore, IconMapPin, IconPhone, IconWorld, IconFileText,
 } from '@tabler/icons-react';
 import PageContainer from '@/components/layout/page-container';
+import { apiRoutes } from '@/config/apiRoutes';
 
 interface Props { vehicleId: string }
 
@@ -32,7 +36,7 @@ function fdate(d: string | undefined) {
 
 export function VehicleDetailView({ vehicleId }: Props) {
   const { data: vehicleRes, isLoading: loadingVehicle, isError: vehicleError } = useVehicle(vehicleId);
-  const { data: statsRes, isLoading: loadingStats } = useVehicleStatistics(vehicleId);
+  const { data: statsRes, isLoading: loadingStats, refetch: refetchStats } = useVehicleStatistics(vehicleId);
   const { data: reservationsRes } = useVehicleReservations(vehicleId, { per_page: 10 });
   const { data: expensesRes } = useVehicleExpenses(vehicleId, { per_page: 10 });
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
@@ -44,7 +48,7 @@ export function VehicleDetailView({ vehicleId }: Props) {
   const expenses = (expensesRes as any)?.data?.data ?? [];
 
   if (loadingVehicle) {
-    return <PageContainer><div className="p-6 space-y-4">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
+    return <PageContainer><div className="p-6 space-y-4 w-full">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
   }
 
   if (vehicleError || !vehicle) return (
@@ -96,6 +100,7 @@ export function VehicleDetailView({ vehicleId }: Props) {
         <Tabs defaultValue="info">
           <TabsList>
             <TabsTrigger value="info">Informations</TabsTrigger>
+            <TabsTrigger value="website">Aperçu site web</TabsTrigger>
             <TabsTrigger value="reservations">Réservations</TabsTrigger>
             <TabsTrigger value="expenses">Dépenses</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
@@ -103,6 +108,25 @@ export function VehicleDetailView({ vehicleId }: Props) {
 
           {/* Info tab */}
           <TabsContent value="info" className="space-y-4 mt-4">
+            {/* Photo gallery */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">Photos du véhicule</CardTitle></CardHeader>
+              <CardContent>
+                {vehicle.photos && vehicle.photos.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {vehicle.photos.map((photo) => (
+                      <a key={photo.id} href={photo.url} target="_blank" rel="noreferrer"
+                        className="block rounded-lg overflow-hidden border bg-muted aspect-video hover:opacity-90 transition-opacity">
+                        <img src={photo.url} alt={photo.file_name} className="w-full h-full object-cover" />
+                      </a>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">Aucune photo disponible</p>
+                )}
+              </CardContent>
+            </Card>
+
             <div className="grid lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader><CardTitle className="text-base">Caractéristiques</CardTitle></CardHeader>
@@ -115,6 +139,7 @@ export function VehicleDetailView({ vehicleId }: Props) {
                     ['Couleur', vehicle.color],
                     ['VIN', vehicle.vin ?? '—'],
                     ['Kilométrage', `${fmt(vehicle.mileage)} km`],
+                    ['Consommation moyenne', vehicle.average_consumption != null ? `${vehicle.average_consumption} L/100km` : '—'],
                     ['Tarif journalier', `${fmt(vehicle.daily_rate)} MAD`],
                     ['Caution', `${fmt(vehicle.deposit_amount)} MAD`],
                   ].map(([k, v]) => (
@@ -123,10 +148,40 @@ export function VehicleDetailView({ vehicleId }: Props) {
                       <span className="font-medium">{v as string}</span>
                     </div>
                   ))}
+                  {vehicle.description && (
+                    <div className="pt-2">
+                      <span className="text-muted-foreground block mb-1">Description</span>
+                      <RichTextContent html={vehicle.description} />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
               <div className="space-y-4">
+                {/* Agency */}
+                {vehicle.agency && (
+                  <Card>
+                    <CardHeader className="flex flex-row items-center gap-2 pb-2">
+                      <IconBuildingStore className="h-4 w-4 text-primary" />
+                      <CardTitle className="text-sm">Agence</CardTitle>
+                    </CardHeader>
+                    <CardContent className="text-sm space-y-1.5">
+                      <Link href={`/agencies/${vehicle.agency.id}`} className="font-medium hover:underline">
+                        {vehicle.agency.name}
+                      </Link>
+                      {vehicle.agency.city && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <IconMapPin className="h-3.5 w-3.5" />{vehicle.agency.city}
+                        </div>
+                      )}
+                      {vehicle.agency.phone && (
+                        <div className="flex items-center gap-1.5 text-muted-foreground">
+                          <IconPhone className="h-3.5 w-3.5" />{vehicle.agency.phone}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
                 {/* Current insurance */}
                 <Card>
                   <CardHeader className="flex flex-row items-center gap-2 pb-2">
@@ -187,6 +242,46 @@ export function VehicleDetailView({ vehicleId }: Props) {
                 )}
               </div>
             </div>
+          </TabsContent>
+
+          {/* Website preview tab */}
+          <TabsContent value="website" className="mt-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center gap-2">
+                <IconWorld className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <CardTitle className="text-base">Aperçu — telle qu'affichée sur le site web</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {vehicle.show_on_website ? 'Ce véhicule est actuellement visible sur le site public.' : "Ce véhicule n'est pas affiché sur le site public."}
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-md mx-auto border rounded-xl overflow-hidden shadow-sm">
+                  <div className="aspect-video bg-muted flex items-center justify-center">
+                    {vehicle.photos?.[0] ? (
+                      <img src={vehicle.photos[0].url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <IconCar className="h-10 w-10 text-muted-foreground" />
+                    )}
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-lg">{vehicle.brand} {vehicle.model} {vehicle.year}</h3>
+                      <Badge variant="secondary">{vehicle.category}</Badge>
+                    </div>
+                    <div className="text-primary font-bold text-xl">
+                      {fmt(vehicle.website_price ?? vehicle.daily_rate)} MAD<span className="text-sm font-normal text-muted-foreground">/jour</span>
+                    </div>
+                    {vehicle.website_description ? (
+                      <RichTextContent html={vehicle.website_description} />
+                    ) : (
+                      <p className="text-sm text-muted-foreground italic">Aucune description site web renseignée</p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {/* Reservations tab */}
@@ -262,22 +357,48 @@ export function VehicleDetailView({ vehicleId }: Props) {
           </TabsContent>
 
           {/* Documents tab */}
-          <TabsContent value="documents" className="mt-4">
+          <TabsContent value="documents" className="mt-4 space-y-4">
             <Card>
-              <CardHeader><CardTitle className="text-base">Documents</CardTitle></CardHeader>
+              <CardHeader><CardTitle className="text-base">Tous les documents liés</CardTitle></CardHeader>
               <CardContent className="space-y-3">
-                {vehicle.registration_card ? (
+                {vehicle.registration_card && (
                   <div className="flex items-center justify-between p-3 border rounded-lg text-sm">
-                    <span>Carte grise</span>
+                    <span className="flex items-center gap-2"><IconFileText className="h-4 w-4 text-muted-foreground" />Carte grise</span>
                     <Button size="sm" variant="outline" asChild>
                       <a href={vehicle.registration_card} target="_blank" rel="noreferrer">Voir</a>
                     </Button>
                   </div>
+                )}
+                {(!stats?.documents || stats.documents.length === 0) && !vehicle.registration_card ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Aucun document disponible</p>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Aucun document disponible</p>
+                  (stats?.documents ?? []).map((doc: any) => (
+                    <div key={`${doc.source}-${doc.id}`} className="flex items-center justify-between p-3 border rounded-lg text-sm">
+                      <div className="min-w-0">
+                        <div className="font-medium truncate">{doc.file_name}</div>
+                        <div className="text-xs text-muted-foreground flex items-center gap-1.5">
+                          <Badge variant="outline" className="text-[10px]">{doc.source}</Badge>
+                          {doc.source_label}
+                        </div>
+                      </div>
+                      <Button size="sm" variant="outline" asChild>
+                        <a href={doc.url} target="_blank" rel="noreferrer">Voir</a>
+                      </Button>
+                    </div>
+                  ))
                 )}
               </CardContent>
             </Card>
+
+            <DocumentsSection
+              title="Ajouter un document"
+              entityId={vehicleId}
+              uploadUrl={apiRoutes.vehiclesExt.documents(vehicleId)}
+              deleteUrlFn={(mediaId) => apiRoutes.vehiclesExt.deleteMedia(vehicleId, mediaId)}
+              initialDocuments={(stats?.documents ?? []).filter((d: any) => d.source === 'Véhicule' && d.source_label === 'Document')}
+              accept="application/pdf,image/*"
+              onRefresh={() => refetchStats()}
+            />
           </TabsContent>
         </Tabs>
       </div>

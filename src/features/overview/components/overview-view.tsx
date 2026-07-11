@@ -320,7 +320,7 @@ export function OverviewView() {
       {/* Reservation breakdown */}
       <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-6">
         {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20" />)
+          Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-20 w-full" />)
         ) : (
           [
             { label: 'En attente', value: stats?.reservations.pending ?? 0, color: 'text-amber-600', filter: 'pending' },

@@ -20,22 +20,11 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
+import { applyServerErrors } from '@/lib/form-errors';
+import { SelectField } from '@/components/shared/select-field';
+import { FormDatePicker } from '@/components/shared/form-date-picker';
+import { useParameterOptions } from '@/features/settings/hooks/use-parameters';
 import { IconUpload, IconX, IconFileTypePdf, IconPhoto, IconFile } from '@tabler/icons-react';
-
-const EXPENSE_CATEGORIES = [
-  { value: 'fuel', label: 'Carburant' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'insurance', label: 'Assurance' },
-  { value: 'vignette', label: 'Vignette' },
-  { value: 'inspection', label: 'Contrôle technique' },
-  { value: 'repair', label: 'Réparation' },
-  { value: 'cleaning', label: 'Nettoyage' },
-  { value: 'administrative', label: 'Administratif' },
-  { value: 'salary', label: 'Salaire' },
-  { value: 'rent', label: 'Loyer' },
-  { value: 'utilities', label: 'Charges' },
-  { value: 'other', label: 'Autre' },
-];
 
 const PAYMENT_METHODS = [
   { value: 'cash', label: 'Espèces' },
@@ -50,7 +39,7 @@ const schema = z.object({
   category:       z.string().min(1, 'Catégorie requise'),
   amount:         z.coerce.number().min(0.01, 'Montant requis'),
   expense_date:   z.string().min(1, 'Date requise'),
-  agency_id:      z.string().optional(),
+  agency_id:      z.string().min(1, 'Agence requise'),
   vehicle_id:     z.string().optional(),
   payment_method: z.string().optional(),
   reference:      z.string().optional(),
@@ -89,6 +78,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
 
   const agencies = agenciesRes?.data ?? [];
   const vehicles = vehiclesRes?.data ?? [];
+  const { options: categoryOptions } = useParameterOptions('expense_category');
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
@@ -202,8 +192,8 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
 
       onOpenChange(false);
       onSuccess?.();
-    } catch {
-      toast.error("Erreur lors de l'enregistrement");
+    } catch (err) {
+      applyServerErrors(err, form, "Erreur lors de l'enregistrement");
     }
   };
 
@@ -230,10 +220,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="category" render={({ field }) => (
                   <FormItem><FormLabel>Catégorie *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Catégorie" /></SelectTrigger></FormControl>
-                      <SelectContent>{EXPENSE_CATEGORIES.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
-                    </Select>
+                    <SelectField value={field.value} onChange={field.onChange} placeholder="Catégorie" options={categoryOptions} />
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -248,7 +235,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
               <div className="grid grid-cols-2 gap-4">
                 <FormField control={form.control} name="expense_date" render={({ field }) => (
                   <FormItem><FormLabel>Date *</FormLabel>
-                    <FormControl><Input type="date" {...field} /></FormControl>
+                    <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date" />
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -272,16 +259,12 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
               {!defaultVehicleId && (
                 <FormField control={form.control} name="vehicle_id" render={({ field }) => (
                   <FormItem><FormLabel>Véhicule (optionnel)</FormLabel>
-                    <Select
-                      onValueChange={v => field.onChange(v === '__none__' ? '' : v)}
-                      value={field.value || '__none__'}
-                    >
-                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un véhicule" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__">— Aucun —</SelectItem>
-                        {vehicles.map(v => <SelectItem key={v.id} value={v.id}>{v.brand} {v.model} · {v.registration_number}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <SelectField
+                      value={field.value ?? ''}
+                      onChange={field.onChange}
+                      placeholder="Sélectionner un véhicule"
+                      options={vehicles.map(v => ({ value: v.id, label: `${v.brand} ${v.model}`, sub: v.registration_number }))}
+                    />
                     <FormMessage />
                   </FormItem>
                 )} />
@@ -289,17 +272,13 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
 
               {!defaultAgencyId && (
                 <FormField control={form.control} name="agency_id" render={({ field }) => (
-                  <FormItem><FormLabel>Agence (optionnel)</FormLabel>
-                    <Select
-                      onValueChange={v => field.onChange(v === '__none__' ? '' : v)}
-                      value={field.value || '__none__'}
-                    >
-                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__">— Aucune —</SelectItem>
-                        {agencies.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                  <FormItem><FormLabel>Agence *</FormLabel>
+                    <SelectField
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Sélectionner une agence"
+                      options={agencies.map(a => ({ value: a.id, label: a.name }))}
+                    />
                     <FormMessage />
                   </FormItem>
                 )} />

@@ -1,0 +1,216 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { toast } from 'sonner';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { useCreateInsurance, useUpdateInsurance } from '../hooks/use-insurances';
+import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
+import { useParameterOptions, useCreateParameter } from '@/features/settings/hooks/use-parameters';
+import type { Insurance } from '@/types/insurance.types';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Separator } from '@/components/ui/separator';
+import { SelectField } from '@/components/shared/select-field';
+import { FormDatePicker } from '@/components/shared/form-date-picker';
+import PageContainer from '@/components/layout/page-container';
+import { applyServerErrors } from '@/lib/form-errors';
+
+const schema = z.object({
+  vehicle_id: z.string().min(1, 'Véhicule requis'),
+  insurance_company: z.string().min(1, "Compagnie d'assurance requise"),
+  policy_number: z.string().min(1, 'Numéro de police requis'),
+  type: z.string().min(1, 'Type requis'),
+  start_date: z.string().min(1, 'Date de début requise'),
+  end_date: z.string().min(1, 'Date de fin requise'),
+  agent_name: z.string().optional(),
+  agent_phone: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof schema>;
+
+const emptyValues: FormValues = {
+  vehicle_id: '', insurance_company: '', policy_number: '', type: '',
+  start_date: '', end_date: '', agent_name: '', agent_phone: '', notes: '',
+};
+
+interface Props {
+  insurance?: Insurance | null;
+}
+
+export function InsuranceFormView({ insurance }: Props) {
+  const router = useRouter();
+  const createMutation = useCreateInsurance();
+  const updateMutation = useUpdateInsurance(insurance?.id ?? '');
+  const { data: vehiclesRes } = useVehicles({ per_page: 200 });
+  const vehicles = vehiclesRes?.data ?? [];
+  const { options: typeOptions } = useParameterOptions('insurance_type');
+  const { options: companyOptions } = useParameterOptions('insurance_company');
+  const createParameter = useCreateParameter();
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: emptyValues,
+  });
+
+  useEffect(() => {
+    if (insurance) {
+      form.reset({
+        vehicle_id: insurance.vehicle_id,
+        insurance_company: insurance.insurance_company,
+        policy_number: insurance.policy_number,
+        type: insurance.type,
+        start_date: insurance.start_date,
+        end_date: insurance.end_date,
+        agent_name: insurance.agent_name ?? '',
+        agent_phone: insurance.agent_phone ?? '',
+        notes: insurance.notes ?? '',
+      });
+    } else {
+      form.reset(emptyValues);
+    }
+  }, [insurance, form]);
+
+  const onSubmit = (values: FormValues) => {
+    if (insurance) {
+      updateMutation.mutate(values as any, {
+        onSuccess: () => { toast.success('Assurance mise à jour'); router.push(`/insurances/${insurance.id}`); },
+        onError: (err) => applyServerErrors(err, form, "Échec de la mise à jour de l'assurance"),
+      });
+    } else {
+      createMutation.mutate(values as any, {
+        onSuccess: (res) => { toast.success('Assurance créée'); router.push(`/insurances/${(res as any)?.data?.id}`); },
+        onError: (err) => applyServerErrors(err, form, "Impossible de créer l'assurance"),
+      });
+    }
+  };
+
+  const handleCreateCompany = (label: string) => {
+    createParameter.mutate(
+      { category: 'insurance_company', value: label, label },
+      {
+        onSuccess: () => { form.setValue('insurance_company', label); toast.success('Compagnie ajoutée aux paramètres'); },
+        onError: () => { form.setValue('insurance_company', label); },
+      }
+    );
+  };
+
+  return (
+    <PageContainer scrollable>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 space-y-6 max-w-3xl">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3">
+              <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
+                onClick={() => router.push('/insurances')}>
+                <ArrowLeft className="h-4 w-4" />Assurances
+              </Button>
+              <span className="text-muted-foreground">/</span>
+              <h1 className="text-lg font-bold">{insurance ? "Modifier l'assurance" : 'Nouvelle assurance'}</h1>
+            </div>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => router.push('/insurances')}>Annuler</Button>
+              <Button type="submit" disabled={isPending} className="gap-1.5">
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                {isPending ? 'Enregistrement…' : insurance ? 'Mettre à jour' : 'Créer'}
+              </Button>
+            </div>
+          </div>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Informations générales</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <FormField control={form.control} name="vehicle_id" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Véhicule *</FormLabel>
+                  <SelectField
+                    value={field.value}
+                    onChange={field.onChange}
+                    placeholder="Sélectionner un véhicule"
+                    options={vehicles.map(v => ({ value: v.id, label: `${v.brand} ${v.model}`, sub: v.registration_number }))}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form.control} name="insurance_company" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Compagnie d'assurance *</FormLabel>
+                    <SelectField
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Sélectionner une compagnie"
+                      options={companyOptions}
+                      onCreateNew={handleCreateCompany}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="policy_number" render={({ field }) => (
+                  <FormItem><FormLabel>N° de police *</FormLabel><FormControl><Input placeholder="POL-12345" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
+
+              <FormField control={form.control} name="type" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Type *</FormLabel>
+                  <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un type" options={typeOptions} />
+                  <FormMessage />
+                </FormItem>
+              )} />
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form.control} name="start_date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date de début *</FormLabel>
+                    <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date de début" />
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="end_date" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Date de fin *</FormLabel>
+                    <FormDatePicker value={field.value} onChange={field.onChange} placeholder="Choisir la date de fin" />
+                    <FormMessage />
+                  </FormItem>
+                )} />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader><CardTitle className="text-base">Contact agent</CardTitle></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <FormField control={form.control} name="agent_name" render={({ field }) => (
+                  <FormItem><FormLabel>Nom de l'agent</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="agent_phone" render={({ field }) => (
+                  <FormItem><FormLabel>Téléphone agent</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+              </div>
+              <FormField control={form.control} name="notes" render={({ field }) => (
+                <FormItem><FormLabel>Commentaire</FormLabel><FormControl><Textarea rows={3} placeholder="Remarques…" {...field} /></FormControl><FormMessage /></FormItem>
+              )} />
+            </CardContent>
+          </Card>
+
+          {!insurance && (
+            <p className="text-xs text-muted-foreground">
+              Vous pourrez ajouter les documents (police, carte verte, pièces jointes) une fois l'assurance créée.
+            </p>
+          )}
+        </form>
+      </Form>
+    </PageContainer>
+  );
+}

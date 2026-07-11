@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { APP_NAME } from '@/config/brand';
 
 export default function UnauthorizedPage() {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -56,7 +57,7 @@ export default function UnauthorizedPage() {
 
             <div className="mb-8 space-y-6">
                 <p className={"text-white/90 text-xl text-center"}>
-                Looks like you&apos;ve tried to enter a restricted area of Inginuity-Talent.
+                Looks like you&apos;ve tried to enter a restricted area of {APP_NAME}.
                 </p>
 
               <div className="relative">
@@ -100,7 +101,7 @@ export default function UnauthorizedPage() {
           <div className="p-4 bg-black/30 backdrop-blur-sm border-t border-white/10">
             <div className="flex justify-between items-center">
               <p className="text-white/60 text-sm">
-                © {year} Inginuity-Talent
+                © {year} {APP_NAME}
               </p>
               <div className="flex space-x-2">
                 <span className="h-2 w-2 rounded-full bg-red-500"></span>

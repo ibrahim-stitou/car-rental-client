@@ -219,9 +219,9 @@ export function BillingDetailView({ id }: { id: string }) {
           <Skeleton className="h-16 w-full rounded-xl" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-4">
-              <Skeleton className="h-44" /><Skeleton className="h-56" />
+              <Skeleton className="h-44 w-full" /><Skeleton className="h-56 w-full" />
             </div>
-            <Skeleton className="h-72" />
+            <Skeleton className="h-72 w-full" />
           </div>
         </div>
       </PageContainer>

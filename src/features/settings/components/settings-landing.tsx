@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Building2, Receipt, Bell, CalendarDays, Globe, Hash, ChevronRight,
+  Building2, Receipt, Bell, CalendarDays, Globe, Hash, ChevronRight, ListChecks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -63,6 +63,15 @@ const cards: SettingCard[] = [
     active: true,
     iconColor: 'text-indigo-600',
     iconBg: 'bg-indigo-100',
+  },
+  {
+    href: '/settings/parameters',
+    icon: ListChecks,
+    title: 'Paramètres métier',
+    description: "Types et compagnies d'assurance, centres de visite technique, catégories de dépense",
+    active: true,
+    iconColor: 'text-teal-600',
+    iconBg: 'bg-teal-100',
   },
   {
     href: '#',

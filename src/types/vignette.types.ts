@@ -12,6 +12,7 @@ export interface Vignette {
   payment_method: VignettePaymentMethod | null;
   payment_reference: string | null;
   payment_date: string | null;
+  agent_notes: string | null;
   is_expired: boolean;
   created_at: string;
   updated_at: string;
@@ -33,6 +34,7 @@ export interface CreateVignetteInput {
   amount: number;
   payment_method?: VignettePaymentMethod;
   payment_reference?: string;
+  agent_notes?: string;
 }
 
 export type UpdateVignetteInput = Partial<CreateVignetteInput>;

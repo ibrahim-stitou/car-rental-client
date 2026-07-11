@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 
-export const metadata: Metadata = { title: 'Website | Car Rental' };
+export const metadata: Metadata = { title: 'Website | MyFleet-Control' };
 
 export default function WebsitePage() {
   return (

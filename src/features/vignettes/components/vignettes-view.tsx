@@ -1,24 +1,23 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Edit, Trash2, DollarSign } from 'lucide-react';
+import { Eye, Edit, Trash2, DollarSign, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
-import { VignetteForm } from './vignette-form';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
 import type { Vignette } from '@/types/vignette.types';
 
 export function VignettesView() {
+  const router = useRouter();
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Vignette>> | null>(null);
-  const [formOpen, setFormOpen] = useState(false);
-  const [editVignette, setEditVignette] = useState<Vignette | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
 
@@ -49,7 +48,8 @@ export function VignettesView() {
               <TooltipContent>Marquer comme payée</TooltipContent>
             </Tooltip>
           )}
-          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => { setEditVignette(row); setFormOpen(true); }}><Edit className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/vignettes/${row.id}`)}><Eye className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Voir</TooltipContent></Tooltip>
+          <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5" onClick={() => router.push(`/vignettes/${row.id}/edit`)}><Edit className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Modifier</TooltipContent></Tooltip>
           <Tooltip><TooltipTrigger asChild><Button variant="outline" className="h-8 w-8 p-1.5 text-red-600 hover:bg-red-50" onClick={() => { setDeleteId(row.id); setOpenDeleteModal(true); }}><Trash2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Supprimer</TooltipContent></Tooltip>
         </div>
       ),
@@ -72,9 +72,9 @@ export function VignettesView() {
 
   return (
     <div className="flex flex-1 flex-col space-y-4 p-6">
-      <PageHeader title="Vignettes" description="Suivi des vignettes automobiles" onAdd={() => { setEditVignette(null); setFormOpen(true); }} addLabel="Ajouter une vignette" />
+      <PageHeader title="Vignettes" description="Suivi des vignettes automobiles"
+        actions={<Button size="sm" onClick={() => router.push('/vignettes/new')}><Plus className="h-4 w-4 mr-1.5" />Ajouter une vignette</Button>} />
       <CustomTable<Vignette> url={apiRoutes.vignettes.list} columns={columns} filters={filters} onInit={(i) => setTableInstance(i)} />
-      <VignetteForm open={formOpen} onOpenChange={setFormOpen} vignette={editVignette} onSuccess={() => tableInstance?.refresh?.()} />
       <CustomAlertDialog title="Supprimer la vignette ?" description="Cette action est irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
     </div>
   );

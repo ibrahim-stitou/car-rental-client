@@ -22,9 +22,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Calendar as CalendarUI } from '@/components/ui/calendar';
 import PageContainer from '@/components/layout/page-container';
+import { SelectField } from '@/components/shared/select-field';
 import { useCreateReservation } from '../hooks/use-reservations';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
@@ -33,6 +33,7 @@ import { PAYMENT_METHOD_OPTIONS, FUEL_LEVEL_OPTIONS } from '@/config/constants';
 import { cn } from '@/lib/utils';
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
+import { applyServerErrors } from '@/lib/form-errors';
 
 /* ─── Schema ───────────────────────────────────────────────────────────────── */
 
@@ -65,54 +66,6 @@ const schema = z.object({
 );
 
 type FormValues = z.infer<typeof schema>;
-
-/* ─── SearchableSelect ────────────────────────────────────────────────────── */
-
-function SearchableSelect({
-  value, onChange, placeholder, items, disabled,
-}: {
-  value: string; onChange: (v: string) => void; placeholder: string;
-  items: Array<{ id: string; label: string; sub?: string }>; disabled?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const filtered = items.filter(i =>
-    i.label.toLowerCase().includes(search.toLowerCase()) ||
-    (i.sub ?? '').toLowerCase().includes(search.toLowerCase())
-  );
-  const selected = items.find(i => i.id === value);
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox"
-          className={cn('w-full justify-between font-normal h-10', !value && 'text-muted-foreground')}
-          disabled={disabled}>
-          <span className="truncate">{selected ? selected.label : placeholder}</span>
-          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[360px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder="Rechercher…" value={search} onValueChange={setSearch} />
-          <CommandList>
-            <CommandEmpty>Aucun résultat</CommandEmpty>
-            <CommandGroup>
-              {filtered.slice(0, 60).map(item => (
-                <CommandItem key={item.id} value={item.id}
-                  onSelect={v => { onChange(v); setOpen(false); setSearch(''); }}>
-                  <div>
-                    <div className="text-sm font-medium">{item.label}</div>
-                    {item.sub && <div className="text-xs text-muted-foreground">{item.sub}</div>}
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 /* ─── DateField ───────────────────────────────────────────────────────────── */
 
@@ -177,9 +130,9 @@ export function ReservationCreateView() {
   const [conflictInfo, setConflictInfo] = useState<string | null>(null);
   const [checkingConflict, setCheckingConflict] = useState(false);
 
-  const agencies  = (agenciesRes?.data ?? []).map(a => ({ id: a.id, label: a.name, sub: (a as any).city }));
-  const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ id: v.id, label: `${v.brand} ${v.model} ${(v as any).year ?? ''}`.trim(), sub: v.registration_number }));
-  const clients   = (clientsRes?.data ?? []).map(c => ({ id: c.id, label: `${(c as any).first_name ?? ''} ${(c as any).last_name ?? ''}`.trim(), sub: (c as any).phone }));
+  const agencies  = (agenciesRes?.data ?? []).map(a => ({ value: a.id, label: a.name, sub: (a as any).city }));
+  const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ value: v.id, label: `${v.brand} ${v.model} ${(v as any).year ?? ''}`.trim(), sub: v.registration_number }));
+  const clients   = (clientsRes?.data ?? []).map(c => ({ value: c.id, label: `${(c as any).first_name ?? ''} ${(c as any).last_name ?? ''}`.trim(), sub: (c as any).phone }));
   const rawVehicles = vehiclesRes?.data ?? [];
 
   const form = useForm<FormValues>({
@@ -247,12 +200,35 @@ export function ReservationCreateView() {
   const balance = total - Number(initialPaid ?? 0);
 
   const onSubmit = async (values: FormValues) => {
+    const { initial_paid_amount, initial_payment_method, ...rest } = values;
+    const payload = {
+      ...rest,
+      second_driver_id:      values.second_driver_id || undefined,
+      second_driver_name:    values.second_driver_name || undefined,
+      second_driver_license: values.second_driver_license || undefined,
+      second_driver_phone:   values.second_driver_phone || undefined,
+      payment_method:        values.payment_method || undefined,
+      fuel_level_pickup:     values.fuel_level_pickup || undefined,
+      agent_notes:           values.agent_notes || undefined,
+      notes:                 values.notes || undefined,
+    };
     try {
-      await createMutation.mutateAsync(values as any);
+      const res = await createMutation.mutateAsync(payload as any);
+      const newId = (res as any)?.data?.id;
+      if (newId && initial_paid_amount && initial_paid_amount > 0) {
+        try {
+          await (await import('@/services/payment.service')).paymentService.create(newId, {
+            amount: initial_paid_amount,
+            payment_method: (initial_payment_method || 'cash') as any,
+            payment_date: new Date().toISOString().split('T')[0],
+            notes: 'Acompte initial',
+          });
+        } catch {}
+      }
       toast.success('Réservation créée avec succès');
       router.push('/reservations');
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? 'Erreur lors de la création');
+      applyServerErrors(err, form, 'Erreur lors de la création');
     }
   };
 
@@ -300,21 +276,21 @@ export function ReservationCreateView() {
                     <FormField control={form.control} name="agency_id" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Agence <span className="text-red-500">*</span></FormLabel>
-                        <SearchableSelect value={field.value} onChange={field.onChange} placeholder="Sélectionner une agence" items={agencies} />
+                        <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner une agence" options={agencies} />
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="vehicle_id" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Véhicule <span className="text-red-500">*</span></FormLabel>
-                        <SearchableSelect value={field.value} onChange={field.onChange} placeholder="Sélectionner un véhicule" items={vehicles} />
+                        <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un véhicule" options={vehicles} />
                         <FormMessage />
                       </FormItem>
                     )} />
                     <FormField control={form.control} name="client_id" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Client <span className="text-red-500">*</span></FormLabel>
-                        <SearchableSelect value={field.value} onChange={field.onChange} placeholder="Sélectionner un client" items={clients} />
+                        <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un client" options={clients} />
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -334,7 +310,7 @@ export function ReservationCreateView() {
                       <FormField control={form.control} name="second_driver_id" render={({ field }) => (
                         <FormItem>
                           <FormLabel>2ᵉ conducteur (client)</FormLabel>
-                          <SearchableSelect value={field.value ?? ''} onChange={field.onChange} placeholder="Client existant (optionnel)" items={clients} />
+                          <SelectField value={field.value ?? ''} onChange={field.onChange} placeholder="Client existant (optionnel)" options={clients} />
                         </FormItem>
                       )} />
                       <FormField control={form.control} name="second_driver_name" render={({ field }) => (

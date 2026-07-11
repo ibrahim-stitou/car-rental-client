@@ -215,12 +215,12 @@ export function ReservationDetailView({ id }: { id: string }) {
   if (isLoading) {
     return (
       <PageContainer scrollable>
-        <div className="p-6 space-y-5">
+        <div className="p-6 space-y-5 w-full">
           <Skeleton className="h-8 w-56" />
           <Skeleton className="h-16 w-full rounded-xl" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            <div className="lg:col-span-2 space-y-4"><Skeleton className="h-44" /><Skeleton className="h-56" /></div>
-            <Skeleton className="h-72" />
+            <div className="lg:col-span-2 space-y-4"><Skeleton className="h-44 w-full" /><Skeleton className="h-56 w-full" /></div>
+            <Skeleton className="h-72 w-full" />
           </div>
         </div>
       </PageContainer>
@@ -646,7 +646,7 @@ function PaymentsTab({ reservationId }: { reservationId: string }) {
     setLoading(true);
     try {
       const res = await apiClient.get(apiRoutes.payments.list(reservationId));
-      setPayments((res.data as any)?.data ?? []);
+      setPayments((res.data as any)?.data?.payments ?? []);
     } catch {} finally { setLoading(false); }
   }, [reservationId]);
 
@@ -655,7 +655,7 @@ function PaymentsTab({ reservationId }: { reservationId: string }) {
   const PAY_METHOD_FR: Record<string, string> = { cash: 'Espèces', card: 'Carte', bank_transfer: 'Virement', check: 'Chèque', online: 'En ligne' };
 
   if (loading) return (
-    <Card><CardContent className="p-5 space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12" />)}</CardContent></Card>
+    <Card><CardContent className="p-5 space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</CardContent></Card>
   );
 
   return (
