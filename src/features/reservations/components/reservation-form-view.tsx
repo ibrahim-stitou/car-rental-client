@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,6 +15,7 @@ import {
   Paperclip, Trash2, Plus,
 } from 'lucide-react';
 import { DocumentsSection } from '@/components/shared/documents-section';
+import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -80,6 +81,9 @@ const editSchema = createSchema.innerType().pick({
   d => !d.pickup_date || !d.return_date || d.return_date > d.pickup_date,
   { message: 'La date de retour doit être après la date de départ', path: ['return_date'] }
 );
+
+const DOC_ACCEPT = { 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'], 'application/msword': ['.doc'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] };
+const DOC_MAX = 10 * 1024 * 1024;
 
 type CreateValues = z.infer<typeof createSchema>;
 type EditValues = z.infer<typeof editSchema>;
@@ -227,16 +231,15 @@ export function ReservationFormView({ reservation }: Props) {
 
   // Documents staged locally at creation time — uploaded right after the reservation is created
   const [pendingDocs, setPendingDocs] = useState<{ file: File; title: string }[]>([]);
-  const [docFile, setDocFile] = useState<File | null>(null);
+  const [docFiles, setDocFiles] = useState<File[]>([]);
+  const docFile = docFiles[0] ?? null;
   const [docTitle, setDocTitle] = useState('');
-  const docInputRef = useRef<HTMLInputElement>(null);
 
   const addPendingDoc = () => {
     if (!docFile || !docTitle.trim()) return;
     setPendingDocs(prev => [...prev, { file: docFile, title: docTitle.trim() }]);
-    setDocFile(null);
+    setDocFiles([]);
     setDocTitle('');
-    if (docInputRef.current) docInputRef.current.value = '';
   };
   const removePendingDoc = (idx: number) => setPendingDocs(prev => prev.filter((_, i) => i !== idx));
 
@@ -711,13 +714,14 @@ export function ReservationFormView({ reservation }: Props) {
                   />
                 ) : (
                   <SectionCard icon={<Paperclip className="h-4 w-4" />} title="Documents">
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Input
-                        type="file"
-                        ref={docInputRef}
-                        onChange={e => setDocFile(e.target.files?.[0] ?? null)}
-                        className="sm:flex-1"
-                      />
+                    <FileUploader
+                      value={docFiles}
+                      onValueChange={setDocFiles}
+                      accept={DOC_ACCEPT}
+                      maxSize={DOC_MAX}
+                      maxFiles={1}
+                    />
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
                       <Input
                         placeholder="Titre du document (ex. CIN, Permis…)"
                         value={docTitle}
@@ -726,7 +730,7 @@ export function ReservationFormView({ reservation }: Props) {
                       />
                       <Button type="button" variant="outline" className="gap-1.5"
                         onClick={addPendingDoc} disabled={!docFile || !docTitle.trim()}>
-                        <Plus className="h-4 w-4" />Ajouter
+                        <Plus className="h-4 w-4" />Ajouter à la liste
                       </Button>
                     </div>
                     {pendingDocs.length > 0 && (
