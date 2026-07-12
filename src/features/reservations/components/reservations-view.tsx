@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { Edit, Trash2, Check, Play, Square, X, CreditCard, FileText, Receipt, UserX, Loader2, ExternalLink } from 'lucide-react';
@@ -14,6 +14,7 @@ import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from 
 import { PaymentDialog } from './payment-dialog';
 import { CompleteReservationDialog } from './complete-reservation-dialog';
 import { ExtendReservationDialog } from './extend-reservation-dialog';
+import { ValidateReservationDialog } from './validate-reservation-dialog';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -43,21 +44,31 @@ const PAY_FR: Record<string, string> = { pending: 'Non payé', partial: 'Partiel
 
 export function ReservationsView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const overdueOnly = searchParams.get('overdue') === '1';
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Reservation>> | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<{ id: string; ref: string } | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number } | null>(null);
+  const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number; returnLocation?: string } | null>(null);
   const [extendDialog, setExtendDialog] = useState<{ id: string; ref: string; returnDate?: string; status: string } | null>(null);
+  const [validateDialog, setValidateDialog] = useState<{ id: string } | null>(null);
   const createInvoice = useCreateBillingFromReservation();
 
-  // Fetch current user profile to check signature
+  // Fetch current user profile to check signature/stamp
   const { data: profileData } = useQuery({
     queryKey: ['profile'],
     queryFn: () => apiClient.get(apiRoutes.profile.show).then(r => r.data?.data),
   });
   const currentUserHasSignature = profileData?.has_signature ?? true; // default true to avoid blocking
+  const currentUserHasStamp = profileData?.has_stamp ?? true;
+
+  const handleValidateConfirm = () => {
+    if (!validateDialog) return;
+    doAction(validateDialog.id, apiRoutes.reservations.confirm(validateDialog.id), 'Réservation confirmée', 'patch');
+    setValidateDialog(null);
+  };
 
   const doAction = useCallback(async (id: string, url: string, msg: string, method: 'post' | 'patch' = 'patch') => {
     setPendingAction(id + url);
@@ -196,15 +207,7 @@ export function ReservationsView() {
                 <TooltipTrigger asChild>
                   <Button variant="outline" className="h-8 w-8 p-1.5 text-blue-600 hover:bg-blue-50"
                     disabled={!!pendingAction}
-                    onClick={() => {
-                      if (!currentUserHasSignature) {
-                        toast.warning(
-                          'Votre signature/cachet n\'est pas configuré. Veuillez les ajouter dans votre profil pour qu\'ils apparaissent sur le contrat.',
-                          { action: { label: 'Profil →', onClick: () => window.location.href = '/profile' }, duration: 7000 }
-                        );
-                      }
-                      doAction(key, apiRoutes.reservations.confirm(row.id), 'Réservation confirmée', 'patch');
-                    }}>
+                    onClick={() => setValidateDialog({ id: row.id })}>
                     {busy(apiRoutes.reservations.confirm(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                   </Button>
                 </TooltipTrigger>
@@ -235,6 +238,7 @@ export function ReservationsView() {
                       id: row.id,
                       ref: row.reference,
                       initialMileage: (row as any).initial_mileage ?? undefined,
+                      returnLocation: row.return_location,
                     })}>
                     <Square className="h-4 w-4" />
                   </Button>
@@ -331,6 +335,7 @@ export function ReservationsView() {
     { field: 'search', label: 'Rechercher une réservation…', type: 'text' },
     { field: 'status', label: 'Statut', type: 'select', options: RESERVATION_STATUS_OPTIONS },
     { field: 'payment_status', label: 'Paiement', type: 'select', options: PAYMENT_STATUS_OPTIONS },
+    { field: 'overdue', label: 'En retard uniquement', type: 'checkbox' },
   ];
 
   const handleConfirmDelete = async () => {
@@ -356,6 +361,8 @@ export function ReservationsView() {
         columns={columns}
         filters={filters}
         onInit={(i) => setTableInstance(i)}
+        rowClassName={(row) => row.is_overdue ? 'bg-red-50 hover:bg-red-100' : ''}
+        initialState={overdueOnly ? { filters: { overdue: 1 } } : undefined}
       />
       <CustomAlertDialog title="Supprimer la réservation ?" description="Cette action est irréversible." confirmText="Supprimer" cancelText="Annuler" open={openDeleteModal} setOpen={setOpenDeleteModal} onConfirm={handleConfirmDelete} />
       {paymentDialog && (
@@ -373,7 +380,18 @@ export function ReservationsView() {
           reservationId={completeDialog.id}
           reservationRef={completeDialog.ref}
           initialMileage={completeDialog.initialMileage}
+          returnLocation={completeDialog.returnLocation}
           onSuccess={() => tableInstance?.refresh?.()}
+        />
+      )}
+      {validateDialog && (
+        <ValidateReservationDialog
+          open={!!validateDialog}
+          onOpenChange={(o) => !o && setValidateDialog(null)}
+          onConfirm={handleValidateConfirm}
+          loading={!!pendingAction}
+          hasSignature={currentUserHasSignature}
+          hasStamp={currentUserHasStamp}
         />
       )}
       {extendDialog && (

@@ -20,9 +20,11 @@ const CustomTable = <T extends Record<string, any>>({
   url,
   columns,
   filters,
-  onInit
+  onInit,
+  initialState,
+  rowClassName
                                                     }: CustomTableProps<T>) => {
-  const table = useCustomTable(url, columns);
+  const table = useCustomTable(url, columns, [], initialState);
   useEffect(() => {
     if (onInit) {
       // @ts-ignore
@@ -100,7 +102,7 @@ const CustomTable = <T extends Record<string, any>>({
                   <TableBody>
                     {table.data?.length ? (
                       table.data.map((row) => (
-                        <TableRow key={row.id}>
+                        <TableRow key={row.id} className={rowClassName?.(row) ?? ''}>
                           {table.columns.map(
                             (col) =>
                               // @ts-ignore

@@ -89,6 +89,7 @@ export interface CustomTableProps<T> {
   filters?: CustomTableFilterConfig[];
   sortBy?: keyof T;
   sortDir?: 'asc' | 'desc';
+  rowClassName?: (row: T) => string;
 }
 
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -12,7 +12,9 @@ import { fr } from 'date-fns/locale';
 import {
   ArrowLeft, Save, UserPlus, UserMinus, Car, User,
   Calendar, CreditCard, Info, AlertTriangle, Loader2, CalendarX, Coins, CircleDollarSign,
+  Paperclip, Trash2, Plus,
 } from 'lucide-react';
+import { DocumentsSection } from '@/components/shared/documents-section';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -223,6 +225,21 @@ export function ReservationFormView({ reservation }: Props) {
   const [showSecondDriver, setShowSecondDriver] = useState(false);
   const [conflictDismissed, setConflictDismissed] = useState(false);
 
+  // Documents staged locally at creation time — uploaded right after the reservation is created
+  const [pendingDocs, setPendingDocs] = useState<{ file: File; title: string }[]>([]);
+  const [docFile, setDocFile] = useState<File | null>(null);
+  const [docTitle, setDocTitle] = useState('');
+  const docInputRef = useRef<HTMLInputElement>(null);
+
+  const addPendingDoc = () => {
+    if (!docFile || !docTitle.trim()) return;
+    setPendingDocs(prev => [...prev, { file: docFile, title: docTitle.trim() }]);
+    setDocFile(null);
+    setDocTitle('');
+    if (docInputRef.current) docInputRef.current.value = '';
+  };
+  const removePendingDoc = (idx: number) => setPendingDocs(prev => prev.filter((_, i) => i !== idx));
+
   const agencies  = (agenciesRes?.data ?? []).map(a => ({ value: a.id, label: a.name, sub: (a as any).city }));
   const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ value: v.id, label: `${v.brand} ${v.model} ${(v as any).year ?? ''}`.trim(), sub: v.registration_number }));
   const clients   = (clientsRes?.data ?? []).map(c => ({ value: c.id, label: `${(c as any).first_name ?? ''} ${(c as any).last_name ?? ''}`.trim(), sub: (c as any).phone }));
@@ -384,6 +401,16 @@ export function ReservationFormView({ reservation }: Props) {
             notes: 'Acompte initial',
           });
         } catch {}
+      }
+      if (newId && pendingDocs.length > 0) {
+        try {
+          const formData = new FormData();
+          pendingDocs.forEach(d => formData.append('documents[]', d.file));
+          pendingDocs.forEach(d => formData.append('names[]', d.title));
+          await apiClient.post(apiRoutes.documentsExt.reservation(newId), formData);
+        } catch {
+          toast.error('Réservation créée mais erreur lors du téléversement des documents');
+        }
       }
       toast.success('Réservation créée avec succès');
       router.push('/reservations');
@@ -670,6 +697,56 @@ export function ReservationFormView({ reservation }: Props) {
                     )}
                   </div>
                 </SectionCard>
+
+                {/* Documents */}
+                {isEdit ? (
+                  <DocumentsSection
+                    title="Documents"
+                    entityId={reservation!.id}
+                    uploadUrl={apiRoutes.documentsExt.reservation(reservation!.id)}
+                    deleteUrlFn={(mediaId) => apiRoutes.documentsExt.mediaDelete.reservation(reservation!.id, mediaId)}
+                    initialDocuments={reservation!.documents ?? []}
+                    accept="application/pdf,image/*,.doc,.docx,.xls,.xlsx"
+                    titled
+                  />
+                ) : (
+                  <SectionCard icon={<Paperclip className="h-4 w-4" />} title="Documents">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <Input
+                        type="file"
+                        ref={docInputRef}
+                        onChange={e => setDocFile(e.target.files?.[0] ?? null)}
+                        className="sm:flex-1"
+                      />
+                      <Input
+                        placeholder="Titre du document (ex. CIN, Permis…)"
+                        value={docTitle}
+                        onChange={e => setDocTitle(e.target.value)}
+                        className="sm:flex-1"
+                      />
+                      <Button type="button" variant="outline" className="gap-1.5"
+                        onClick={addPendingDoc} disabled={!docFile || !docTitle.trim()}>
+                        <Plus className="h-4 w-4" />Ajouter
+                      </Button>
+                    </div>
+                    {pendingDocs.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {pendingDocs.map((d, i) => (
+                          <div key={i} className="flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm">
+                            <div className="min-w-0">
+                              <div className="font-medium truncate">{d.title}</div>
+                              <div className="text-xs text-muted-foreground truncate">{d.file.name}</div>
+                            </div>
+                            <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:bg-red-50"
+                              onClick={() => removePendingDoc(i)}>
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </SectionCard>
+                )}
               </div>
 
               {/* Right sidebar */}

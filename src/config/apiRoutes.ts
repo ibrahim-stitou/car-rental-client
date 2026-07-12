@@ -243,6 +243,8 @@ export const apiRoutes = {
     uploadContract: (id: string) => `${BASE}/reservations/${id}/contract`,
     uploadPickupPhotos: (id: string) => `${BASE}/reservations/${id}/pickup-photos`,
     uploadReturnPhotos: (id: string) => `${BASE}/reservations/${id}/return-photos`,
+    uploadDocuments: (id: string) => `${BASE}/reservations/${id}/documents`,
+    deleteMedia: (id: string, mediaId: number) => `${BASE}/reservations/${id}/media/${mediaId}`,
     noShow: (id: string) => `${BASE}/reservations/${id}/no-show`,
     extend: (id: string) => `${BASE}/reservations/${id}/extend`,
     overdue: `${BASE}/reservations/overdue`,
@@ -297,11 +299,13 @@ export const apiRoutes = {
     technicalInspection: (id: string) => `${BASE}/technical-inspections/${id}/documents`,
     vignette:            (id: string) => `${BASE}/vignettes/${id}/documents`,
     expense:             (id: string) => `${BASE}/expenses/${id}/documents`,
+    reservation:         (id: string) => `${BASE}/reservations/${id}/documents`,
     mediaDelete: {
       maintenance:         (id: string, mid: number) => `${BASE}/maintenances/${id}/media/${mid}`,
       insurance:           (id: string, mid: number) => `${BASE}/insurances/${id}/media/${mid}`,
       technicalInspection: (id: string, mid: number) => `${BASE}/technical-inspections/${id}/media/${mid}`,
       vignette:            (id: string, mid: number) => `${BASE}/vignettes/${id}/media/${mid}`,
+      reservation:         (id: string, mid: number) => `${BASE}/reservations/${id}/media/${mid}`,
     },
   },
 } as const;

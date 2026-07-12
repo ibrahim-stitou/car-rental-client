@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { FUEL_LEVEL_OPTIONS } from '@/config/constants';
@@ -13,21 +14,32 @@ import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
 import { IconGauge, IconAlertTriangle } from '@tabler/icons-react';
 
+function nowForDatetimeLocal() {
+  const d = new Date();
+  d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  return d.toISOString().slice(0, 16);
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   reservationId: string;
   reservationRef: string;
   initialMileage?: number;
+  returnLocation?: string;
   onSuccess?: () => void;
 }
 
 export function CompleteReservationDialog({
-  open, onOpenChange, reservationId, reservationRef, initialMileage, onSuccess,
+  open, onOpenChange, reservationId, reservationRef, initialMileage, returnLocation, onSuccess,
 }: Props) {
   const [finalMileage, setFinalMileage] = useState('');
   const [fuelLevel, setFuelLevel] = useState('');
   const [additionalFees, setAdditionalFees] = useState('');
+  const [actualReturnDate, setActualReturnDate] = useState(nowForDatetimeLocal());
+  const [actualReturnLocation, setActualReturnLocation] = useState(returnLocation ?? '');
+  const [isFavorable, setIsFavorable] = useState<string>('favorable');
+  const [closureComment, setClosureComment] = useState('');
   const [loading, setLoading] = useState(false);
 
   const mileageDiff = finalMileage && initialMileage
@@ -46,6 +58,10 @@ export function CompleteReservationDialog({
         final_mileage: finalMileage ? Number(finalMileage) : undefined,
         fuel_level_return: fuelLevel || undefined,
         additional_fees: additionalFees ? Number(additionalFees) : undefined,
+        actual_return_date: actualReturnDate ? new Date(actualReturnDate).toISOString() : undefined,
+        actual_return_location: actualReturnLocation || undefined,
+        is_favorable: isFavorable === 'favorable',
+        closure_comment: closureComment || undefined,
       });
       toast.success(`Réservation ${reservationRef} clôturée`);
       onOpenChange(false);
@@ -108,6 +124,50 @@ export function CompleteReservationDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="actual-return-date">Date et heure de retour</Label>
+              <Input
+                id="actual-return-date"
+                type="datetime-local"
+                value={actualReturnDate}
+                onChange={(e) => setActualReturnDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="actual-return-location">Lieu de retour</Label>
+              <Input
+                id="actual-return-location"
+                placeholder="Lieu de retour"
+                value={actualReturnLocation}
+                onChange={(e) => setActualReturnLocation(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Avis de clôture</Label>
+            <Select value={isFavorable} onValueChange={setIsFavorable}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="favorable">Favorable</SelectItem>
+                <SelectItem value="unfavorable">Non favorable</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="closure-comment">Commentaire</Label>
+            <Textarea
+              id="closure-comment"
+              rows={2}
+              placeholder="Observations sur l'état du véhicule, incidents, etc."
+              value={closureComment}
+              onChange={(e) => setClosureComment(e.target.value)}
+              className="resize-none"
+            />
           </div>
 
           <div className="space-y-2">

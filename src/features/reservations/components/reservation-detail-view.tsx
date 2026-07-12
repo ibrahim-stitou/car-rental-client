@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -26,6 +27,8 @@ import PageContainer from '@/components/layout/page-container';
 import { PaymentDialog } from './payment-dialog';
 import { CompleteReservationDialog } from './complete-reservation-dialog';
 import { ExtendReservationDialog } from './extend-reservation-dialog';
+import { ValidateReservationDialog } from './validate-reservation-dialog';
+import { DocumentsSection } from '@/components/shared/documents-section';
 import { useReservation } from '../hooks/use-reservations';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -195,6 +198,12 @@ export function ReservationDetailView({ id }: { id: string }) {
   const [cancelOpen, setCancelOpen]       = useState(false);
   const [completeOpen, setCompleteOpen]   = useState(false);
   const [extendOpen, setExtendOpen]       = useState(false);
+  const [validateOpen, setValidateOpen]   = useState(false);
+
+  const { data: profileData } = useQuery({
+    queryKey: ['profile'],
+    queryFn: () => apiClient.get(apiRoutes.profile.show).then(r => r.data?.data),
+  });
 
   const reservation: Reservation | null = (res?.data as any) ?? null;
 
@@ -284,7 +293,7 @@ export function ReservationDetailView({ id }: { id: string }) {
             {reservation.status === 'pending' && (
               <Button size="sm" className="gap-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                 disabled={!!pendingAction}
-                onClick={() => doAction(apiRoutes.reservations.confirm(id), 'patch', 'Réservation confirmée')}>
+                onClick={() => setValidateOpen(true)}>
                 {pendingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 Confirmer
               </Button>
@@ -350,9 +359,10 @@ export function ReservationDetailView({ id }: { id: string }) {
 
         {/* Tabs */}
         <Tabs defaultValue="details" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
             <TabsTrigger value="details" className="gap-1.5"><FileText className="h-4 w-4" />Détails</TabsTrigger>
             <TabsTrigger value="contract" className="gap-1.5"><Eye className="h-4 w-4" />Contrat PDF</TabsTrigger>
+            <TabsTrigger value="documents" className="gap-1.5"><Download className="h-4 w-4" />Documents</TabsTrigger>
             <TabsTrigger value="payments" className="gap-1.5"><CreditCard className="h-4 w-4" />Paiements</TabsTrigger>
           </TabsList>
 
@@ -588,6 +598,19 @@ export function ReservationDetailView({ id }: { id: string }) {
             </Card>
           </TabsContent>
 
+          {/* ════ DOCUMENTS ════ */}
+          <TabsContent value="documents" className="mt-0">
+            <DocumentsSection
+              title="Documents de la réservation"
+              entityId={id}
+              uploadUrl={apiRoutes.documentsExt.reservation(id)}
+              deleteUrlFn={(mediaId) => apiRoutes.documentsExt.mediaDelete.reservation(id, mediaId)}
+              initialDocuments={r.documents ?? []}
+              accept="application/pdf,image/*,.doc,.docx,.xls,.xlsx"
+              titled
+            />
+          </TabsContent>
+
           {/* ════ PAIEMENTS ════ */}
           <TabsContent value="payments" className="mt-0">
             <PaymentsTab reservationId={id} />
@@ -612,7 +635,21 @@ export function ReservationDetailView({ id }: { id: string }) {
           reservationId={id}
           reservationRef={r.reference ?? r.reservation_number ?? ''}
           initialMileage={r.initial_mileage ?? undefined}
+          returnLocation={r.return_location}
           onSuccess={() => { refetch(); setCompleteOpen(false); }}
+        />
+      )}
+      {validateOpen && (
+        <ValidateReservationDialog
+          open={validateOpen}
+          onOpenChange={setValidateOpen}
+          loading={!!pendingAction}
+          hasSignature={profileData?.has_signature ?? true}
+          hasStamp={profileData?.has_stamp ?? true}
+          onConfirm={() => {
+            doAction(apiRoutes.reservations.confirm(id), 'patch', 'Réservation confirmée');
+            setValidateOpen(false);
+          }}
         />
       )}
       {extendOpen && (

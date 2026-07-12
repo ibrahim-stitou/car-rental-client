@@ -1,3 +1,5 @@
+import type { MediaItem } from './claim.types';
+
 export type ReservationStatus = 'pending' | 'confirmed' | 'active' | 'completed' | 'cancelled' | 'no_show';
 export type CreditReservation = {
   id: string;
@@ -28,6 +30,12 @@ export interface Reservation {
   actual_return_date: string | null;
   pickup_location: string;
   return_location: string;
+  actual_return_location: string | null;
+  is_favorable: boolean | null;
+  closure_comment: string | null;
+  contract_generated_at: string | null;
+  is_overdue?: boolean;
+  documents?: MediaItem[];
   status: ReservationStatus;
   daily_rate: number;
   discount_percentage: number;
@@ -94,6 +102,10 @@ export interface CompleteReservationInput {
   final_mileage: number;
   fuel_level_return: FuelLevel;
   additional_fees?: number;
+  actual_return_date?: string;
+  actual_return_location?: string;
+  is_favorable?: boolean;
+  closure_comment?: string;
 }
 
 export interface CancelReservationInput {
@@ -107,6 +119,7 @@ export interface ReservationFilters {
   status?: ReservationStatus;
   payment_status?: PaymentStatus;
   search?: string;
+  overdue?: 0 | 1;
   per_page?: number;
   page?: number;
 }

@@ -152,6 +152,20 @@ export function DashboardView() {
         )}
       </div>
 
+      {/* Alertes */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {isLoading ? <Skel /> : (
+          <KpiCard
+            title="Réservations en retard"
+            value={s?.reservations.overdue ?? 0}
+            sub="Retour non effectué après la date prévue"
+            icon={IconAlertTriangle}
+            color={(s?.reservations.overdue ?? 0) > 0 ? 'bg-red-500' : 'bg-slate-400'}
+            onClick={() => router.push(`${paths.reservations.list}?overdue=1`)}
+          />
+        )}
+      </div>
+
       {/* Graphiques */}
       <div className="grid gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
