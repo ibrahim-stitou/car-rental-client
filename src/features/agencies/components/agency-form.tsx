@@ -21,6 +21,7 @@ const schema = z.object({
   name: z.string().min(1, 'Nom requis'),
   email: z.string().email('Email invalide'),
   phone: z.string().min(1, 'Téléphone requis'),
+  phone2: z.string().optional(),
   address: z.string().min(1, 'Adresse requise'),
   city: z.string().min(1, 'Ville requise'),
   country: z.string().min(1, 'Pays requis'),
@@ -55,16 +56,16 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', email: '', phone: '', address: '', city: '', country: 'Morocco' },
+    defaultValues: { name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco' },
   });
 
   useEffect(() => {
     if (agency) {
-      form.reset({ name: agency.name, email: agency.email, phone: agency.phone, address: agency.address, city: agency.city, country: agency.country });
+      form.reset({ name: agency.name, email: agency.email, phone: agency.phone, phone2: agency.phone2 ?? '', address: agency.address, city: agency.city, country: agency.country });
       setLogoUrl(agency.logo_url ?? null);
       setLogoMediaId(agency.logo_media_id ?? null);
     } else {
-      form.reset({ name: '', email: '', phone: '', address: '', city: '', country: 'Morocco' });
+      form.reset({ name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco' });
       setLogoUrl(null);
       setLogoMediaId(null);
       setStagedFile(null);
@@ -222,7 +223,10 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
                     <FormItem><FormLabel>Email *</FormLabel><FormControl><Input type="email" placeholder="contact@agency.ma" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                   <FormField control={form.control} name="phone" render={({ field }) => (
-                    <FormItem><FormLabel>Téléphone *</FormLabel><FormControl><Input placeholder="+212 5XX XXX XXX" {...field} /></FormControl><FormMessage /></FormItem>
+                    <FormItem><FormLabel>Téléphone (Tél/Fax) *</FormLabel><FormControl><Input placeholder="+212 5XX XXX XXX" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="phone2" render={({ field }) => (
+                    <FormItem><FormLabel>GSM</FormLabel><FormControl><Input placeholder="+212 6XX XXX XXX" {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                 </div>
 

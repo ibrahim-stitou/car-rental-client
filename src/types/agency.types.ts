@@ -8,6 +8,7 @@ export interface Agency {
   city: string;
   country: string;
   phone: string;
+  phone2: string | null;
   is_active: boolean;
   manager_id: string | null;
   manager: AgencyManager | null;
@@ -33,6 +34,7 @@ export interface CreateAgencyInput {
   city: string;
   country: string;
   phone: string;
+  phone2?: string;
   manager_id?: string;
 }
 

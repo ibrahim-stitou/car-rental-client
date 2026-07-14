@@ -9,6 +9,7 @@ export interface Client {
   email: string | null;
   phone: string;
   date_of_birth: string | null;
+  birth_place: string | null;
   nationality: string | null;
   id_type: IdType | null;
   id_number: string | null;
@@ -16,6 +17,8 @@ export interface Client {
   driving_license_number: string | null;
   driving_license_category: string | null;
   driving_license_expiry: string | null;
+  license_issue_date: string | null;
+  license_issue_place: string | null;
   address: string | null;
   city: string | null;
   country: string | null;
@@ -47,6 +50,7 @@ export interface CreateClientInput {
   email?: string;
   phone: string;
   date_of_birth?: string;
+  birth_place?: string;
   nationality?: string;
   id_type?: IdType;
   id_number?: string;
@@ -54,6 +58,8 @@ export interface CreateClientInput {
   driving_license_number?: string;
   driving_license_category?: string;
   driving_license_expiry?: string;
+  license_issue_date?: string;
+  license_issue_place?: string;
   address?: string;
   city?: string;
   country?: string;

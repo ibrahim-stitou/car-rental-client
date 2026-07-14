@@ -31,6 +31,7 @@ const schema = z.object({
   email: z.string().email('Email invalide').optional().or(z.literal('')),
   phone: z.string().min(1, 'Téléphone requis'),
   date_of_birth: z.string().optional(),
+  birth_place: z.string().optional(),
   nationality: z.string().optional(),
   id_type: z.enum(['cin', 'passport', 'residence_permit']).optional(),
   id_number: z.string().optional(),
@@ -38,6 +39,8 @@ const schema = z.object({
   driving_license_number: z.string().optional(),
   driving_license_category: z.string().optional(),
   driving_license_expiry: z.string().optional(),
+  license_issue_date: z.string().optional(),
+  license_issue_place: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
@@ -148,9 +151,10 @@ export function ClientForm({ client }: Props) {
     resolver: zodResolver(schema),
     defaultValues: {
       agency_id: '', first_name: '', last_name: '', email: '', phone: '',
-      date_of_birth: '', nationality: '', id_type: undefined, id_number: '',
+      date_of_birth: '', birth_place: '', nationality: '', id_type: undefined, id_number: '',
       id_expiry_date: '', driving_license_number: '', driving_license_category: '',
-      driving_license_expiry: '', address: '', city: '', country: 'Morocco', notes: '',
+      driving_license_expiry: '', license_issue_date: '', license_issue_place: '',
+      address: '', city: '', country: 'Morocco', notes: '',
     },
   });
 
@@ -170,6 +174,7 @@ export function ClientForm({ client }: Props) {
         email: client.email ?? '',
         phone: client.phone,
         date_of_birth: client.date_of_birth ?? '',
+        birth_place: client.birth_place ?? '',
         nationality: client.nationality ?? '',
         id_type: client.id_type ?? undefined,
         id_number: client.id_number ?? '',
@@ -177,6 +182,8 @@ export function ClientForm({ client }: Props) {
         driving_license_number: client.driving_license_number ?? '',
         driving_license_category: client.driving_license_category ?? '',
         driving_license_expiry: client.driving_license_expiry ?? '',
+        license_issue_date: client.license_issue_date ?? '',
+        license_issue_place: client.license_issue_place ?? '',
         address: client.address ?? '',
         city: client.city ?? '',
         country: client.country ?? 'Morocco',
@@ -337,7 +344,7 @@ export function ClientForm({ client }: Props) {
                     </FormItem>
                   )} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-3 gap-4">
                   <FormField control={form.control} name="date_of_birth" render={({ field }) => (
                     <FormItem>
                       <FormLabel>Date de naissance</FormLabel>
@@ -348,6 +355,13 @@ export function ClientForm({ client }: Props) {
                           placeholder="Sélectionner une date"
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="birth_place" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lieu de naissance</FormLabel>
+                      <FormControl><Input placeholder="Casablanca" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />
@@ -463,6 +477,28 @@ export function ClientForm({ client }: Props) {
                           placeholder="Sélectionner"
                         />
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="license_issue_date" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Date de délivrance</FormLabel>
+                      <FormControl>
+                        <DatePicker
+                          date={strToDate(field.value)}
+                          setDate={(d) => field.onChange(dateToStr(d))}
+                          placeholder="Sélectionner"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="license_issue_place" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Lieu de délivrance</FormLabel>
+                      <FormControl><Input placeholder="Larache" {...field} /></FormControl>
                       <FormMessage />
                     </FormItem>
                   )} />

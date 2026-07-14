@@ -131,7 +131,7 @@ export function AgencyDetailView({ agencyId }: Props) {
 
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold">{agency?.name}</h1>
-            <p className="text-muted-foreground text-sm">{agency?.city} · {agency?.phone}</p>
+            <p className="text-muted-foreground text-sm">{agency?.city} · {agency?.phone}{agency?.phone2 ? ` · GSM ${agency.phone2}` : ''}</p>
           </div>
           <Badge variant={agency?.is_active ? 'default' : 'secondary'}>{agency?.is_active ? 'Active' : 'Inactive'}</Badge>
         </div>

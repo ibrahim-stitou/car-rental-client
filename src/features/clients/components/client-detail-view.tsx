@@ -243,6 +243,7 @@ export function ClientDetailView({ clientId }: Props) {
                     ['Email', client?.email ?? '—'],
                     ['Téléphone', client?.phone],
                     ['Date de naissance', fdate(client?.date_of_birth)],
+                    ['Lieu de naissance', client?.birth_place ?? '—'],
                     ['Nationalité', client?.nationality ?? '—'],
                     ['Adresse', client?.address ?? '—'],
                     ['Ville', client?.city ?? '—'],
@@ -266,6 +267,8 @@ export function ClientDetailView({ clientId }: Props) {
                     ['N° permis', client?.driving_license_number ?? '—'],
                     ['Catégorie permis', client?.driving_license_category ?? '—'],
                     ['Expiration permis', fdate(client?.driving_license_expiry)],
+                    ['Délivré le', fdate(client?.license_issue_date)],
+                    ['Délivré à', client?.license_issue_place ?? '—'],
                   ].map(([k, v]) => (
                     <div key={k as string} className="flex justify-between py-1 border-b last:border-0">
                       <span className="text-muted-foreground">{k}</span>

@@ -40,6 +40,27 @@ function formatSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+async function downloadInPlace(url: string, filename: string) {
+  const toastId = toast.loading('Téléchargement…');
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('download failed');
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 5000);
+    toast.dismiss(toastId);
+  } catch {
+    toast.dismiss(toastId);
+    toast.error('Impossible de télécharger le document');
+  }
+}
+
 export function DocumentsSection({
   title = 'Documents',
   entityId,
@@ -178,11 +199,9 @@ export function DocumentsSection({
                     variant="ghost"
                     size="icon"
                     className="h-7 w-7"
-                    asChild
+                    onClick={() => downloadInPlace(doc.url, doc.name || doc.file_name)}
                   >
-                    <a href={doc.url} target="_blank" rel="noreferrer" download>
-                      <IconDownload className="h-3.5 w-3.5" />
-                    </a>
+                    <IconDownload className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     type="button"
