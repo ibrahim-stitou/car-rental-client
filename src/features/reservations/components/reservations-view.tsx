@@ -4,10 +4,17 @@ import { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { Edit, Trash2, Check, Play, Square, X, CreditCard, FileText, Receipt, UserX, Loader2, ExternalLink } from 'lucide-react';
+import { Edit, Trash2, Check, Play, Square, X, CreditCard, FileText, Receipt, UserX, Loader2, ExternalLink, MoreHorizontal, PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
@@ -42,6 +49,20 @@ const PAY_CLS: Record<string, string> = {
 };
 const PAY_FR: Record<string, string> = { pending: 'Non payé', partial: 'Partiel', paid: 'Payé', refunded: 'Remboursé' };
 
+async function fetchPdfBlob(url: string): Promise<string | null> {
+  const toastId = toast.loading('Chargement du contrat…');
+  try {
+    const res = await apiClient.get<BlobPart>(url, { responseType: 'blob' });
+    const blobUrl = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+    toast.dismiss(toastId);
+    return blobUrl;
+  } catch {
+    toast.dismiss(toastId);
+    toast.error('Impossible de charger le contrat');
+    return null;
+  }
+}
+
 export function ReservationsView() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -54,7 +75,18 @@ export function ReservationsView() {
   const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number; returnLocation?: string } | null>(null);
   const [extendDialog, setExtendDialog] = useState<{ id: string; ref: string; returnDate?: string; status: string } | null>(null);
   const [validateDialog, setValidateDialog] = useState<{ id: string } | null>(null);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const createInvoice = useCreateBillingFromReservation();
+
+  const handleViewContract = async (reservationId: string) => {
+    const url = await fetchPdfBlob(apiRoutes.reservationsExt.contract(reservationId));
+    if (url) setPdfPreviewUrl(url);
+  };
+
+  const handleClosePdf = () => {
+    if (pdfPreviewUrl) URL.revokeObjectURL(pdfPreviewUrl);
+    setPdfPreviewUrl(null);
+  };
 
   // Fetch current user profile to check signature/stamp
   const { data: profileData } = useQuery({
@@ -166,166 +198,88 @@ export function ReservationsView() {
       sortable: false,
       render: (_v, row) => {
         const key = row.id;
-        const busy = (url: string) => pendingAction === key + url;
+        const busy = !!pendingAction && pendingAction.startsWith(key);
         return (
-          <div className="flex items-center gap-1 flex-wrap">
-            {/* Voir détails */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-1.5 text-slate-600 hover:bg-slate-50"
-                  onClick={() => router.push(`/reservations/${row.id}`)}>
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Voir les détails</TooltipContent>
-            </Tooltip>
-            {/* Paiements */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-1.5 text-violet-600 hover:bg-violet-50"
-                  onClick={() => setPaymentDialog({ id: row.id, ref: row.reference })}>
-                  <CreditCard className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Paiements</TooltipContent>
-            </Tooltip>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="h-8 w-8 p-0" disabled={busy}>
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreHorizontal className="h-4 w-4" />}
+                <span className="sr-only">Actions</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuItem onClick={() => router.push(`/reservations/${row.id}`)}>
+                <ExternalLink className="mr-2 h-4 w-4 text-slate-600" /> Voir les détails
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setPaymentDialog({ id: row.id, ref: row.reference })}>
+                <CreditCard className="mr-2 h-4 w-4 text-violet-600" /> Paiements
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push(`/reservations/${row.id}/edit`)}>
+                <Edit className="mr-2 h-4 w-4" /> Modifier
+              </DropdownMenuItem>
 
-            {/* Modifier */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-1.5"
-                  onClick={() => router.push(`/reservations/${row.id}/edit`)}>
-                  <Edit className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Modifier</TooltipContent>
-            </Tooltip>
+              {row.status === 'pending' && (
+                <DropdownMenuItem disabled={!!pendingAction} onClick={() => setValidateDialog({ id: row.id })}>
+                  <Check className="mr-2 h-4 w-4 text-blue-600" /> Confirmer
+                </DropdownMenuItem>
+              )}
 
-            {/* Confirmer (pending) */}
-            {row.status === 'pending' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-blue-600 hover:bg-blue-50"
-                    disabled={!!pendingAction}
-                    onClick={() => setValidateDialog({ id: row.id })}>
-                    {busy(apiRoutes.reservations.confirm(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Confirmer</TooltipContent>
-              </Tooltip>
-            )}
+              {row.status === 'confirmed' && (
+                <DropdownMenuItem disabled={!!pendingAction}
+                  onClick={() => doAction(key, apiRoutes.reservations.activate(row.id), 'Réservation activée', 'patch')}>
+                  <Play className="mr-2 h-4 w-4 text-green-600" /> Activer (départ)
+                </DropdownMenuItem>
+              )}
 
-            {/* Activer (confirmed) */}
-            {row.status === 'confirmed' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-green-600 hover:bg-green-50"
-                    disabled={!!pendingAction}
-                    onClick={() => doAction(key, apiRoutes.reservations.activate(row.id), 'Réservation activée', 'patch')}>
-                    {busy(apiRoutes.reservations.activate(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Activer (départ)</TooltipContent>
-              </Tooltip>
-            )}
+              {row.status === 'active' && (
+                <DropdownMenuItem onClick={() => setCompleteDialog({
+                  id: row.id,
+                  ref: row.reference,
+                  initialMileage: (row as any).initial_mileage ?? undefined,
+                  returnLocation: row.return_location,
+                })}>
+                  <Square className="mr-2 h-4 w-4 text-slate-600" /> Terminer (retour)
+                </DropdownMenuItem>
+              )}
 
-            {/* Terminer (active) — ouvre dialog kilométrage */}
-            {row.status === 'active' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-slate-600 hover:bg-slate-50"
-                    onClick={() => setCompleteDialog({
-                      id: row.id,
-                      ref: row.reference,
-                      initialMileage: (row as any).initial_mileage ?? undefined,
-                      returnLocation: row.return_location,
-                    })}>
-                    <Square className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Terminer (retour)</TooltipContent>
-              </Tooltip>
-            )}
+              {['pending', 'confirmed', 'active'].includes(row.status) && (
+                <DropdownMenuItem onClick={() => setExtendDialog({ id: row.id, ref: row.reference, returnDate: row.return_date, status: row.status })}>
+                  <PlusCircle className="mr-2 h-4 w-4 text-blue-600" /> Prolonger
+                </DropdownMenuItem>
+              )}
 
-            {/* Prolonger (pending / confirmed / active) */}
-            {['pending', 'confirmed', 'active'].includes(row.status) && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-blue-600 hover:bg-blue-50"
-                    onClick={() => setExtendDialog({ id: row.id, ref: row.reference, returnDate: row.return_date, status: row.status })}>
-                    <span className="text-xs font-bold">+</span>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Prolonger</TooltipContent>
-              </Tooltip>
-            )}
+              {row.status === 'confirmed' && (
+                <DropdownMenuItem disabled={!!pendingAction}
+                  onClick={() => doAction(key, apiRoutes.reservationsExt.noShow(row.id), 'Marqué non présenté', 'patch')}>
+                  <UserX className="mr-2 h-4 w-4 text-gray-500" /> Non présenté
+                </DropdownMenuItem>
+              )}
 
-            {/* No-show (confirmed) */}
-            {row.status === 'confirmed' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-gray-500 hover:bg-gray-50"
-                    disabled={!!pendingAction}
-                    onClick={() => doAction(key, apiRoutes.reservationsExt.noShow(row.id), 'Marqué non présenté', 'patch')}>
-                    {busy(apiRoutes.reservationsExt.noShow(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <UserX className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Non présenté</TooltipContent>
-              </Tooltip>
-            )}
+              {['pending', 'confirmed'].includes(row.status) && (
+                <DropdownMenuItem disabled={!!pendingAction}
+                  onClick={() => doAction(key, apiRoutes.reservations.cancel(row.id), 'Réservation annulée', 'patch')}>
+                  <X className="mr-2 h-4 w-4 text-orange-600" /> Annuler
+                </DropdownMenuItem>
+              )}
 
-            {/* Annuler (pending / confirmed) */}
-            {['pending', 'confirmed'].includes(row.status) && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-orange-600 hover:bg-orange-50"
-                    disabled={!!pendingAction}
-                    onClick={() => doAction(key, apiRoutes.reservations.cancel(row.id), 'Réservation annulée', 'patch')}>
-                    {busy(apiRoutes.reservations.cancel(row.id)) ? <Loader2 className="h-4 w-4 animate-spin" /> : <X className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Annuler</TooltipContent>
-              </Tooltip>
-            )}
+              {['active', 'completed'].includes(row.status) && (
+                <DropdownMenuItem onClick={() => handleViewContract(row.id)}>
+                  <FileText className="mr-2 h-4 w-4 text-indigo-600" /> Contrat PDF
+                </DropdownMenuItem>
+              )}
 
-            {/* Contrat PDF (active / completed) */}
-            {['active', 'completed'].includes(row.status) && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-indigo-600 hover:bg-indigo-50"
-                    onClick={() => window.open(apiRoutes.reservationsExt.contract(row.id), '_blank')}>
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Contrat PDF</TooltipContent>
-              </Tooltip>
-            )}
+              {row.status === 'completed' && (
+                <DropdownMenuItem disabled={createInvoice.isPending} onClick={() => handleGenerateInvoice(row.id, row.reference)}>
+                  <Receipt className="mr-2 h-4 w-4 text-emerald-600" /> Générer facture
+                </DropdownMenuItem>
+              )}
 
-            {/* Générer facture (completed) */}
-            {row.status === 'completed' && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" className="h-8 w-8 p-1.5 text-emerald-600 hover:bg-emerald-50"
-                    disabled={createInvoice.isPending}
-                    onClick={() => handleGenerateInvoice(row.id, row.reference)}>
-                    {createInvoice.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Receipt className="h-4 w-4" />}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Générer facture</TooltipContent>
-              </Tooltip>
-            )}
-
-            {/* Supprimer */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" className="h-8 w-8 p-1.5 text-red-600 hover:bg-red-50"
-                  onClick={() => { setDeleteId(row.id); setOpenDeleteModal(true); }}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>Supprimer</TooltipContent>
-            </Tooltip>
-          </div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={() => { setDeleteId(row.id); setOpenDeleteModal(true); }}>
+                <Trash2 className="mr-2 h-4 w-4" /> Supprimer
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
@@ -405,6 +359,22 @@ export function ReservationsView() {
           onSuccess={() => tableInstance?.refresh?.()}
         />
       )}
+
+      <Dialog open={!!pdfPreviewUrl} onOpenChange={(o) => !o && handleClosePdf()}>
+        <DialogContent className="max-w-5xl w-[95vw] h-[92vh] flex flex-col p-0 gap-0 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/40 shrink-0">
+            <span className="text-sm font-medium text-muted-foreground">Aperçu du contrat</span>
+            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleClosePdf}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          <iframe
+            src={pdfPreviewUrl ?? ''}
+            className="flex-1 w-full border-0"
+            title="Aperçu du contrat"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

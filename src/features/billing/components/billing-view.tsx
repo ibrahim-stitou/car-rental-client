@@ -143,7 +143,7 @@ export function BillingView() {
       render: (v, row) => (
         <div>
           <div className="font-semibold text-sm">{Number(v).toLocaleString('fr-MA')} MAD</div>
-          {Number(row.balance) > 0 && <div className="text-xs text-red-600">Solde: {Number(row.balance).toLocaleString('fr-MA')}</div>}
+          {row.type === 'FA' && Number(row.balance) > 0 && <div className="text-xs text-red-600">Solde: {Number(row.balance).toLocaleString('fr-MA')}</div>}
         </div>
       ),
     },
@@ -177,8 +177,8 @@ export function BillingView() {
               <TooltipContent>Approuver</TooltipContent>
             </Tooltip>
           )}
-          {/* Mark paid: approved or pending */}
-          {['approved', 'pending'].includes(row.status) && (
+          {/* Mark paid: invoices only, approved or pending */}
+          {row.type === 'FA' && ['approved', 'pending'].includes(row.status) && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" className="h-8 w-8 p-1.5 text-green-600 hover:bg-green-50"

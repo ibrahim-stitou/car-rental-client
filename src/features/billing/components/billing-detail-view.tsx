@@ -295,7 +295,7 @@ export function BillingDetailView({ id }: { id: string }) {
                 <AlertTriangle className="h-4 w-4" />Dévalider
               </Button>
             )}
-            {['approved', 'pending'].includes(doc.status) && (
+            {doc.type === 'FA' && ['approved', 'pending'].includes(doc.status) && (
               <Button size="sm" className="gap-1 bg-green-600 hover:bg-green-700 text-white shadow-sm"
                 onClick={() => setMarkPaidOpen(true)}>
                 <DollarSign className="h-4 w-4" />Marquer payé
@@ -481,7 +481,7 @@ export function BillingDetailView({ id }: { id: string }) {
                       <span>Total TTC</span>
                       <span className="font-mono text-lg">{fmtMoney(doc.total_amount)} MAD</span>
                     </div>
-                    {Number(doc.paid_amount) > 0 && (
+                    {doc.type === 'FA' && Number(doc.paid_amount) > 0 && (
                       <>
                         <Separator />
                         <div className="flex justify-between text-sm text-green-700">
@@ -496,7 +496,7 @@ export function BillingDetailView({ id }: { id: string }) {
                         </div>
                       </>
                     )}
-                    {doc.payment_method && (
+                    {doc.type === 'FA' && doc.payment_method && (
                       <>
                         <Separator />
                         <div className="flex justify-between text-xs text-muted-foreground">
