@@ -38,7 +38,16 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
 }: CustomTableToolbarProps<TData>) {
   const defaultValues = useMemo(() => {
     return filters.reduce<Record<string, any>>((acc, filter) => {
-      acc[filter.field] = filter.defaultValue ?? '';
+      if (filter.defaultValue !== undefined) {
+        acc[filter.field] = filter.defaultValue;
+      } else if (filter.type === 'checkbox') {
+        // z.boolean() rejects the empty string used as the generic default
+        // below, which silently failed validation for the whole form (no
+        // error is ever rendered) unless this field had already been toggled.
+        acc[filter.field] = false;
+      } else {
+        acc[filter.field] = '';
+      }
       return acc;
     }, {});
   }, [filters]);
