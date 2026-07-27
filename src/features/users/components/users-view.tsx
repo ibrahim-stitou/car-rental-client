@@ -62,7 +62,7 @@ export function UsersView() {
         </div>
       ),
     },
-    { data: 'agency', label: 'Agence', sortable: false, render: (_v, row) => <span className="text-sm">{row.agency?.name ?? '—'}</span> },
+    { data: 'agency', label: 'Agence', sortable: false, render: (_v, row) => <span className="text-sm">{row.agencies?.map((a) => a.name).join(', ') || '—'}</span> },
     {
       data: 'is_active', label: 'Statut', sortable: true,
       render: (v) => <Badge variant="outline" className={v ? 'bg-green-100 text-green-800 border-green-200 text-xs' : 'bg-red-100 text-red-800 border-red-200 text-xs'}>{v ? 'Actif' : 'Suspendu'}</Badge>,

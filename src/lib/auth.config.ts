@@ -3,7 +3,7 @@ import { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
-import type { LoginResponse, UserRole } from '@/types/auth.types';
+import type { Agency, LoginResponse, UserRole } from '@/types/auth.types';
 
 export class AccountSuspendedError extends CredentialsSignin {
   code = 'account-suspended';
@@ -38,7 +38,7 @@ export const authConfig = {
             email: user.email,
             roles: user.roles,
             permissions: user.permissions,
-            agency: user.agency,
+            agencies: user.agencies,
             avatarUrl: user.avatar_url,
             accessToken: access_token,
           };
@@ -63,7 +63,7 @@ export const authConfig = {
         token.email = user.email as string;
         token.roles = (user as { roles: UserRole[] }).roles;
         token.permissions = (user as { permissions: string[] }).permissions ?? [];
-        token.agency = (user as { agency: unknown }).agency;
+        token.agencies = (user as { agencies: unknown }).agencies ?? [];
         token.avatarUrl = (user as { avatarUrl: string | null }).avatarUrl;
       }
       return token;
@@ -79,7 +79,7 @@ export const authConfig = {
         email: token.email as string,
         roles: token.roles as UserRole[],
         permissions: token.permissions as string[],
-        agency: token.agency as null,
+        agencies: (token.agencies as Agency[]) ?? [],
         avatarUrl: token.avatarUrl as string | null,
       } as typeof session.user;
       return session;

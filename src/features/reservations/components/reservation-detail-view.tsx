@@ -636,6 +636,7 @@ export function ReservationDetailView({ id }: { id: string }) {
           reservationRef={r.reference ?? r.reservation_number ?? ''}
           initialMileage={r.initial_mileage ?? undefined}
           returnLocation={r.return_location}
+          scheduledReturnDate={r.return_date}
           onSuccess={() => { refetch(); setCompleteOpen(false); }}
         />
       )}
@@ -644,8 +645,8 @@ export function ReservationDetailView({ id }: { id: string }) {
           open={validateOpen}
           onOpenChange={setValidateOpen}
           loading={!!pendingAction}
-          hasSignature={profileData?.has_signature ?? true}
-          hasStamp={profileData?.has_stamp ?? true}
+          hasSignature={!r.agency_id ? true : !!profileData?.agencies?.find((a: any) => a.id === r.agency_id)?.signature_url}
+          hasStamp={!r.agency_id ? true : !!profileData?.agencies?.find((a: any) => a.id === r.agency_id)?.stamp_url}
           onConfirm={() => {
             doAction(apiRoutes.reservations.confirm(id), 'patch', 'Réservation confirmée');
             setValidateOpen(false);

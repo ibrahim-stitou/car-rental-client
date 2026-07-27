@@ -2,8 +2,7 @@ export type IdType = 'cin' | 'passport' | 'residence_permit';
 
 export interface Client {
   id: string;
-  agency_id: string;
-  agency: ClientAgency;
+  agencies: ClientAgency[];
   first_name: string;
   last_name: string;
   email: string | null;
@@ -44,7 +43,7 @@ export interface ClientAgency {
 }
 
 export interface CreateClientInput {
-  agency_id: string;
+  agency_ids: string[];
   first_name: string;
   last_name: string;
   email?: string;

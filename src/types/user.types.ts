@@ -8,8 +8,7 @@ export interface User {
   phone: string | null;
   is_active: boolean;
   roles: UserRole[];
-  agency_id: string | null;
-  agency: UserAgency | null;
+  agencies: UserAgency[];
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
@@ -19,7 +18,9 @@ export interface User {
 export interface UserAgency {
   id: string;
   name: string;
-  city: string;
+  city?: string;
+  stamp_url?: string | null;
+  signature_url?: string | null;
 }
 
 export interface CreateUserInput {
@@ -29,7 +30,7 @@ export interface CreateUserInput {
   password: string;
   password_confirmation: string;
   phone?: string;
-  agency_id?: string;
+  agency_ids?: string[];
   role: UserRole;
 }
 
@@ -38,7 +39,7 @@ export interface UpdateUserInput {
   last_name?: string;
   email?: string;
   phone?: string;
-  agency_id?: string;
+  agency_ids?: string[];
 }
 
 export interface UserFilters {

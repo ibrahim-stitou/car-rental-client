@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend,
 } from 'recharts';
 import { useDashboardStatistics } from '@/features/overview/hooks/use-dashboard';
@@ -11,22 +11,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  IconCar, IconCalendar, IconCurrencyDirham, IconUsers,
+  IconCar, IconCalendar, IconUsers,
   IconAlertTriangle, IconShield, IconTool, IconCertificate,
-  IconReceipt, IconTrendingUp, IconTrendingDown,
+  IconReceipt,
   IconCalendarPlus, IconUserPlus, IconFileInvoice, IconArrowRight,
 } from '@tabler/icons-react';
 import { paths } from '@/config/paths';
 import { format, parseISO } from 'date-fns';
 import PageContainer from '@/components/layout/page-container';
-
-const fmt = (n: number) => n.toLocaleString('fr-MA');
-
-function trend(current: number, prev: number) {
-  if (prev === 0) return null;
-  const pct = ((current - prev) / prev) * 100;
-  return { pct: Math.abs(pct).toFixed(1), up: pct >= 0 };
-}
 
 const PIE_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444'];
 
@@ -43,9 +35,9 @@ const STATUS_CLS: Record<string, string> = {
   cancelled: 'bg-red-100 text-red-800 border-red-200',
 };
 
-function KpiCard({ title, value, sub, icon: Icon, color, trend: t, onClick }: {
+function KpiCard({ title, value, sub, icon: Icon, color, onClick }: {
   title: string; value: string | number; sub?: string; icon: React.ElementType;
-  color: string; trend?: { pct: string; up: boolean } | null; onClick?: () => void;
+  color: string; onClick?: () => void;
 }) {
   return (
     <Card className={onClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''} onClick={onClick}>
@@ -55,15 +47,7 @@ function KpiCard({ title, value, sub, icon: Icon, color, trend: t, onClick }: {
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
-        <div className="flex items-center gap-1.5 mt-1">
-          {t && (
-            <span className={`flex items-center text-xs font-medium ${t.up ? 'text-green-600' : 'text-red-500'}`}>
-              {t.up ? <IconTrendingUp className="h-3 w-3" /> : <IconTrendingDown className="h-3 w-3" />}
-              {t.pct}%
-            </span>
-          )}
-          {sub && <p className="text-xs text-muted-foreground">{sub}</p>}
-        </div>
+        {sub && <p className="text-xs text-muted-foreground mt-1">{sub}</p>}
       </CardContent>
     </Card>
   );
@@ -85,9 +69,7 @@ export function DashboardView() {
   const { data: res, isLoading } = useDashboardStatistics();
   const s = res?.data;
 
-  const revTrend = s ? trend(s.billing.revenue_this_month, s.billing.revenue_last_month) : null;
   const toArr = (v: unknown): any[] => (Array.isArray(v) ? v : v && typeof v === 'object' ? Object.values(v as object) : []);
-  const chartData = toArr(s?.monthly_revenue).map((m: any) => ({ month: m.month, revenue: Number(m.revenue ?? 0) }));
   const vehiclePie = s ? [
     { name: 'Disponible', value: s.vehicles.available, color: PIE_COLORS[0] },
     { name: 'Loué', value: s.vehicles.rented, color: PIE_COLORS[1] },
@@ -133,99 +115,63 @@ export function DashboardView() {
         {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skel key={i} />) : (
           <>
             <KpiCard title="Véhicules totaux" value={s?.vehicles.total ?? 0} sub={`${s?.vehicles.available ?? 0} disponibles · ${availRate}% de disponibilité`} icon={IconCar} color="bg-blue-500" onClick={() => router.push(paths.vehicles.list)} />
-            <KpiCard title="Revenu ce mois" value={`${fmt(s?.billing.revenue_this_month ?? 0)} MAD`} sub={`vs ${fmt(s?.billing.revenue_last_month ?? 0)} MAD le mois dernier`} icon={IconCurrencyDirham} color="bg-emerald-500" trend={revTrend} onClick={() => router.push(paths.billing.list)} />
             <KpiCard title="Réservations actives" value={s?.reservations.active ?? 0} sub={`${s?.reservations.overdue ?? 0} en retard · ${s?.reservations.upcoming_returns ?? 0} retours dans 7j`} icon={IconCalendar} color="bg-violet-500" onClick={() => router.push(paths.reservations.list)} />
             <KpiCard title="Clients totaux" value={s?.clients.total ?? 0} sub={`${s?.clients.new_this_month ?? 0} nouveau(x) ce mois · ${s?.clients.blacklisted ?? 0} blacklisté(s)`} icon={IconUsers} color="bg-orange-500" onClick={() => router.push(paths.clients.list)} />
+            <KpiCard title="Véhicules loués" value={s?.vehicles.rented ?? 0} sub={`${s?.vehicles.maintenance ?? 0} en maintenance · ${s?.vehicles.out_of_service ?? 0} hors service`} icon={IconCar} color="bg-sky-500" onClick={() => router.push(paths.vehicles.list)} />
           </>
         )}
       </div>
 
       {/* KPI secondaires */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skel key={i} />) : (
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {isLoading ? Array.from({ length: 3 }).map((_, i) => <Skel key={i} />) : (
           <>
             <KpiCard title="En attente d'action" value={s?.reservations.pending_action ?? 0} sub={`${s?.reservations.pending ?? 0} en attente · ${s?.reservations.confirmed ?? 0} confirmées`} icon={IconCalendar} color="bg-amber-500" onClick={() => router.push(paths.reservations.list)} />
-            <KpiCard title="Créances clients" value={`${fmt(s?.billing.pending_amount ?? 0)} MAD`} sub={`${s?.billing.draft_count ?? 0} brouillons · ${s?.billing.paid_count ?? 0} factures réglées`} icon={IconCurrencyDirham} color="bg-rose-500" onClick={() => router.push(paths.billing.list)} />
-            <KpiCard title="Véhicules loués" value={s?.vehicles.rented ?? 0} sub={`${s?.vehicles.maintenance ?? 0} en maintenance · ${s?.vehicles.out_of_service ?? 0} hors service`} icon={IconCar} color="bg-sky-500" onClick={() => router.push(paths.vehicles.list)} />
             <KpiCard title="Documents expirants" value={totalExpiring} sub={`Assurances ${s?.expiring.insurances ?? 0} · Visites ${s?.expiring.inspections ?? 0}`} icon={totalExpiring > 0 ? IconAlertTriangle : IconShield} color={totalExpiring > 0 ? 'bg-red-500' : 'bg-slate-400'} />
+            <KpiCard
+              title="Réservations en retard"
+              value={s?.reservations.overdue ?? 0}
+              sub="Retour non effectué après la date prévue"
+              icon={IconAlertTriangle}
+              color={(s?.reservations.overdue ?? 0) > 0 ? 'bg-red-500' : 'bg-slate-400'}
+              onClick={() => router.push(`${paths.reservations.list}?overdue=1`)}
+            />
           </>
         )}
       </div>
 
-      {/* Alertes */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {isLoading ? <Skel /> : (
-          <KpiCard
-            title="Réservations en retard"
-            value={s?.reservations.overdue ?? 0}
-            sub="Retour non effectué après la date prévue"
-            icon={IconAlertTriangle}
-            color={(s?.reservations.overdue ?? 0) > 0 ? 'bg-red-500' : 'bg-slate-400'}
-            onClick={() => router.push(`${paths.reservations.list}?overdue=1`)}
-          />
-        )}
-      </div>
-
-      {/* Graphiques */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle>Revenu — 12 derniers mois</CardTitle>
-            <CardDescription>Factures payées (FA) en MAD</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? <Skeleton className="h-64 w-full" /> : (
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                  <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: number) => [`${fmt(v)} MAD`, 'Revenu']} />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="url(#revGrad)" strokeWidth={2} dot={{ r: 3 }} />
-                </AreaChart>
+      {/* État de la flotte */}
+      <Card>
+        <CardHeader>
+          <CardTitle>État de la flotte</CardTitle>
+          <CardDescription>{s?.vehicles.total ?? 0} véhicules au total</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? <Skeleton className="h-64 w-full" /> : vehiclePie.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 items-center">
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie data={vehiclePie} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={2}>
+                    {vehiclePie.map((e, i) => <Cell key={i} fill={e.color} />)}
+                  </Pie>
+                  <Tooltip formatter={(v: number) => [v, 'Véhicules']} />
+                </PieChart>
               </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>État de la flotte</CardTitle>
-            <CardDescription>{s?.vehicles.total ?? 0} véhicules au total</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? <Skeleton className="h-64 w-full" /> : vehiclePie.length > 0 ? (
-              <>
-                <ResponsiveContainer width="100%" height={160}>
-                  <PieChart>
-                    <Pie data={vehiclePie} cx="50%" cy="50%" innerRadius={45} outerRadius={70} dataKey="value" paddingAngle={2}>
-                      {vehiclePie.map((e, i) => <Cell key={i} fill={e.color} />)}
-                    </Pie>
-                    <Tooltip formatter={(v: number) => [v, 'Véhicules']} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {vehiclePie.map((e) => (
-                    <div key={e.name} className="flex items-center gap-1.5">
-                      <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: e.color }} />
-                      <span className="text-xs text-muted-foreground truncate">{e.name}</span>
-                      <span className="text-xs font-medium ml-auto">{e.value}</span>
-                    </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Aucun véhicule</div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+              <div className="grid grid-cols-2 gap-2">
+                {vehiclePie.map((e) => (
+                  <div key={e.name} className="flex items-center gap-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: e.color }} />
+                    <span className="text-xs text-muted-foreground truncate">{e.name}</span>
+                    <span className="text-xs font-medium ml-auto">{e.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center h-48 text-muted-foreground text-sm">Aucun véhicule</div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Répartition réservations + Documents expirants */}
       <div className="grid gap-4 lg:grid-cols-3">
@@ -321,24 +267,22 @@ export function DashboardView() {
                 <>
                   <div className="grid grid-cols-12 gap-2 px-3 py-2 text-xs font-medium text-muted-foreground border-b">
                     <div className="col-span-2">Référence</div>
-                    <div className="col-span-3">Véhicule</div>
-                    <div className="col-span-2">Client</div>
+                    <div className="col-span-4">Véhicule</div>
+                    <div className="col-span-3">Client</div>
                     <div className="col-span-2">Départ</div>
                     <div className="col-span-1">Statut</div>
-                    <div className="col-span-2 text-right">Montant</div>
                   </div>
                   {toArr(s?.recent_reservations).map((r: any) => (
                     <div key={r.id} className="grid grid-cols-12 gap-2 px-3 py-2.5 text-sm border-b last:border-0 hover:bg-muted/40 cursor-pointer transition-colors rounded" onClick={() => router.push(paths.reservations.list)}>
                       <div className="col-span-2 font-mono text-xs font-medium truncate">{r.reservation_number}</div>
-                      <div className="col-span-3 text-sm truncate">{r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}</div>
-                      <div className="col-span-2 text-sm truncate">{r.client ? `${r.client.first_name} ${r.client.last_name}` : '—'}</div>
+                      <div className="col-span-4 text-sm truncate">{r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}</div>
+                      <div className="col-span-3 text-sm truncate">{r.client ? `${r.client.first_name} ${r.client.last_name}` : '—'}</div>
                       <div className="col-span-2 text-xs text-muted-foreground">{r.pickup_date ? format(parseISO(r.pickup_date), 'dd/MM/yy') : '—'}</div>
                       <div className="col-span-1">
                         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${STATUS_CLS[r.status] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                           {STATUS_FR[r.status] ?? r.status}
                         </span>
                       </div>
-                      <div className="col-span-2 text-right font-medium">{fmt(Number(r.total_amount))} MAD</div>
                     </div>
                   ))}
                 </>

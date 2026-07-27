@@ -72,6 +72,8 @@ function ImageUploadBox({
   );
 }
 
+type AssetType = 'signature' | 'stamp';
+
 export function ProfileView() {
   const { data: session, update } = useSession();
   const sessionUser = session?.user as any;
@@ -83,11 +85,12 @@ export function ProfileView() {
   });
 
   const user = profileData ?? sessionUser;
+  const agencies: { id: string; name: string; stamp_url?: string | null; signature_url?: string | null }[] = user?.agencies ?? [];
 
-  const [uploadingSignature, setUploadingSignature] = useState(false);
-  const [uploadingStamp, setUploadingStamp] = useState(false);
-  const [deletingSignature, setDeletingSignature] = useState(false);
-  const [deletingStamp, setDeletingStamp] = useState(false);
+  // Tracks which (agencyId, assetType) upload/delete is currently in flight.
+  const [pending, setPending] = useState<Record<string, boolean>>({});
+  const pendingKey = (agencyId: string, type: AssetType, action: 'upload' | 'delete') => `${agencyId}:${type}:${action}`;
+  const setPendingState = (key: string, value: boolean) => setPending((p) => ({ ...p, [key]: value }));
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -115,57 +118,43 @@ export function ProfileView() {
     }
   };
 
-  const uploadSignature = async (file: File) => {
-    setUploadingSignature(true);
+  const uploadAsset = async (agencyId: string, type: AssetType, file: File) => {
+    const key = pendingKey(agencyId, type, 'upload');
+    setPendingState(key, true);
     try {
       const fd = new FormData();
-      fd.append('signature', file);
-      await apiClient.post(apiRoutes.profile.uploadSignature, fd);
-      toast.success('Signature enregistrée');
+      fd.append(type, file);
+      fd.append('agency_id', agencyId);
+      const route = type === 'signature' ? apiRoutes.profile.uploadSignature : apiRoutes.profile.uploadStamp;
+      await apiClient.post(route, fd);
+      toast.success(type === 'signature' ? 'Signature enregistrée' : 'Cachet enregistré');
       refetch();
-    } catch { toast.error('Erreur upload signature'); }
-    finally { setUploadingSignature(false); }
+    } catch {
+      toast.error(`Erreur upload ${type === 'signature' ? 'signature' : 'cachet'}`);
+    } finally {
+      setPendingState(key, false);
+    }
   };
 
-  const deleteSignature = async () => {
-    setDeletingSignature(true);
+  const deleteAsset = async (agencyId: string, type: AssetType) => {
+    const key = pendingKey(agencyId, type, 'delete');
+    setPendingState(key, true);
     try {
-      await apiClient.delete(apiRoutes.profile.deleteSignature);
-      toast.success('Signature supprimée');
+      const route = type === 'signature' ? apiRoutes.profile.deleteSignature : apiRoutes.profile.deleteStamp;
+      await apiClient.delete(route, { data: { agency_id: agencyId } });
+      toast.success(type === 'signature' ? 'Signature supprimée' : 'Cachet supprimé');
       refetch();
-    } catch { toast.error('Erreur suppression'); }
-    finally { setDeletingSignature(false); }
-  };
-
-  const uploadStamp = async (file: File) => {
-    setUploadingStamp(true);
-    try {
-      const fd = new FormData();
-      fd.append('stamp', file);
-      await apiClient.post(apiRoutes.profile.uploadStamp, fd);
-      toast.success('Cachet enregistré');
-      refetch();
-    } catch { toast.error('Erreur upload cachet'); }
-    finally { setUploadingStamp(false); }
-  };
-
-  const deleteStamp = async () => {
-    setDeletingStamp(true);
-    try {
-      await apiClient.delete(apiRoutes.profile.deleteStamp);
-      toast.success('Cachet supprimé');
-      refetch();
-    } catch { toast.error('Erreur suppression'); }
-    finally { setDeletingStamp(false); }
+    } catch {
+      toast.error('Erreur suppression');
+    } finally {
+      setPendingState(key, false);
+    }
   };
 
   if (!user) return null;
 
   const initials = `${(user.first_name ?? user.firstName ?? '')[0] ?? ''}${(user.last_name ?? user.lastName ?? '')[0] ?? ''}`.toUpperCase();
-  const signatureUrl = user.signature ?? null;
-  const stampUrl     = user.stamp ?? null;
-  const hasSignature = !!signatureUrl;
-  const hasStamp     = !!stampUrl;
+  const agenciesMissingAssets = agencies.filter((a) => !a.signature_url || !a.stamp_url);
 
   return (
     <PageContainer>
@@ -176,15 +165,12 @@ export function ProfileView() {
       </div>
 
       {/* Signature/Stamp missing alert */}
-      {(!hasSignature || !hasStamp) && (
+      {agenciesMissingAssets.length > 0 && (
         <Alert className="border-amber-300 bg-amber-50">
           <IconAlertTriangle className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-800 text-sm">
-            {!hasSignature && !hasStamp
-              ? 'Votre signature et cachet ne sont pas encore configurés. Ils sont requis sur les contrats de location.'
-              : !hasSignature
-              ? 'Votre signature n\'est pas encore configurée. Elle apparaîtra sur les contrats de location.'
-              : 'Votre cachet n\'est pas encore configuré. Il apparaîtra sur les contrats de location.'}
+            Signature et/ou cachet manquants pour : {agenciesMissingAssets.map((a) => a.name).join(', ')}.
+            Un cachet est requis par agence pour apparaître sur les contrats de location de cette agence.
           </AlertDescription>
         </Alert>
       )}
@@ -236,38 +222,47 @@ export function ProfileView() {
         </CardContent>
       </Card>
 
-      {/* Signature & Stamp */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Signature & Cachet</CardTitle>
-          <CardDescription>
-            Ces images sont automatiquement apposées sur les contrats de location que vous validez.
-            Utilisez un fond blanc et une image de bonne qualité.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
-            <ImageUploadBox
-              label="Signature"
-              description="Image PNG/JPG avec fond transparent ou blanc"
-              imageUrl={signatureUrl}
-              onUpload={uploadSignature}
-              onDelete={deleteSignature}
-              uploading={uploadingSignature}
-              deleting={deletingSignature}
-            />
-            <ImageUploadBox
-              label="Cachet / Tampon"
-              description="Cachet officiel de l'agent ou de l'agence"
-              imageUrl={stampUrl}
-              onUpload={uploadStamp}
-              onDelete={deleteStamp}
-              uploading={uploadingStamp}
-              deleting={deletingStamp}
-            />
-          </div>
-        </CardContent>
-      </Card>
+      {/* Signature & Stamp — one per agency */}
+      {agencies.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Signature & Cachet</CardTitle>
+            <CardDescription>Vous n'êtes rattaché à aucune agence pour le moment.</CardDescription>
+          </CardHeader>
+        </Card>
+      ) : agencies.map((agency) => (
+        <Card key={agency.id}>
+          <CardHeader>
+            <CardTitle className="text-base">Signature & Cachet — {agency.name}</CardTitle>
+            <CardDescription>
+              Ces images sont automatiquement apposées sur les contrats de location de cette agence que vous validez.
+              Utilisez un fond blanc et une image de bonne qualité.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid grid-cols-2 gap-6">
+              <ImageUploadBox
+                label="Signature"
+                description="Image PNG/JPG avec fond transparent ou blanc"
+                imageUrl={agency.signature_url}
+                onUpload={(file) => uploadAsset(agency.id, 'signature', file)}
+                onDelete={() => deleteAsset(agency.id, 'signature')}
+                uploading={!!pending[pendingKey(agency.id, 'signature', 'upload')]}
+                deleting={!!pending[pendingKey(agency.id, 'signature', 'delete')]}
+              />
+              <ImageUploadBox
+                label="Cachet / Tampon"
+                description="Cachet officiel de l'agent ou de l'agence"
+                imageUrl={agency.stamp_url}
+                onUpload={(file) => uploadAsset(agency.id, 'stamp', file)}
+                onDelete={() => deleteAsset(agency.id, 'stamp')}
+                uploading={!!pending[pendingKey(agency.id, 'stamp', 'upload')]}
+                deleting={!!pending[pendingKey(agency.id, 'stamp', 'delete')]}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
     </PageContainer>
   );

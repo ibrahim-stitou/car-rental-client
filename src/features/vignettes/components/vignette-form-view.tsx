@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useCreateVignette, useUpdateVignette } from '../hooks/use-vignettes';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
@@ -18,9 +19,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SelectField } from '@/components/shared/select-field';
 import { FormDatePicker } from '@/components/shared/form-date-picker';
+import { SingleDocUpload } from '@/components/shared/single-doc-upload';
+import { DocumentsSection } from '@/components/shared/documents-section';
+import { StagedFileInput } from '@/components/shared/staged-file-input';
 import PageContainer from '@/components/layout/page-container';
 import { applyServerErrors } from '@/lib/form-errors';
 import { VIGNETTE_PAYMENT_METHOD_OPTIONS } from '@/config/constants';
+import apiClient from '@/lib/api';
+import { apiRoutes } from '@/config/apiRoutes';
 
 const schema = z.object({
   vehicle_id: z.string().min(1, 'Véhicule requis'),
@@ -50,7 +56,19 @@ export function VignetteFormView({ vignette }: Props) {
   const updateMutation = useUpdateVignette(vignette?.id ?? '');
   const { data: vehiclesRes } = useVehicles({ per_page: 200 });
   const vehicles = vehiclesRes?.data ?? [];
-  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const { data: mediaRes, refetch: refetchMedia } = useQuery({
+    queryKey: ['vignettes', vignette?.id, 'media'],
+    queryFn: () => apiClient.get(apiRoutes.vignettes.media(vignette!.id)).then((r) => r.data),
+    enabled: !!vignette,
+  });
+  const media = mediaRes?.data ?? {};
+
+  const [pendingDocument, setPendingDocument] = useState<File[]>([]);
+  const [pendingPaymentProof, setPendingPaymentProof] = useState<File[]>([]);
+  const [pendingDocuments, setPendingDocuments] = useState<File[]>([]);
+  const [uploadingAfterCreate, setUploadingAfterCreate] = useState(false);
+  const isPending = createMutation.isPending || updateMutation.isPending || uploadingAfterCreate;
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: emptyValues });
 
@@ -71,6 +89,33 @@ export function VignetteFormView({ vignette }: Props) {
     }
   }, [vignette, form]);
 
+  const uploadStagedDocuments = async (newId: string) => {
+    if (!pendingDocument.length && !pendingPaymentProof.length && !pendingDocuments.length) return;
+    setUploadingAfterCreate(true);
+    try {
+      if (pendingDocument[0]) {
+        const fd = new FormData();
+        fd.append('document', pendingDocument[0]);
+        await apiClient.post(apiRoutes.vignettes.uploadDocument(newId), fd);
+      }
+      if (pendingPaymentProof[0]) {
+        const fd = new FormData();
+        fd.append('payment_proof', pendingPaymentProof[0]);
+        await apiClient.post(apiRoutes.vignettes.uploadPaymentProof(newId), fd);
+      }
+      if (pendingDocuments.length) {
+        const fd = new FormData();
+        pendingDocuments.forEach((f) => fd.append('documents[]', f));
+        await apiClient.post(apiRoutes.vignettes.uploadDocuments(newId), fd);
+      }
+      toast.success('Documents téléversés');
+    } catch {
+      toast.error("Vignette créée mais l'upload des documents a échoué");
+    } finally {
+      setUploadingAfterCreate(false);
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
     const payload = { ...values, payment_method: values.payment_method || undefined };
     if (vignette) {
@@ -80,7 +125,12 @@ export function VignetteFormView({ vignette }: Props) {
       });
     } else {
       createMutation.mutate(payload as any, {
-        onSuccess: (res) => { toast.success('Vignette créée'); router.push(`/vignettes/${(res as any)?.data?.id}`); },
+        onSuccess: async (res) => {
+          toast.success('Vignette créée');
+          const newId = (res as any)?.data?.id;
+          if (newId) await uploadStagedDocuments(newId);
+          router.push(`/vignettes/${newId}`);
+        },
         onError: (err) => applyServerErrors(err, form, 'Impossible de créer la vignette'),
       });
     }
@@ -103,7 +153,7 @@ export function VignetteFormView({ vignette }: Props) {
               <Button type="button" variant="outline" onClick={() => router.push('/vignettes')}>Annuler</Button>
               <Button type="submit" disabled={isPending} className="gap-1.5">
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {isPending ? 'Enregistrement…' : vignette ? 'Mettre à jour' : 'Créer'}
+                {uploadingAfterCreate ? 'Envoi des documents…' : isPending ? 'Enregistrement…' : vignette ? 'Mettre à jour' : 'Créer'}
               </Button>
             </div>
           </div>
@@ -174,10 +224,41 @@ export function VignetteFormView({ vignette }: Props) {
             </CardContent>
           </Card>
 
-          {!vignette && (
-            <p className="text-xs text-muted-foreground">
-              Vous pourrez ajouter les documents une fois la vignette créée.
-            </p>
+          {!vignette ? (
+            <div className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents (optionnel)</h2>
+              <StagedFileInput label="Vignette (document)" accept="image/*,application/pdf" files={pendingDocument} onChange={setPendingDocument} />
+              <StagedFileInput label="Justificatif de paiement" accept="image/*,application/pdf" files={pendingPaymentProof} onChange={setPendingPaymentProof} />
+              <StagedFileInput label="Autres documents" multiple files={pendingDocuments} onChange={setPendingDocuments} />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents</h2>
+              <SingleDocUpload
+                label="Vignette (document)"
+                fieldName="document"
+                uploadUrl={apiRoutes.vignettes.uploadDocument(vignette.id)}
+                currentUrl={media.vignette_document?.[0]?.url}
+                accept="image/*,application/pdf"
+                onUploaded={() => refetchMedia()}
+              />
+              <SingleDocUpload
+                label="Justificatif de paiement"
+                fieldName="payment_proof"
+                uploadUrl={apiRoutes.vignettes.uploadPaymentProof(vignette.id)}
+                currentUrl={media.payment_proof?.[0]?.url}
+                accept="image/*,application/pdf"
+                onUploaded={() => refetchMedia()}
+              />
+              <DocumentsSection
+                title="Autres documents"
+                entityId={vignette.id}
+                uploadUrl={apiRoutes.vignettes.uploadDocuments(vignette.id)}
+                deleteUrlFn={(mid) => apiRoutes.vignettes.deleteMedia(vignette.id, mid)}
+                initialDocuments={media.documents ?? []}
+                onRefresh={() => refetchMedia()}
+              />
+            </div>
           )}
         </form>
       </Form>

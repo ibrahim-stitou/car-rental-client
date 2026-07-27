@@ -8,7 +8,7 @@ export const agencyKeys = {
   all: ['agencies'] as const,
   list: (filters?: AgencyFilters) => [...agencyKeys.all, 'list', filters] as const,
   detail: (id: string) => [...agencyKeys.all, 'detail', id] as const,
-  statistics: (id: string) => [...agencyKeys.all, 'statistics', id] as const,
+  statistics: (id: string, params?: AgencyStatisticsParams) => [...agencyKeys.all, 'statistics', id, params] as const,
 };
 
 export function useAgencies(filters?: AgencyFilters) {
@@ -74,10 +74,23 @@ export function useDeleteAgencyMedia(id: string) {
   });
 }
 
-export function useAgencyStatistics(id: string) {
+export interface AgencyStatisticsParams {
+  start_date?: string;
+  end_date?: string;
+}
+
+export function useAgencyStatistics(id: string, params?: AgencyStatisticsParams) {
   return useQuery({
-    queryKey: agencyKeys.statistics(id),
-    queryFn: () => apiClient.get(apiRoutes.agenciesExt.statistics(id)).then((r) => r.data),
+    queryKey: agencyKeys.statistics(id, params),
+    queryFn: () => apiClient.get(apiRoutes.agenciesExt.statistics(id), { params }).then((r) => r.data),
+    enabled: !!id,
+  });
+}
+
+export function useAgencyCredits(id: string) {
+  return useQuery({
+    queryKey: [...agencyKeys.all, 'credits', id],
+    queryFn: () => apiClient.get(apiRoutes.agenciesExt.credits(id)).then((r) => r.data),
     enabled: !!id,
   });
 }

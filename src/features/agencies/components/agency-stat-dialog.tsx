@@ -11,8 +11,9 @@ import { fr } from 'date-fns/locale';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
 import { useReservations } from '@/features/reservations/hooks/use-reservations';
 import { useClients } from '@/features/clients/hooks/use-clients';
+import { useAgencyCredits } from '../hooks/use-agencies';
 
-export type AgencyStatType = 'vehicles' | 'rented' | 'reservations' | 'overdue' | 'clients';
+export type AgencyStatType = 'vehicles' | 'rented' | 'reservations' | 'overdue' | 'clients' | 'credits';
 
 interface Props {
   agencyId: string;
@@ -31,6 +32,7 @@ const TITLES: Record<AgencyStatType, string> = {
   reservations: 'Réservations de l’agence',
   overdue: 'Réservations en retard',
   clients: 'Clients de l’agence',
+  credits: 'Contrats à l’origine du crédit client',
 };
 
 export function AgencyStatDialog({ agencyId, type, onOpenChange }: Props) {
@@ -47,10 +49,12 @@ export function AgencyStatDialog({ agencyId, type, onOpenChange }: Props) {
   const clientsQuery = useClients(
     type === 'clients' ? { agency_id: agencyId, per_page: 100 } : undefined
   );
+  const creditsQuery = useAgencyCredits(type === 'credits' ? agencyId : '');
 
   const isLoading = (type === 'vehicles' || type === 'rented') ? vehiclesQuery.isLoading
     : (type === 'reservations' || type === 'overdue') ? reservationsQuery.isLoading
     : type === 'clients' ? clientsQuery.isLoading
+    : type === 'credits' ? creditsQuery.isLoading
     : false;
 
   const reservationItems = useMemo(() => {
@@ -120,6 +124,33 @@ export function AgencyStatDialog({ agencyId, type, onOpenChange }: Props) {
                     <div className="text-xs text-muted-foreground">{c.phone}</div>
                   </div>
                   {c.is_blacklisted && <span className="text-xs text-red-600 font-medium">Blacklisté</span>}
+                </Link>
+              ))}
+            </div>
+          ) : type === 'credits' ? (
+            <div className="space-y-2 p-1">
+              {(creditsQuery.data?.data ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground text-center py-6">Aucun contrat en créance</p>
+              )}
+              {(creditsQuery.data?.data ?? []).map((r: any) => (
+                <Link key={r.id} href={`/reservations/${r.id}`}
+                  className="flex items-center justify-between p-3 border rounded-lg text-sm hover:bg-muted/50">
+                  <div>
+                    <div className="font-mono font-medium">{r.reservation_number}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {r.client ? `${r.client.first_name} ${r.client.last_name}` : '—'} · {r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}
+                    </div>
+                    <div className="text-xs text-muted-foreground">{fdate(r.pickup_date)} → {fdate(r.return_date)}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="font-semibold text-orange-700">{Number(r.credit_amount).toLocaleString('fr-MA')} MAD</div>
+                      <div className="text-xs text-muted-foreground">
+                        {Number(r.paid_amount).toLocaleString('fr-MA')} / {Number(r.total_amount).toLocaleString('fr-MA')} MAD
+                      </div>
+                    </div>
+                    {r.status && <StatusBadge status={r.status} />}
+                  </div>
                 </Link>
               ))}
             </div>

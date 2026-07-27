@@ -20,7 +20,7 @@ export interface AuthUser {
   is_active: boolean;
   roles: UserRole[];
   permissions: string[];
-  agency: Agency | null;
+  agencies: Agency[];
   avatar_url: string | null;
 }
 

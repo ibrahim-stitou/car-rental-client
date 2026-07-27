@@ -232,7 +232,7 @@ function RoleUsersSection({ roleId }: { roleId: string }) {
               <div key={u.id} className="flex items-center justify-between p-2.5 border rounded-lg text-sm">
                 <div>
                   <div className="font-medium">{u.first_name} {u.last_name} {!u.is_active && <Badge variant="destructive" className="ml-1 text-[10px]">Suspendu</Badge>}</div>
-                  <div className="text-xs text-muted-foreground">{u.email}{u.agency ? ` · ${u.agency.name}` : ''}</div>
+                  <div className="text-xs text-muted-foreground">{u.email}{u.agencies?.length ? ` · ${u.agencies.map((a) => a.name).join(', ')}` : ''}</div>
                 </div>
                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:bg-red-50"
                   disabled={detachMutation.isPending}

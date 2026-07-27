@@ -11,7 +11,7 @@ export const expenseService = {
     apiClient.get<ApiResponse<Expense>>(apiRoutes.expenses.show(id)).then((r) => r.data),
 
   create: (input: CreateExpenseInput) =>
-    apiClient.post<ApiResponse<Expense>>(apiRoutes.expenses.create, input).then((r) => r.data),
+    apiClient.post<ApiResponse<Expense[]>>(apiRoutes.expenses.create, input).then((r) => r.data),
 
   update: (id: string, input: UpdateExpenseInput) =>
     apiClient.put<ApiResponse<Expense>>(apiRoutes.expenses.update(id), input).then((r) => r.data),

@@ -15,7 +15,9 @@ export interface BillingDocumentItem {
   id: string;
   description: string;
   quantity: number;
+  unit: string | null;
   unit_price: number;
+  unit_price_ttc: number;
   total_price: number;
   tax_rate: number;
 }
@@ -60,6 +62,7 @@ export interface BillingDocument {
 export interface BillingItemInput {
   description: string;
   quantity: number;
+  unit?: string;
   unit_price: number;
   total_price: number;
   tax_rate: number;

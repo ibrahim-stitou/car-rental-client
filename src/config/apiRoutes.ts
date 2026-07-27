@@ -226,6 +226,7 @@ export const apiRoutes = {
   },
   agenciesExt: {
     statistics: (id: string) => `${BASE}/agencies/${id}/statistics`,
+    credits: (id: string) => `${BASE}/agencies/${id}/credits`,
     uploadLogo: (id: string) => `${BASE}/agencies/${id}/logo`,
     deleteMedia: (id: string, mediaId: number) => `${BASE}/agencies/${id}/media/${mediaId}`,
   },
@@ -250,6 +251,7 @@ export const apiRoutes = {
     overdue: `${BASE}/reservations/overdue`,
     credits: `${BASE}/reservations/credits`,
     checkConflict: `${BASE}/reservations/check-conflict`,
+    earlyReturnPreview: (id: string) => `${BASE}/reservations/${id}/early-return-preview`,
   },
   profile: {
     show:            `${BASE}/profile`,

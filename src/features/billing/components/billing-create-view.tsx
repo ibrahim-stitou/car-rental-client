@@ -35,6 +35,7 @@ const COMMON_TVA = [0, 7, 10, 14, 20];
 const itemSchema = z.object({
   description: z.string().min(1, 'Description requise'),
   quantity:    z.coerce.number().min(1, 'Min 1'),
+  unit:        z.string().optional(),
   unit_price:  z.coerce.number().min(0),
   tax_rate:    z.coerce.number().min(0).max(100),
   total_price: z.coerce.number().min(0),
@@ -79,7 +80,7 @@ export function BillingCreateView() {
       client_name: '', client_address: '', client_phone: '', client_email: '', client_ice: '',
       issue_date: format(new Date(), 'yyyy-MM-dd'),
       due_date: '', delivery_date: '',
-      items: [{ description: '', quantity: 1, unit_price: 0, tax_rate: 20, total_price: 0 }],
+      items: [{ description: '', quantity: 1, unit: '', unit_price: 0, tax_rate: 20, total_price: 0 }],
     },
   });
 
@@ -274,7 +275,7 @@ export function BillingCreateView() {
                     <div className="flex items-center justify-between">
                       <CardTitle className="text-base">Lignes de facturation</CardTitle>
                       <Button type="button" variant="outline" size="sm"
-                        onClick={() => append({ description: '', quantity: 1, unit_price: 0, tax_rate: 20, total_price: 0 })}>
+                        onClick={() => append({ description: '', quantity: 1, unit: '', unit_price: 0, tax_rate: 20, total_price: 0 })}>
                         <Plus className="h-4 w-4 mr-1" />Ajouter une ligne
                       </Button>
                     </div>
@@ -282,8 +283,9 @@ export function BillingCreateView() {
                   <CardContent>
                     {/* Table header (desktop) */}
                     <div className="hidden sm:grid grid-cols-12 gap-2 px-1 pb-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                      <div className="col-span-4">Description</div>
-                      <div className="col-span-2 text-right">Qté</div>
+                      <div className="col-span-3">Description</div>
+                      <div className="col-span-1 text-right">Qté</div>
+                      <div className="col-span-2 text-center">Unité</div>
                       <div className="col-span-2 text-right">P.U. HT</div>
                       <div className="col-span-1 text-center">TVA</div>
                       <div className="col-span-2 text-right">Total HT</div>
@@ -295,7 +297,7 @@ export function BillingCreateView() {
                       {fields.map((field, index) => (
                         <div key={field.id} className="grid grid-cols-12 gap-2 items-start">
                           {/* Description */}
-                          <div className="col-span-12 sm:col-span-4">
+                          <div className="col-span-12 sm:col-span-3">
                             <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="sm:hidden text-xs">Description</FormLabel>
@@ -305,7 +307,7 @@ export function BillingCreateView() {
                             )} />
                           </div>
                           {/* Qty */}
-                          <div className="col-span-3 sm:col-span-2">
+                          <div className="col-span-3 sm:col-span-1">
                             <FormField control={form.control} name={`items.${index}.quantity`} render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="sm:hidden text-xs">Qté</FormLabel>
@@ -313,6 +315,16 @@ export function BillingCreateView() {
                                   <Input type="number" min={1} className="text-right" {...field}
                                     onChange={(e) => { field.onChange(e); recalcItem(index); }} />
                                 </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )} />
+                          </div>
+                          {/* Unit */}
+                          <div className="col-span-3 sm:col-span-2">
+                            <FormField control={form.control} name={`items.${index}.unit`} render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="sm:hidden text-xs">Unité</FormLabel>
+                                <FormControl><Input placeholder="Mois, Jour, Pièce…" {...field} /></FormControl>
                                 <FormMessage />
                               </FormItem>
                             )} />

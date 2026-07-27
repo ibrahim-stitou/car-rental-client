@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useCreateTechnicalInspection, useUpdateTechnicalInspection } from '../hooks/use-technical-inspections';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
@@ -19,9 +20,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { SelectField } from '@/components/shared/select-field';
 import { FormDatePicker } from '@/components/shared/form-date-picker';
+import { SingleDocUpload } from '@/components/shared/single-doc-upload';
+import { DocumentsSection } from '@/components/shared/documents-section';
+import { StagedFileInput } from '@/components/shared/staged-file-input';
 import PageContainer from '@/components/layout/page-container';
 import { applyServerErrors } from '@/lib/form-errors';
 import { INSPECTION_RESULT_OPTIONS } from '@/config/constants';
+import apiClient from '@/lib/api';
+import { apiRoutes } from '@/config/apiRoutes';
 
 const schema = z.object({
   vehicle_id: z.string().min(1, 'Véhicule requis'),
@@ -54,7 +60,19 @@ export function TechnicalInspectionFormView({ inspection }: Props) {
   const vehicles = vehiclesRes?.data ?? [];
   const { options: centerOptions } = useParameterOptions('inspection_center');
   const createParameter = useCreateParameter();
-  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const { data: mediaRes, refetch: refetchMedia } = useQuery({
+    queryKey: ['technical-inspections', inspection?.id, 'media'],
+    queryFn: () => apiClient.get(apiRoutes.technicalInspections.media(inspection!.id)).then((r) => r.data),
+    enabled: !!inspection,
+  });
+  const media = mediaRes?.data ?? {};
+
+  const [pendingReport, setPendingReport] = useState<File[]>([]);
+  const [pendingPhotos, setPendingPhotos] = useState<File[]>([]);
+  const [pendingDocuments, setPendingDocuments] = useState<File[]>([]);
+  const [uploadingAfterCreate, setUploadingAfterCreate] = useState(false);
+  const isPending = createMutation.isPending || updateMutation.isPending || uploadingAfterCreate;
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: emptyValues });
 
@@ -76,6 +94,33 @@ export function TechnicalInspectionFormView({ inspection }: Props) {
     }
   }, [inspection, form]);
 
+  const uploadStagedDocuments = async (newId: string) => {
+    if (!pendingReport.length && !pendingPhotos.length && !pendingDocuments.length) return;
+    setUploadingAfterCreate(true);
+    try {
+      if (pendingReport[0]) {
+        const fd = new FormData();
+        fd.append('report', pendingReport[0]);
+        await apiClient.post(apiRoutes.technicalInspections.uploadReport(newId), fd);
+      }
+      if (pendingPhotos.length) {
+        const fd = new FormData();
+        pendingPhotos.forEach((f) => fd.append('photos[]', f));
+        await apiClient.post(apiRoutes.technicalInspections.uploadPhotos(newId), fd);
+      }
+      if (pendingDocuments.length) {
+        const fd = new FormData();
+        pendingDocuments.forEach((f) => fd.append('documents[]', f));
+        await apiClient.post(apiRoutes.technicalInspections.uploadDocuments(newId), fd);
+      }
+      toast.success('Documents téléversés');
+    } catch {
+      toast.error("Visite créée mais l'upload des documents a échoué");
+    } finally {
+      setUploadingAfterCreate(false);
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
     if (inspection) {
       updateMutation.mutate(values as any, {
@@ -84,7 +129,12 @@ export function TechnicalInspectionFormView({ inspection }: Props) {
       });
     } else {
       createMutation.mutate(values as any, {
-        onSuccess: (res) => { toast.success('Visite technique créée'); router.push(`/technical-inspections/${(res as any)?.data?.id}`); },
+        onSuccess: async (res) => {
+          toast.success('Visite technique créée');
+          const newId = (res as any)?.data?.id;
+          if (newId) await uploadStagedDocuments(newId);
+          router.push(`/technical-inspections/${newId}`);
+        },
         onError: (err) => applyServerErrors(err, form, 'Impossible de créer la visite technique'),
       });
     }
@@ -117,7 +167,7 @@ export function TechnicalInspectionFormView({ inspection }: Props) {
               <Button type="button" variant="outline" onClick={() => router.push('/technical-inspections')}>Annuler</Button>
               <Button type="submit" disabled={isPending} className="gap-1.5">
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {isPending ? 'Enregistrement…' : inspection ? 'Mettre à jour' : 'Créer'}
+                {uploadingAfterCreate ? 'Envoi des documents…' : isPending ? 'Enregistrement…' : inspection ? 'Mettre à jour' : 'Créer'}
               </Button>
             </div>
           </div>
@@ -204,10 +254,42 @@ export function TechnicalInspectionFormView({ inspection }: Props) {
             </CardContent>
           </Card>
 
-          {!inspection && (
-            <p className="text-xs text-muted-foreground">
-              Vous pourrez ajouter le rapport et les photos une fois la visite créée.
-            </p>
+          {!inspection ? (
+            <div className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents (optionnel)</h2>
+              <StagedFileInput label="Rapport de contrôle (PDF)" accept="application/pdf" files={pendingReport} onChange={setPendingReport} />
+              <StagedFileInput label="Photos" accept="image/*" multiple files={pendingPhotos} onChange={setPendingPhotos} />
+              <StagedFileInput label="Autres documents" multiple files={pendingDocuments} onChange={setPendingDocuments} />
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents</h2>
+              <SingleDocUpload
+                label="Rapport de contrôle (PDF)"
+                fieldName="report"
+                uploadUrl={apiRoutes.technicalInspections.uploadReport(inspection.id)}
+                currentUrl={media.inspection_report?.[0]?.url}
+                onUploaded={() => refetchMedia()}
+              />
+              <DocumentsSection
+                title="Photos"
+                entityId={inspection.id}
+                uploadUrl={apiRoutes.technicalInspections.uploadPhotos(inspection.id)}
+                deleteUrlFn={(mid) => apiRoutes.technicalInspections.deleteMedia(inspection.id, mid)}
+                initialDocuments={media.photos ?? []}
+                fieldName="photos"
+                accept="image/*"
+                onRefresh={() => refetchMedia()}
+              />
+              <DocumentsSection
+                title="Autres documents"
+                entityId={inspection.id}
+                uploadUrl={apiRoutes.technicalInspections.uploadDocuments(inspection.id)}
+                deleteUrlFn={(mid) => apiRoutes.technicalInspections.deleteMedia(inspection.id, mid)}
+                initialDocuments={media.documents ?? []}
+                onRefresh={() => refetchMedia()}
+              />
+            </div>
           )}
         </form>
       </Form>

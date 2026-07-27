@@ -29,7 +29,10 @@ export interface CreateExpenseInput {
   category: ExpenseCategory;
   amount: number;
   expense_date: string;
+  /** Single agency. Mutually exclusive with agency_ids. */
   agency_id?: string;
+  /** Multiple agencies — the amount is split equally across them. Mutually exclusive with agency_id. */
+  agency_ids?: string[];
   vehicle_id?: string;
   payment_method?: ExpensePaymentMethod;
   reference?: string;

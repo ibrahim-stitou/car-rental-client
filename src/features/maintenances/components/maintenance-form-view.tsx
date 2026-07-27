@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,10 +22,12 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { SelectField } from '@/components/shared/select-field';
 import { FormDatePicker } from '@/components/shared/form-date-picker';
 import { DocumentsSection } from '@/components/shared/documents-section';
+import { StagedFileInput } from '@/components/shared/staged-file-input';
 import PageContainer from '@/components/layout/page-container';
 import { applyServerErrors } from '@/lib/form-errors';
 import { useParameterOptions } from '@/features/settings/hooks/use-parameters';
 import { apiRoutes } from '@/config/apiRoutes';
+import apiClient from '@/lib/api';
 import {
   MAINTENANCE_STATUS_OPTIONS, MAINTENANCE_PRIORITY_OPTIONS, TIRE_POSITION_OPTIONS,
 } from '@/config/constants';
@@ -73,9 +75,15 @@ export function MaintenanceFormView({ maintenance }: Props) {
   const updateMutation = useUpdateMaintenance(maintenance?.id ?? '');
   const { data: vehiclesRes } = useVehicles({ per_page: 200 });
   const vehicles = vehiclesRes?.data ?? [];
-  const isPending = createMutation.isPending || updateMutation.isPending;
   const { options: maintenanceTypeOptions } = useParameterOptions('maintenance_type');
   const { options: maintenanceSubTypeOptions } = useParameterOptions('maintenance_sub_type');
+
+  const [pendingInvoices, setPendingInvoices] = useState<File[]>([]);
+  const [pendingPhotosBefore, setPendingPhotosBefore] = useState<File[]>([]);
+  const [pendingPhotosAfter, setPendingPhotosAfter] = useState<File[]>([]);
+  const [pendingDocuments, setPendingDocuments] = useState<File[]>([]);
+  const [uploadingAfterCreate, setUploadingAfterCreate] = useState(false);
+  const isPending = createMutation.isPending || updateMutation.isPending || uploadingAfterCreate;
 
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: emptyValues });
 
@@ -109,6 +117,38 @@ export function MaintenanceFormView({ maintenance }: Props) {
   const isOilChange = subType === 'oil_change';
   const isTireChange = subType === 'tire_change';
 
+  const uploadStagedDocuments = async (newId: string) => {
+    if (!pendingInvoices.length && !pendingPhotosBefore.length && !pendingPhotosAfter.length && !pendingDocuments.length) return;
+    setUploadingAfterCreate(true);
+    try {
+      if (pendingInvoices.length) {
+        const fd = new FormData();
+        pendingInvoices.forEach((f) => fd.append('invoices[]', f));
+        await apiClient.post(apiRoutes.maintenancesExt.uploadInvoices(newId), fd);
+      }
+      if (pendingPhotosBefore.length) {
+        const fd = new FormData();
+        pendingPhotosBefore.forEach((f) => fd.append('photos[]', f));
+        await apiClient.post(apiRoutes.maintenancesExt.uploadPhotosBefore(newId), fd);
+      }
+      if (pendingPhotosAfter.length) {
+        const fd = new FormData();
+        pendingPhotosAfter.forEach((f) => fd.append('photos[]', f));
+        await apiClient.post(apiRoutes.maintenancesExt.uploadPhotosAfter(newId), fd);
+      }
+      if (pendingDocuments.length) {
+        const fd = new FormData();
+        pendingDocuments.forEach((f) => fd.append('documents[]', f));
+        await apiClient.post(apiRoutes.maintenancesExt.uploadDocuments(newId), fd);
+      }
+      toast.success('Documents téléversés');
+    } catch {
+      toast.error("Maintenance créée mais l'upload des documents a échoué");
+    } finally {
+      setUploadingAfterCreate(false);
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
     const payload = {
       ...values,
@@ -123,7 +163,12 @@ export function MaintenanceFormView({ maintenance }: Props) {
       });
     } else {
       createMutation.mutate(payload, {
-        onSuccess: (res) => { toast.success('Maintenance créée'); router.push(`/maintenances/${(res as any)?.data?.id}`); },
+        onSuccess: async (res) => {
+          toast.success('Maintenance créée');
+          const newId = (res as any)?.data?.id;
+          if (newId) await uploadStagedDocuments(newId);
+          router.push(`/maintenances/${newId}`);
+        },
         onError: (err) => applyServerErrors(err, form, 'Impossible de créer la maintenance'),
       });
     }
@@ -146,7 +191,7 @@ export function MaintenanceFormView({ maintenance }: Props) {
               <Button type="button" variant="outline" onClick={() => router.push('/maintenances')}>Annuler</Button>
               <Button type="submit" disabled={isPending} className="gap-1.5">
                 {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                {isPending ? 'Enregistrement…' : maintenance ? 'Mettre à jour' : 'Créer'}
+                {uploadingAfterCreate ? 'Envoi des documents…' : isPending ? 'Enregistrement…' : maintenance ? 'Mettre à jour' : 'Créer'}
               </Button>
             </div>
           </div>
@@ -291,9 +336,13 @@ export function MaintenanceFormView({ maintenance }: Props) {
           </Card>
 
           {!maintenance && (
-            <p className="text-xs text-muted-foreground">
-              Vous pourrez ajouter les factures et photos une fois la maintenance créée.
-            </p>
+            <div className="space-y-4">
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents (optionnel)</h2>
+              <StagedFileInput label="Factures" accept="application/pdf" multiple files={pendingInvoices} onChange={setPendingInvoices} />
+              <StagedFileInput label="Photos avant intervention" accept="image/*" multiple files={pendingPhotosBefore} onChange={setPendingPhotosBefore} />
+              <StagedFileInput label="Photos après intervention" accept="image/*" multiple files={pendingPhotosAfter} onChange={setPendingPhotosAfter} />
+              <StagedFileInput label="Autres documents" multiple files={pendingDocuments} onChange={setPendingDocuments} />
+            </div>
           )}
 
           {maintenance && (

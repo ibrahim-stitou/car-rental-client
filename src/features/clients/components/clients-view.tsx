@@ -41,7 +41,7 @@ export function ClientsView() {
       ),
     },
     { data: 'phone', label: 'Téléphone', sortable: false, render: (v) => <span className="font-mono text-sm">{v}</span> },
-    { data: 'agency', label: 'Agence', sortable: false, render: (_v, row) => <span className="text-sm">{row.agency?.name ?? '—'}</span> },
+    { data: 'agency', label: 'Agence', sortable: false, render: (_v, row) => <span className="text-sm">{row.agencies?.map((a) => a.name).join(', ') || '—'}</span> },
     {
       data: 'id_type',
       label: 'Pièce d\'identité',

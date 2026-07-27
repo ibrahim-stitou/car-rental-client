@@ -21,6 +21,8 @@ export const ROUTE_PERMISSIONS: { prefix: string; permission: string }[] = [
   { prefix: '/logs', permission: 'view-logs' },
   { prefix: '/settings', permission: 'manage-settings' },
   { prefix: '/website', permission: 'manage-website' },
+  { prefix: '/notifications', permission: 'view-notification' },
+  { prefix: '/reports', permission: 'view-reports' },
 ];
 
 export function permissionForPath(pathname: string): string | null {

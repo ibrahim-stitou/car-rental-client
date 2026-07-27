@@ -1,11 +1,14 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import type { DateRange } from 'react-day-picker';
 import { useAgencyStatistics, useUploadAgencyLogo, useDeleteAgencyMedia } from '../hooks/use-agencies';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { StatusBadge } from '@/components/shared/status-badge';
 import { ExpenseForm } from '@/features/expenses/components/expense-form';
@@ -13,7 +16,7 @@ import { PaymentDialog } from '@/features/reservations/components/payment-dialog
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { Camera, Trash2 } from 'lucide-react';
+import { Camera, Trash2, CalendarIcon, XCircle } from 'lucide-react';
 import {
   IconCar, IconCurrencyDirham, IconUsers, IconCalendar,
   IconArrowLeft, IconPlus, IconAlertTriangle, IconBuildingStore,
@@ -25,6 +28,42 @@ import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import { AgencyStatDialog, type AgencyStatType } from './agency-stat-dialog';
 
+function toIsoDate(d: Date | undefined) {
+  return d ? format(d, 'yyyy-MM-dd') : undefined;
+}
+
+function PeriodFilter({ range, onChange }: { range: DateRange | undefined; onChange: (range: DateRange | undefined) => void }) {
+  const hasValue = !!(range?.from || range?.to);
+  const label = hasValue
+    ? `${range?.from ? format(range.from, 'dd/MM/yyyy') : '…'} - ${range?.to ? format(range.to, 'dd/MM/yyyy') : '…'}`
+    : 'Toute la période';
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="border-dashed">
+          {hasValue ? (
+            <span
+              role="button"
+              aria-label="Réinitialiser la période"
+              onClick={(e) => { e.stopPropagation(); onChange(undefined); }}
+              className="opacity-70 hover:opacity-100 transition-opacity"
+            >
+              <XCircle className="h-4 w-4" />
+            </span>
+          ) : (
+            <CalendarIcon className="h-4 w-4" />
+          )}
+          {label}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar mode="range" selected={range} onSelect={onChange} initialFocus />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface Props { agencyId: string }
 
 function fmt(n: number | undefined) { return (n ?? 0).toLocaleString('fr-MA'); }
@@ -34,7 +73,11 @@ function fdate(d: string | undefined) {
 }
 
 export function AgencyDetailView({ agencyId }: Props) {
-  const { data: statsRes, isLoading } = useAgencyStatistics(agencyId);
+  const [period, setPeriod] = useState<DateRange | undefined>(undefined);
+  const { data: statsRes, isLoading } = useAgencyStatistics(agencyId, {
+    start_date: toIsoDate(period?.from),
+    end_date: toIsoDate(period?.to),
+  });
   const { data: expensesRes } = useExpenses({ agency_id: agencyId, per_page: 15 });
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const [paymentDialogId, setPaymentDialogId] = useState<{ id: string; ref: string } | null>(null);
@@ -136,20 +179,29 @@ export function AgencyDetailView({ agencyId }: Props) {
           <Badge variant={agency?.is_active ? 'default' : 'secondary'}>{agency?.is_active ? 'Active' : 'Inactive'}</Badge>
         </div>
 
+        {/* Filtre de période */}
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="text-sm font-medium text-muted-foreground">Bilan financier</h2>
+          <PeriodFilter range={period} onChange={setPeriod} />
+        </div>
+
         {/* KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
             { label: 'Revenus', value: `${fmt(stats.financials?.total_revenue)} MAD`, icon: IconCurrencyDirham, color: 'bg-emerald-500' },
             { label: 'Dépenses', value: `${fmt(stats.financials?.total_expenses)} MAD`, icon: IconCurrencyDirham, color: 'bg-red-500' },
             { label: 'Résultat net', value: `${fmt(stats.financials?.net_revenue)} MAD`, icon: IconCurrencyDirham, color: 'bg-blue-500' },
-            { label: 'Crédit client', value: `${fmt(stats.financials?.total_credit)} MAD`, icon: IconAlertTriangle, color: 'bg-orange-500' },
-          ].map(({ label, value, icon: Icon, color }) => (
-            <Card key={label}>
+            { label: 'Crédit client', value: `${fmt(stats.financials?.total_credit)} MAD`, sub: "à ce jour", icon: IconAlertTriangle, color: 'bg-orange-500', onClick: () => setStatDialogType('credits') },
+          ].map(({ label, value, sub, icon: Icon, color, onClick }) => (
+            <Card key={label} className={onClick ? 'cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all' : ''} onClick={onClick}>
               <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
                 <CardTitle className="text-xs font-medium text-muted-foreground">{label}</CardTitle>
                 <div className={`p-1.5 rounded-lg ${color}`}><Icon className="h-4 w-4 text-white" /></div>
               </CardHeader>
-              <CardContent><div className="text-xl font-bold">{value}</div></CardContent>
+              <CardContent>
+                <div className="text-xl font-bold">{value}</div>
+                {sub && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
+              </CardContent>
             </Card>
           ))}
         </div>
@@ -247,8 +299,11 @@ export function AgencyDetailView({ agencyId }: Props) {
           {/* Credits */}
           <TabsContent value="credits" className="mt-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-base text-orange-700">Créances clients</CardTitle>
+                {!!stats.financials?.credit_count && (
+                  <Button variant="outline" size="sm" onClick={() => setStatDialogType('credits')}>Voir les contrats</Button>
+                )}
               </CardHeader>
               <CardContent>
                 {!stats.financials?.credit_count ? (

@@ -72,9 +72,9 @@ export function ReservationsView() {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
   const [paymentDialog, setPaymentDialog] = useState<{ id: string; ref: string } | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number; returnLocation?: string } | null>(null);
+  const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number; returnLocation?: string; scheduledReturnDate?: string } | null>(null);
   const [extendDialog, setExtendDialog] = useState<{ id: string; ref: string; returnDate?: string; status: string } | null>(null);
-  const [validateDialog, setValidateDialog] = useState<{ id: string } | null>(null);
+  const [validateDialog, setValidateDialog] = useState<{ id: string; agencyId?: string } | null>(null);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
   const createInvoice = useCreateBillingFromReservation();
 
@@ -93,8 +93,11 @@ export function ReservationsView() {
     queryKey: ['profile'],
     queryFn: () => apiClient.get(apiRoutes.profile.show).then(r => r.data?.data),
   });
-  const currentUserHasSignature = profileData?.has_signature ?? true; // default true to avoid blocking
-  const currentUserHasStamp = profileData?.has_stamp ?? true;
+  const currentUserAgencies: { id: string; signature_url?: string | null; stamp_url?: string | null }[] = profileData?.agencies ?? [];
+  const validateAgency = currentUserAgencies.find((a) => a.id === validateDialog?.agencyId);
+  // Default true (non-blocking) when the agency can't be resolved, to avoid falsely blocking validation.
+  const currentUserHasSignature = validateDialog?.agencyId ? !!validateAgency?.signature_url : true;
+  const currentUserHasStamp = validateDialog?.agencyId ? !!validateAgency?.stamp_url : true;
 
   const handleValidateConfirm = () => {
     if (!validateDialog) return;
@@ -219,7 +222,7 @@ export function ReservationsView() {
               </DropdownMenuItem>
 
               {row.status === 'pending' && (
-                <DropdownMenuItem disabled={!!pendingAction} onClick={() => setValidateDialog({ id: row.id })}>
+                <DropdownMenuItem disabled={!!pendingAction} onClick={() => setValidateDialog({ id: row.id, agencyId: row.agency_id })}>
                   <Check className="mr-2 h-4 w-4 text-blue-600" /> Confirmer
                 </DropdownMenuItem>
               )}
@@ -237,6 +240,7 @@ export function ReservationsView() {
                   ref: row.reference,
                   initialMileage: (row as any).initial_mileage ?? undefined,
                   returnLocation: row.return_location,
+                  scheduledReturnDate: row.return_date,
                 })}>
                   <Square className="mr-2 h-4 w-4 text-slate-600" /> Terminer (retour)
                 </DropdownMenuItem>
@@ -335,6 +339,7 @@ export function ReservationsView() {
           reservationRef={completeDialog.ref}
           initialMileage={completeDialog.initialMileage}
           returnLocation={completeDialog.returnLocation}
+          scheduledReturnDate={completeDialog.scheduledReturnDate}
           onSuccess={() => tableInstance?.refresh?.()}
         />
       )}

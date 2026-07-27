@@ -10,7 +10,6 @@ import type { InsuranceType } from '@/types/insurance.types';
 import type { MaintenanceStatus, MaintenancePriority } from '@/types/maintenance.types';
 import type { InspectionResult } from '@/types/technical-inspection.types';
 import type { VignettePaymentMethod } from '@/types/vignette.types';
-import type { UserRole } from '@/types/auth.types';
 import type { ClaimStatus } from '@/types/claim.types';
 
 export const VEHICLE_STATUS_OPTIONS: { value: VehicleStatus; label: string }[] = [
@@ -122,14 +121,6 @@ export const VIGNETTE_PAYMENT_METHOD_OPTIONS: { value: VignettePaymentMethod; la
   { value: 'cash', label: 'Espèces' },
   { value: 'bank_transfer', label: 'Virement bancaire' },
   { value: 'online', label: 'En ligne' },
-];
-
-export const USER_ROLE_OPTIONS: { value: UserRole; label: string }[] = [
-  { value: 'super-admin', label: 'Super Administrateur' },
-  { value: 'admin', label: 'Administrateur' },
-  { value: 'manager', label: 'Gestionnaire' },
-  { value: 'agent', label: 'Agent' },
-  { value: 'viewer', label: 'Observateur' },
 ];
 
 export const CLAIM_STATUS_OPTIONS: { value: ClaimStatus; label: string; color: string }[] = [

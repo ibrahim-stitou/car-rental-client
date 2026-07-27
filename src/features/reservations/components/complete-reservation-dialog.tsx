@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,13 @@ function nowForDatetimeLocal() {
   return d.toISOString().slice(0, 16);
 }
 
+interface EarlyReturnPreview {
+  is_early_return: boolean;
+  actual_days: number;
+  contracted_days: number;
+  suggested_total_amount: number;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -27,11 +34,13 @@ interface Props {
   reservationRef: string;
   initialMileage?: number;
   returnLocation?: string;
+  /** Reservation's originally contracted return date/time (ISO) — used to detect an early return. */
+  scheduledReturnDate?: string;
   onSuccess?: () => void;
 }
 
 export function CompleteReservationDialog({
-  open, onOpenChange, reservationId, reservationRef, initialMileage, returnLocation, onSuccess,
+  open, onOpenChange, reservationId, reservationRef, initialMileage, returnLocation, scheduledReturnDate, onSuccess,
 }: Props) {
   const [finalMileage, setFinalMileage] = useState('');
   const [fuelLevel, setFuelLevel] = useState('');
@@ -42,10 +51,40 @@ export function CompleteReservationDialog({
   const [closureComment, setClosureComment] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const [earlyReturnPreview, setEarlyReturnPreview] = useState<EarlyReturnPreview | null>(null);
+  const [finalTotalAmount, setFinalTotalAmount] = useState('');
+  const [finalTotalAmountTouched, setFinalTotalAmountTouched] = useState(false);
+
   const mileageDiff = finalMileage && initialMileage
     ? Number(finalMileage) - initialMileage
     : null;
   const mileageError = finalMileage && initialMileage && Number(finalMileage) < initialMileage;
+
+  // Detect an early return and fetch a prorated amount suggestion (debounced).
+  useEffect(() => {
+    if (!scheduledReturnDate || !actualReturnDate) { setEarlyReturnPreview(null); return; }
+    const actual = new Date(actualReturnDate);
+    const scheduled = new Date(scheduledReturnDate);
+    if (Number.isNaN(actual.getTime()) || actual >= scheduled) {
+      setEarlyReturnPreview(null);
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      apiClient.get(apiRoutes.reservationsExt.earlyReturnPreview(reservationId), {
+        params: { actual_return_date: actual.toISOString() },
+      }).then((res) => {
+        const preview = res.data?.data as EarlyReturnPreview | undefined;
+        if (preview) {
+          setEarlyReturnPreview(preview);
+          if (!finalTotalAmountTouched) setFinalTotalAmount(preview.suggested_total_amount.toFixed(2));
+        }
+      }).catch(() => setEarlyReturnPreview(null));
+    }, 400);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [actualReturnDate, scheduledReturnDate, reservationId]);
 
   const handleComplete = async () => {
     if (mileageError) {
@@ -62,6 +101,7 @@ export function CompleteReservationDialog({
         actual_return_location: actualReturnLocation || undefined,
         is_favorable: isFavorable === 'favorable',
         closure_comment: closureComment || undefined,
+        final_total_amount: earlyReturnPreview?.is_early_return && finalTotalAmount ? Number(finalTotalAmount) : undefined,
       });
       toast.success(`Réservation ${reservationRef} clôturée`);
       onOpenChange(false);
@@ -146,6 +186,30 @@ export function CompleteReservationDialog({
               />
             </div>
           </div>
+
+          {earlyReturnPreview?.is_early_return && (
+            <Alert className="border-blue-200 bg-blue-50">
+              <IconAlertTriangle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800 text-sm space-y-2">
+                <p>
+                  Retour anticipé détecté : <strong>{earlyReturnPreview.actual_days} jour(s)</strong> sur{' '}
+                  <strong>{earlyReturnPreview.contracted_days} jour(s)</strong> prévus — montant suggéré :{' '}
+                  <strong>{earlyReturnPreview.suggested_total_amount.toLocaleString('fr-MA')} MAD</strong>.
+                </p>
+                <div className="space-y-1">
+                  <Label htmlFor="final-total-amount">Montant final (MAD)</Label>
+                  <Input
+                    id="final-total-amount"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={finalTotalAmount}
+                    onChange={(e) => { setFinalTotalAmount(e.target.value); setFinalTotalAmountTouched(true); }}
+                  />
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <div className="space-y-2">
             <Label>Avis de clôture</Label>

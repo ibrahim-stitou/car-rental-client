@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
+import { MultiSelect } from '@/components/ui/multi-select';
 import apiClient from '@/lib/api';
 import { apiRoutes } from '@/config/apiRoutes';
 import { applyServerErrors } from '@/lib/form-errors';
@@ -39,12 +40,17 @@ const schema = z.object({
   category:       z.string().min(1, 'Catégorie requise'),
   amount:         z.coerce.number().min(0.01, 'Montant requis'),
   expense_date:   z.string().min(1, 'Date requise'),
-  agency_id:      z.string().min(1, 'Agence requise'),
+  agency_id:      z.string().optional(),
+  agency_ids:     z.array(z.string()).optional(),
   vehicle_id:     z.string().optional(),
   payment_method: z.string().optional(),
   reference:      z.string().optional(),
   notes:          z.string().optional(),
   description:    z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (!data.agency_id && (!data.agency_ids || data.agency_ids.length === 0)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Agence requise', path: ['agency_ids'] });
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -92,6 +98,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
       title: '', category: '', amount: 0,
       expense_date: new Date().toISOString().split('T')[0],
       agency_id: defaultAgencyId ?? '',
+      agency_ids: defaultAgencyId ? [defaultAgencyId] : [],
       vehicle_id: defaultVehicleId ?? '',
       payment_method: '', reference: '', notes: '', description: '',
     },
@@ -104,6 +111,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
         title: expense.title, category: expense.category, amount: expense.amount,
         expense_date: expense.expense_date?.split('T')[0] ?? '',
         agency_id: expense.agency_id ?? '',
+        agency_ids: [],
         vehicle_id: expense.vehicle_id ?? '',
         payment_method: expense.payment_method ?? '',
         reference: expense.reference ?? '',
@@ -115,6 +123,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
         title: '', category: '', amount: 0,
         expense_date: new Date().toISOString().split('T')[0],
         agency_id: defaultAgencyId ?? '',
+        agency_ids: defaultAgencyId ? [defaultAgencyId] : [],
         vehicle_id: defaultVehicleId ?? '',
         payment_method: '', reference: '', notes: '', description: '',
       });
@@ -157,31 +166,46 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
   };
 
   const onSubmit = async (values: FormValues) => {
-    const payload = {
-      ...values,
-      agency_id:      (values.agency_id && values.agency_id !== '__none__') ? values.agency_id : undefined,
+    const payload: Record<string, unknown> = {
+      title: values.title,
+      category: values.category,
+      amount: values.amount,
+      expense_date: values.expense_date,
       vehicle_id:     (values.vehicle_id && values.vehicle_id !== '__none__') ? values.vehicle_id : undefined,
       payment_method: values.payment_method || undefined,
+      reference: values.reference,
+      notes: values.notes,
       description:    values.description || undefined,
     };
 
+    if (expense || defaultAgencyId) {
+      payload.agency_id = expense
+        ? ((values.agency_id && values.agency_id !== '__none__') ? values.agency_id : undefined)
+        : defaultAgencyId;
+    } else {
+      payload.agency_ids = values.agency_ids;
+    }
+
     try {
-      let expenseId = expense?.id;
+      let expenseIds: string[] = [];
 
       if (expense) {
         await updateMutation.mutateAsync(payload as UpdateExpenseInput);
+        expenseIds = [expense.id];
         toast.success('Dépense mise à jour');
       } else {
         const res = await createMutation.mutateAsync(payload as any);
-        expenseId = (res as any)?.data?.id;
-        toast.success('Dépense créée');
+        const created = (res as any)?.data;
+        const createdArr = Array.isArray(created) ? created : created ? [created] : [];
+        expenseIds = createdArr.map((e: any) => e.id).filter(Boolean);
+        toast.success(createdArr.length > 1 ? `${createdArr.length} dépenses créées` : 'Dépense créée');
       }
 
-      // Upload files after save
-      if (expenseId && pendingFiles.length > 0) {
+      // Upload files after save (applied to every agency share for a split expense)
+      if (expenseIds.length > 0 && pendingFiles.length > 0) {
         setUploading(true);
         try {
-          await uploadFiles(expenseId);
+          await Promise.all(expenseIds.map((id) => uploadFiles(id)));
           toast.success(`${pendingFiles.length} fichier(s) téléversé(s)`);
         } catch {
           toast.error('Dépense sauvegardée mais erreur lors de l\'upload des fichiers');
@@ -271,17 +295,41 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
               )}
 
               {!defaultAgencyId && (
-                <FormField control={form.control} name="agency_id" render={({ field }) => (
-                  <FormItem><FormLabel>Agence *</FormLabel>
-                    <SelectField
-                      value={field.value}
-                      onChange={field.onChange}
-                      placeholder="Sélectionner une agence"
-                      options={agencies.map(a => ({ value: a.id, label: a.name }))}
-                    />
-                    <FormMessage />
-                  </FormItem>
-                )} />
+                expense ? (
+                  <FormField control={form.control} name="agency_id" render={({ field }) => (
+                    <FormItem><FormLabel>Agence *</FormLabel>
+                      <SelectField
+                        value={field.value ?? ''}
+                        onChange={field.onChange}
+                        placeholder="Sélectionner une agence"
+                        options={agencies.map(a => ({ value: a.id, label: a.name }))}
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                ) : (
+                  <FormField control={form.control} name="agency_ids" render={({ field }) => {
+                    const selected = field.value ?? [];
+                    const amount = form.watch('amount');
+                    return (
+                      <FormItem><FormLabel>Agence(s) *</FormLabel>
+                        <MultiSelect
+                          options={agencies.map(a => ({ value: a.id, label: a.name }))}
+                          selected={selected}
+                          onChange={field.onChange}
+                          placeholder="Sélectionner une ou plusieurs agences"
+                          className="w-full"
+                        />
+                        {selected.length > 1 && amount > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {selected.length} agences sélectionnées · {(amount / selected.length).toFixed(2)} MAD chacune
+                          </p>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    );
+                  }} />
+                )
               )}
 
               <FormField control={form.control} name="reference" render={({ field }) => (

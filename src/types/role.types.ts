@@ -25,7 +25,7 @@ export interface RoleUser {
   full_name?: string;
   email: string;
   is_active: boolean;
-  agency?: { id: string; name: string } | null;
+  agencies?: { id: string; name: string }[];
 }
 
 export interface CreateRoleInput {

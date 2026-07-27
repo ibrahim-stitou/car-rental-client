@@ -7,15 +7,17 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { useCreateUser, useUpdateUser } from '../hooks/use-users';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
+import { useRoles } from '@/features/roles/hooks/use-roles';
 import type { User } from '@/types/user.types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { USER_ROLE_OPTIONS } from '@/config/constants';
+import { applyServerErrors } from '@/lib/form-errors';
 
 const createSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
@@ -24,7 +26,7 @@ const createSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters'),
   password_confirmation: z.string().min(8),
   phone: z.string().optional(),
-  agency_id: z.string().optional(),
+  agency_ids: z.array(z.string()).optional(),
   role: z.string().min(1, 'Role is required'),
 }).refine((d) => d.password === d.password_confirmation, { message: 'Passwords do not match', path: ['password_confirmation'] });
 
@@ -33,7 +35,7 @@ const editSchema = z.object({
   last_name: z.string().min(1, 'Last name is required'),
   email: z.string().email('Invalid email'),
   phone: z.string().optional(),
-  agency_id: z.string().optional(),
+  agency_ids: z.array(z.string()).optional(),
 });
 
 interface Props {
@@ -48,36 +50,38 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
   const updateMutation = useUpdateUser(user?.id ?? '');
   const { data: agenciesRes } = useAgencies({ per_page: 100 });
   const agencies = agenciesRes?.data ?? [];
+  const { data: rolesRes } = useRoles();
+  const roles = rolesRes?.data ?? [];
   const isPending = createMutation.isPending || updateMutation.isPending;
 
   const createForm = useForm<z.infer<typeof createSchema>>({
     resolver: zodResolver(createSchema),
-    defaultValues: { first_name: '', last_name: '', email: '', password: '', password_confirmation: '', phone: '', agency_id: '', role: 'agent' },
+    defaultValues: { first_name: '', last_name: '', email: '', password: '', password_confirmation: '', phone: '', agency_ids: [], role: '' },
   });
   const editForm = useForm<z.infer<typeof editSchema>>({
     resolver: zodResolver(editSchema),
-    defaultValues: { first_name: '', last_name: '', email: '', phone: '', agency_id: '' },
+    defaultValues: { first_name: '', last_name: '', email: '', phone: '', agency_ids: [] },
   });
 
   useEffect(() => {
     if (user) {
-      editForm.reset({ first_name: user.first_name, last_name: user.last_name, email: user.email, phone: user.phone ?? '', agency_id: user.agency_id ?? '' });
+      editForm.reset({ first_name: user.first_name, last_name: user.last_name, email: user.email, phone: user.phone ?? '', agency_ids: user.agencies?.map((a) => a.id) ?? [] });
     } else {
-      createForm.reset({ first_name: '', last_name: '', email: '', password: '', password_confirmation: '', phone: '', agency_id: '', role: 'agent' });
+      createForm.reset({ first_name: '', last_name: '', email: '', password: '', password_confirmation: '', phone: '', agency_ids: [], role: '' });
     }
   }, [user, open]);
 
   const onSubmitCreate = (values: z.infer<typeof createSchema>) => {
     createMutation.mutate(values as any, {
       onSuccess: () => { toast.success('Utilisateur créé'); onOpenChange(false); createForm.reset(); onSuccess?.(); },
-      onError: () => toast.error('Impossible de créer user'),
+      onError: (error) => applyServerErrors(error, createForm, "Impossible de créer l'utilisateur"),
     });
   };
 
   const onSubmitEdit = (values: z.infer<typeof editSchema>) => {
     updateMutation.mutate(values, {
       onSuccess: () => { toast.success('Utilisateur mis à jour'); onOpenChange(false); onSuccess?.(); },
-      onError: () => toast.error('Échec de la mise à jour user'),
+      onError: (error) => applyServerErrors(error, editForm, "Échec de la mise à jour de l'utilisateur"),
     });
   };
 
@@ -98,15 +102,16 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                 </div>
                 <FormField control={editForm.control} name="email" render={({ field }) => (<FormItem><FormLabel>Email *</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem>)} />
                 <FormField control={editForm.control} name="phone" render={({ field }) => (<FormItem><FormLabel>Phone</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
-                <FormField control={editForm.control} name="agency_id" render={({ field }) => (
-                  <FormItem><FormLabel>Agency</FormLabel>
-                    <Select value={field.value || '__none__'} onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Sans agence" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__">Sans agence</SelectItem>
-                        {agencies.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select><FormMessage /></FormItem>
+                <FormField control={editForm.control} name="agency_ids" render={({ field }) => (
+                  <FormItem><FormLabel>Agences</FormLabel>
+                    <MultiSelect
+                      options={agencies.map((a) => ({ value: a.id, label: a.name }))}
+                      selected={field.value ?? []}
+                      onChange={field.onChange}
+                      placeholder="Aucune agence"
+                      className="w-full"
+                    />
+                    <FormMessage /></FormItem>
                 )} />
                 <div className="flex justify-end gap-3 pt-2">
                   <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Cancel</Button>
@@ -145,21 +150,22 @@ export function UserForm({ open, onOpenChange, user, onSuccess }: Props) {
                 <FormField control={createForm.control} name="role" render={({ field }) => (
                   <FormItem><FormLabel>Rôle *</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                      <SelectContent>{USER_ROLE_OPTIONS.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
-                    </Select><FormMessage /></FormItem>
-                )} />
-                <FormField control={createForm.control} name="agency_id" render={({ field }) => (
-                  <FormItem><FormLabel>Agency</FormLabel>
-                    <Select value={field.value || '__none__'} onValueChange={(v) => field.onChange(v === '__none__' ? '' : v)}>
-                      <FormControl><SelectTrigger><SelectValue placeholder="Sans agence" /></SelectTrigger></FormControl>
-                      <SelectContent>
-                        <SelectItem value="__none__">Sans agence</SelectItem>
-                        {agencies.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
-                      </SelectContent>
+                      <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner un rôle" /></SelectTrigger></FormControl>
+                      <SelectContent>{roles.map((r) => <SelectItem key={r.id} value={r.name}>{r.name}</SelectItem>)}</SelectContent>
                     </Select><FormMessage /></FormItem>
                 )} />
               </div>
+              <FormField control={createForm.control} name="agency_ids" render={({ field }) => (
+                <FormItem><FormLabel>Agences</FormLabel>
+                  <MultiSelect
+                    options={agencies.map((a) => ({ value: a.id, label: a.name }))}
+                    selected={field.value ?? []}
+                    onChange={field.onChange}
+                    placeholder="Aucune agence"
+                    className="w-full"
+                  />
+                  <FormMessage /></FormItem>
+              )} />
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>Cancel</Button>
                 <Button type="submit" disabled={isPending}>{isPending ? 'Enregistrement…' : 'Create User'}</Button>

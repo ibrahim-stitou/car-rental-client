@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { useCreateInsurance, useUpdateInsurance } from '../hooks/use-insurances';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
@@ -19,8 +20,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { SelectField } from '@/components/shared/select-field';
 import { FormDatePicker } from '@/components/shared/form-date-picker';
+import { SingleDocUpload } from '@/components/shared/single-doc-upload';
+import { DocumentsSection } from '@/components/shared/documents-section';
+import { StagedFileInput } from '@/components/shared/staged-file-input';
 import PageContainer from '@/components/layout/page-container';
 import { applyServerErrors } from '@/lib/form-errors';
+import apiClient from '@/lib/api';
+import { apiRoutes } from '@/config/apiRoutes';
 
 const schema = z.object({
   vehicle_id: z.string().min(1, 'Véhicule requis'),
@@ -54,7 +60,19 @@ export function InsuranceFormView({ insurance }: Props) {
   const { options: typeOptions } = useParameterOptions('insurance_type');
   const { options: companyOptions } = useParameterOptions('insurance_company');
   const createParameter = useCreateParameter();
-  const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const { data: mediaRes, refetch: refetchMedia } = useQuery({
+    queryKey: ['insurances', insurance?.id, 'media'],
+    queryFn: () => apiClient.get(apiRoutes.insurances.media(insurance!.id)).then((r) => r.data),
+    enabled: !!insurance,
+  });
+  const media = mediaRes?.data ?? {};
+
+  const [pendingPolicyDocument, setPendingPolicyDocument] = useState<File[]>([]);
+  const [pendingGreenCard, setPendingGreenCard] = useState<File[]>([]);
+  const [pendingDocuments, setPendingDocuments] = useState<File[]>([]);
+  const [uploadingAfterCreate, setUploadingAfterCreate] = useState(false);
+  const isPending = createMutation.isPending || updateMutation.isPending || uploadingAfterCreate;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -79,6 +97,33 @@ export function InsuranceFormView({ insurance }: Props) {
     }
   }, [insurance, form]);
 
+  const uploadStagedDocuments = async (newId: string) => {
+    if (!pendingPolicyDocument.length && !pendingGreenCard.length && !pendingDocuments.length) return;
+    setUploadingAfterCreate(true);
+    try {
+      if (pendingPolicyDocument[0]) {
+        const fd = new FormData();
+        fd.append('policy_document', pendingPolicyDocument[0]);
+        await apiClient.post(apiRoutes.insurances.uploadPolicyDocument(newId), fd);
+      }
+      if (pendingGreenCard[0]) {
+        const fd = new FormData();
+        fd.append('green_card', pendingGreenCard[0]);
+        await apiClient.post(apiRoutes.insurances.uploadGreenCard(newId), fd);
+      }
+      if (pendingDocuments.length) {
+        const fd = new FormData();
+        pendingDocuments.forEach((f) => fd.append('documents[]', f));
+        await apiClient.post(apiRoutes.insurances.uploadDocuments(newId), fd);
+      }
+      toast.success('Documents téléversés');
+    } catch {
+      toast.error("Assurance créée mais l'upload des documents a échoué");
+    } finally {
+      setUploadingAfterCreate(false);
+    }
+  };
+
   const onSubmit = (values: FormValues) => {
     if (insurance) {
       updateMutation.mutate(values as any, {
@@ -87,7 +132,12 @@ export function InsuranceFormView({ insurance }: Props) {
       });
     } else {
       createMutation.mutate(values as any, {
-        onSuccess: (res) => { toast.success('Assurance créée'); router.push(`/insurances/${(res as any)?.data?.id}`); },
+        onSuccess: async (res) => {
+          toast.success('Assurance créée');
+          const newId = (res as any)?.data?.id;
+          if (newId) await uploadStagedDocuments(newId);
+          router.push(`/insurances/${newId}`);
+        },
         onError: (err) => applyServerErrors(err, form, "Impossible de créer l'assurance"),
       });
     }
@@ -121,7 +171,7 @@ export function InsuranceFormView({ insurance }: Props) {
                 <Button type="button" variant="outline" onClick={() => router.push('/insurances')}>Annuler</Button>
                 <Button type="submit" disabled={isPending} className="gap-1.5">
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  {isPending ? 'Enregistrement…' : insurance ? 'Mettre à jour' : 'Créer'}
+                  {uploadingAfterCreate ? 'Envoi des documents…' : isPending ? 'Enregistrement…' : insurance ? 'Mettre à jour' : 'Créer'}
                 </Button>
               </div>
             </div>
@@ -205,10 +255,40 @@ export function InsuranceFormView({ insurance }: Props) {
               </CardContent>
             </Card>
 
-            {!insurance && (
-              <p className="text-xs text-muted-foreground">
-                Vous pourrez ajouter les documents (police, carte verte, pièces jointes) une fois l&apos;assurance créée.
-              </p>
+            {!insurance ? (
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents (optionnel)</h2>
+                <StagedFileInput label="Police d'assurance (PDF)" accept="application/pdf" files={pendingPolicyDocument} onChange={setPendingPolicyDocument} />
+                <StagedFileInput label="Carte verte" accept="image/*,application/pdf" files={pendingGreenCard} onChange={setPendingGreenCard} />
+                <StagedFileInput label="Autres documents" multiple files={pendingDocuments} onChange={setPendingDocuments} />
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Documents</h2>
+                <SingleDocUpload
+                  label="Police d'assurance (PDF)"
+                  fieldName="policy_document"
+                  uploadUrl={apiRoutes.insurances.uploadPolicyDocument(insurance.id)}
+                  currentUrl={media.policy_document?.[0]?.url}
+                  onUploaded={() => refetchMedia()}
+                />
+                <SingleDocUpload
+                  label="Carte verte"
+                  fieldName="green_card"
+                  uploadUrl={apiRoutes.insurances.uploadGreenCard(insurance.id)}
+                  currentUrl={media.green_card?.[0]?.url}
+                  accept="image/*,application/pdf"
+                  onUploaded={() => refetchMedia()}
+                />
+                <DocumentsSection
+                  title="Autres documents"
+                  entityId={insurance.id}
+                  uploadUrl={apiRoutes.insurances.uploadDocuments(insurance.id)}
+                  deleteUrlFn={(mid) => apiRoutes.insurances.deleteMedia(insurance.id, mid)}
+                  initialDocuments={media.documents ?? []}
+                  onRefresh={() => refetchMedia()}
+                />
+              </div>
             )}
           </form>
         </Form>

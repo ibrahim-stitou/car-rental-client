@@ -137,6 +137,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['n', 'n'],
     items: [],
+    permission: 'view-notification',
   },
   {
     title: "Journal d'activité",
@@ -163,6 +164,7 @@ export const navItems: NavItem[] = [
     isActive: false,
     shortcut: ['r', 'p'],
     items: [],
+    permission: 'view-reports',
   },
   {
     title: 'Site web',

@@ -15,6 +15,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MultiSelect } from '@/components/ui/multi-select';
 import { Textarea } from '@/components/ui/textarea';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,7 +26,7 @@ import { IconArrowLeft, IconFileText } from '@tabler/icons-react';
 import PageContainer from '@/components/layout/page-container';
 
 const schema = z.object({
-  agency_id: z.string().min(1, 'Agence requise'),
+  agency_ids: z.array(z.string()).min(1, 'Au moins une agence requise'),
   first_name: z.string().min(1, 'Prénom requis'),
   last_name: z.string().min(1, 'Nom requis'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
@@ -150,7 +151,7 @@ export function ClientForm({ client }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      agency_id: '', first_name: '', last_name: '', email: '', phone: '',
+      agency_ids: [], first_name: '', last_name: '', email: '', phone: '',
       date_of_birth: '', birth_place: '', nationality: '', id_type: undefined, id_number: '',
       id_expiry_date: '', driving_license_number: '', driving_license_category: '',
       driving_license_expiry: '', license_issue_date: '', license_issue_place: '',
@@ -168,7 +169,7 @@ export function ClientForm({ client }: Props) {
   useEffect(() => {
     if (client) {
       form.reset({
-        agency_id: client.agency_id,
+        agency_ids: client.agencies?.map((a) => a.id) ?? [],
         first_name: client.first_name,
         last_name: client.last_name,
         email: client.email ?? '',
@@ -289,19 +290,16 @@ export function ClientForm({ client }: Props) {
             <Card>
               <CardHeader><CardTitle className="text-base">Agence</CardTitle></CardHeader>
               <CardContent>
-                <FormField control={form.control} name="agency_id" render={({ field }) => (
+                <FormField control={form.control} name="agency_ids" render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Agence <span className="text-destructive">*</span></FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {agencies.map((a) => (
-                          <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <FormLabel>Agence(s) <span className="text-destructive">*</span></FormLabel>
+                    <MultiSelect
+                      options={agencies.map((a) => ({ value: a.id, label: a.name }))}
+                      selected={field.value ?? []}
+                      onChange={field.onChange}
+                      placeholder="Sélectionner une ou plusieurs agences"
+                      className="w-full"
+                    />
                     <FormMessage />
                   </FormItem>
                 )} />
