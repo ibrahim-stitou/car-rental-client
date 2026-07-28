@@ -32,7 +32,8 @@ import { SelectField } from '@/components/shared/select-field';
 import { useCreateReservation, useUpdateReservation } from '../hooks/use-reservations';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
-import { useClients } from '@/features/clients/hooks/use-clients';
+import { useClients, useClient } from '@/features/clients/hooks/use-clients';
+import { useDebounce } from '@/hooks/use-debounce';
 import { PAYMENT_METHOD_OPTIONS, FUEL_LEVEL_OPTIONS } from '@/config/constants';
 import { cn } from '@/lib/utils';
 import apiClient from '@/lib/api';
@@ -224,7 +225,13 @@ export function ReservationFormView({ reservation }: Props) {
 
   const { data: agenciesRes } = useAgencies({ per_page: 200 });
   const { data: vehiclesRes } = useVehicles({ per_page: 200 });
-  const { data: clientsRes } = useClients({ per_page: 200 });
+
+  // Clients are searched server-side (not loaded wholesale): the base has
+  // grown to thousands of rows (migrated history included), each carrying
+  // several media lookups server-side, so loading them all up front isn't viable.
+  const [clientSearch, setClientSearch] = useState('');
+  const debouncedClientSearch = useDebounce(clientSearch, 300);
+  const { data: clientsRes } = useClients({ per_page: 20, search: debouncedClientSearch || undefined });
 
   const [showSecondDriver, setShowSecondDriver] = useState(false);
   const [conflictDismissed, setConflictDismissed] = useState(false);
@@ -245,8 +252,8 @@ export function ReservationFormView({ reservation }: Props) {
 
   const agencies  = (agenciesRes?.data ?? []).map(a => ({ value: a.id, label: a.name, sub: (a as any).city }));
   const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ value: v.id, label: `${v.brand} ${v.model} ${(v as any).year ?? ''}`.trim(), sub: v.registration_number }));
-  const clients   = (clientsRes?.data ?? []).map(c => ({ value: c.id, label: `${(c as any).first_name ?? ''} ${(c as any).last_name ?? ''}`.trim(), sub: (c as any).phone }));
   const rawVehicles = vehiclesRes?.data ?? [];
+  const toClientOption = (c: any) => ({ value: c.id, label: `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(), sub: c.phone });
 
   const schema = isEdit ? editSchema : createSchema;
 
@@ -283,6 +290,20 @@ export function ReservationFormView({ reservation }: Props) {
   const clientId = isEdit ? reservation!.client?.id : watch('client_id');
   const [pickupDate, returnDate, dailyRate, discountPct, additionalFees, initialPaid, secondDriverId] =
     watch(['pickup_date', 'return_date', 'daily_rate', 'discount_percentage', 'additional_fees', 'initial_paid_amount', 'second_driver_id']);
+
+  // The search results above only cover the current search term, so once a
+  // client is selected (in either field) it can fall out of that list the
+  // next time either field's search text changes — fetch it directly and
+  // merge it in so its name keeps showing instead of reverting to the placeholder.
+  const { data: selectedClientRes } = useClient(!isEdit && clientId ? clientId : '');
+  const { data: selectedSecondDriverRes } = useClient(!isEdit && secondDriverId ? secondDriverId : '');
+  const clients = useMemo(() => {
+    const base = (clientsRes?.data ?? []).map(toClientOption);
+    for (const extra of [selectedClientRes?.data, selectedSecondDriverRes?.data]) {
+      if (extra && !base.some(o => o.value === extra.id)) base.unshift(toClientOption(extra));
+    }
+    return base;
+  }, [clientsRes, selectedClientRes, selectedSecondDriverRes]);
 
   // Auto-fill rate & deposit from selected vehicle (create only)
   useEffect(() => {
@@ -498,7 +519,7 @@ export function ReservationFormView({ reservation }: Props) {
                         <FormField control={form.control} name="client_id" render={({ field }) => (
                           <FormItem>
                             <FormLabel>Client <span className="text-red-500">*</span></FormLabel>
-                            <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un client" options={clients} />
+                            <SelectField value={field.value} onChange={field.onChange} placeholder="Sélectionner un client" options={clients} onSearchChange={setClientSearch} />
                             <FormMessage />
                           </FormItem>
                         )} />
@@ -521,7 +542,7 @@ export function ReservationFormView({ reservation }: Props) {
                             <FormField control={form.control} name="second_driver_id" render={({ field }) => (
                               <FormItem>
                                 <FormLabel>2ᵉ conducteur (client)</FormLabel>
-                                <SelectField value={field.value ?? ''} onChange={field.onChange} placeholder="Client existant (optionnel)" options={clients} />
+                                <SelectField value={field.value ?? ''} onChange={field.onChange} placeholder="Client existant (optionnel)" options={clients} onSearchChange={setClientSearch} />
                               </FormItem>
                             )} />
                             <FormField control={form.control} name="second_driver_name" render={({ field }) => (

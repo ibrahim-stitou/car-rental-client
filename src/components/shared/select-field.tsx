@@ -24,6 +24,8 @@ interface SelectFieldProps {
   className?: string;
   /** Enables a "Créer <search>" row when no option matches; onCreateNew receives the typed text. */
   onCreateNew?: (search: string) => void;
+  /** Notified on every keystroke — lets the parent drive a server-side search for large lists where `options` is only a partial/paginated set. */
+  onSearchChange?: (search: string) => void;
 }
 
 /**
@@ -33,10 +35,15 @@ interface SelectFieldProps {
 export function SelectField({
   value, onChange, options, placeholder = 'Sélectionner…',
   searchPlaceholder = 'Rechercher…', emptyText = 'Aucun résultat',
-  disabled, className, onCreateNew,
+  disabled, className, onCreateNew, onSearchChange,
 }: SelectFieldProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+
+  const updateSearch = (v: string) => {
+    setSearch(v);
+    onSearchChange?.(v);
+  };
 
   const filtered = options.filter(o =>
     o.label.toLowerCase().includes(search.toLowerCase()) ||
@@ -61,15 +68,19 @@ export function SelectField({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[--radix-popover-trigger-width] min-w-[280px] p-0" align="start">
-        <Command>
-          <CommandInput placeholder={searchPlaceholder} value={search} onValueChange={setSearch} />
+        {/* shouldFilter=false: cmdk's built-in fuzzy filter matches against
+            CommandItem's `value` prop, which here is the option's id (a UUID),
+            not its visible label — every keystroke would hide all results.
+            We do our own label/sub filtering above instead. */}
+        <Command shouldFilter={false}>
+          <CommandInput placeholder={searchPlaceholder} value={search} onValueChange={updateSearch} />
           <CommandList>
             <CommandEmpty>
               {canCreate ? (
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
-                  onClick={() => { onCreateNew?.(search.trim()); setOpen(false); setSearch(''); }}
+                  onClick={() => { onCreateNew?.(search.trim()); setOpen(false); updateSearch(''); }}
                 >
                   <Plus className="h-3.5 w-3.5" /> Créer « {search.trim()} »
                 </button>
@@ -78,7 +89,7 @@ export function SelectField({
             <CommandGroup>
               {filtered.slice(0, 100).map(item => (
                 <CommandItem key={item.value} value={item.value}
-                  onSelect={v => { onChange(v); setOpen(false); setSearch(''); }}>
+                  onSelect={v => { onChange(v); setOpen(false); updateSearch(''); }}>
                   <div>
                     <div className="text-sm font-medium">{item.label}</div>
                     {item.sub && <div className="text-xs text-muted-foreground">{item.sub}</div>}
@@ -91,7 +102,7 @@ export function SelectField({
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 px-2 py-1.5 text-sm hover:bg-accent rounded-sm"
-                  onClick={() => { onCreateNew?.(search.trim()); setOpen(false); setSearch(''); }}
+                  onClick={() => { onCreateNew?.(search.trim()); setOpen(false); updateSearch(''); }}
                 >
                   <Plus className="h-3.5 w-3.5" /> Créer « {search.trim()} »
                 </button>
