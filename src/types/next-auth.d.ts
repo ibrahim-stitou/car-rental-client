@@ -4,6 +4,8 @@ import type { DefaultSession } from 'next-auth';
 declare module 'next-auth' {
   interface Session {
     accessToken: string;
+    /** Set when a proactive backend token refresh failed (e.g. refresh window expired) — client code should force sign-out. */
+    error?: string;
     user: {
       id: string;
       firstName: string;
@@ -26,12 +28,17 @@ declare module 'next-auth' {
     agencies: Agency[];
     avatarUrl: string | null;
     accessToken: string;
+    accessTokenExpires: number;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
     accessToken: string;
+    /** Epoch ms when accessToken expires — drives the proactive refresh check in the jwt callback. */
+    accessTokenExpires: number;
+    /** Set when a proactive backend token refresh failed. */
+    error?: string;
     id: string;
     firstName: string;
     lastName: string;
