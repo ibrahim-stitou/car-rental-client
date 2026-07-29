@@ -370,11 +370,6 @@ export function ReservationFormView({ reservation }: Props) {
   const existingBalance = isEdit ? Number(reservation!.total_amount) - Number(reservation!.paid_amount) : 0;
 
   const onSubmit = async (values: FormValues) => {
-    if (hasConflict) {
-      toast.error('Conflit de réservation détecté. Veuillez résoudre le conflit avant de continuer.');
-      return;
-    }
-
     if (isEdit) {
       const payload = {
         pickup_date: values.pickup_date,
@@ -466,26 +461,29 @@ export function ReservationFormView({ reservation }: Props) {
                 <Button type="button" variant="outline" onClick={() => router.push(isEdit ? `/reservations/${reservation!.id}` : '/reservations')}>
                   Annuler
                 </Button>
-                <Button type="submit" disabled={isPending || (hasConflict && !conflictDismissed)} className="gap-1.5">
+                <Button type="submit" disabled={isPending} className="gap-1.5">
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer les modifications' : 'Créer la réservation')}
                 </Button>
               </div>
             </div>
 
-            {/* Conflict alert */}
+            {/* Conflict alert — informational only, doesn't block submission */}
             {hasConflict && conflictData?.conflict && (
-              <Alert className="border-red-400 bg-red-50">
-                <CalendarX className="h-4 w-4 text-red-600 flex-shrink-0" />
-                <AlertDescription className="text-red-800 text-sm">
-                  <div className="font-semibold mb-1">Conflit de réservation détecté !</div>
-                  <div>Réservation <span className="font-mono font-bold">{conflictData.conflict.reservation_number}</span> — statut : <Badge variant="outline" className="text-xs capitalize">{conflictData.conflict.status}</Badge></div>
-                  <div className="text-xs mt-1">
-                    {formatDT(conflictData.conflict.pickup_date)} → {formatDT(conflictData.conflict.return_date)}
-                    {conflictData.conflict.client && <span> · {conflictData.conflict.client.full_name} ({conflictData.conflict.client.phone})</span>}
+              <Alert className="border-amber-400 bg-amber-50">
+                <CalendarX className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                <AlertDescription className="text-amber-800 text-sm">
+                  <div className="font-semibold mb-1">Ce véhicule est déjà réservé sur cette période</div>
+                  <div>
+                    Réservation <span className="font-mono font-bold">{conflictData.conflict.reservation_number}</span>
+                    {' '}— statut : <Badge variant="outline" className="text-xs capitalize">{conflictData.conflict.status}</Badge>
+                    {conflictData.conflict.client && <> par <span className="font-semibold">{conflictData.conflict.client.full_name}</span> ({conflictData.conflict.client.phone})</>}
                   </div>
-                  <Button type="button" variant="ghost" size="sm" className="mt-1 h-6 text-xs text-red-700 hover:text-red-900 p-0" onClick={() => setConflictDismissed(true)}>
-                    Ignorer cet avertissement
+                  <div className="text-xs mt-1">
+                    Du {formatDT(conflictData.conflict.pickup_date)} au {formatDT(conflictData.conflict.return_date)}
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" className="mt-1 h-6 text-xs text-amber-700 hover:text-amber-900 p-0" onClick={() => setConflictDismissed(true)}>
+                    Masquer
                   </Button>
                 </AlertDescription>
               </Alert>
@@ -862,7 +860,7 @@ export function ReservationFormView({ reservation }: Props) {
                       </>
                     )}
 
-                    <Button type="submit" className="w-full gap-1.5 mt-2" disabled={isPending || (hasConflict && !conflictDismissed)}>
+                    <Button type="submit" className="w-full gap-1.5 mt-2" disabled={isPending}>
                       {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                       {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer' : 'Créer la réservation')}
                     </Button>
