@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
-import { parseISO, differenceInCalendarDays, format } from 'date-fns';
+import { parseISO, differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   ArrowLeft, Save, UserPlus, UserMinus, Car, User,
@@ -357,7 +357,10 @@ export function ReservationFormView({ reservation }: Props) {
   // Financial calculations
   const days = useMemo(() => {
     if (!pickupDate || !returnDate) return 0;
-    try { return Math.max(1, differenceInCalendarDays(parseISO(returnDate), parseISO(pickupDate))); } catch { return 0; }
+    try {
+      const ms = differenceInMilliseconds(parseISO(returnDate), parseISO(pickupDate));
+      return Math.max(1, Math.ceil(ms / (1000 * 60 * 60 * 24)));
+    } catch { return 0; }
   }, [pickupDate, returnDate]);
   const subtotal = Number(dailyRate) * days;
   const discount = subtotal * (Number(discountPct ?? 0) / 100);

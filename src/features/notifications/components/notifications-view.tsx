@@ -45,7 +45,7 @@ export function NotificationsView() {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" className="h-8 w-8 p-1.5 text-blue-600 hover:bg-blue-50" onClick={async () => {
-                  try { await apiClient.post(apiRoutes.notifications.markRead(row.id)); toast.success('Notification lue'); refresh(); }
+                  try { await apiClient.patch(apiRoutes.notifications.markRead(row.id)); toast.success('Notification lue'); refresh(); }
                   catch { toast.error('Échec'); }
                 }}><Check className="h-4 w-4" /></Button>
               </TooltipTrigger>
