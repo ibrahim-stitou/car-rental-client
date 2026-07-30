@@ -54,14 +54,24 @@ export const authConfig = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         try {
+          // authorize() runs server-side: the Laravel call below is made by
+          // the Next.js server itself, so $request->ip() on the backend would
+          // otherwise see this server's own IP, not the real browser's. Nginx
+          // already puts the true client IP first in the incoming request's
+          // X-Forwarded-For (see nginx `proxy_set_header X-Forwarded-For
+          // $proxy_add_x_forwarded_for`) — forward just that value explicitly.
+          const forwardedFor = request?.headers?.get('x-forwarded-for');
+          const clientIp = forwardedFor?.split(',')[0]?.trim() || request?.headers?.get('x-real-ip') || undefined;
+
           const { data } = await apiClient.post<{ data: LoginResponse }>(
             apiRoutes.auth.login,
             {
               email: credentials?.email,
               password: credentials?.password,
-            }
+            },
+            clientIp ? { headers: { 'X-Client-Ip': clientIp } } : undefined
           );
 
           const { access_token, expires_in, user } = data.data;
