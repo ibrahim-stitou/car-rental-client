@@ -31,7 +31,7 @@ export function SecurityView() {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      await apiClient.post(apiRoutes.auth.changePassword, values);
+      await apiClient.put(apiRoutes.auth.changePassword, values);
       toast.success('Mot de passe modifié avec succès');
       form.reset();
     } catch (err: any) {
