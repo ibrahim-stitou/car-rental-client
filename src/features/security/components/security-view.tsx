@@ -14,11 +14,11 @@ import { applyServerErrors } from '@/lib/form-errors';
 
 const schema = z.object({
   current_password: z.string().min(1, 'Le mot de passe actuel est requis'),
-  new_password: z.string().min(8, 'Le nouveau mot de passe doit contenir au moins 8 caractères'),
-  new_password_confirmation: z.string().min(8, 'Le nouveau mot de passe doit contenir au moins 8 caractères'),
-}).refine((d) => d.new_password === d.new_password_confirmation, {
+  password: z.string().min(8, 'Le nouveau mot de passe doit contenir au moins 8 caractères'),
+  password_confirmation: z.string().min(8, 'La confirmation doit contenir au moins 8 caractères'),
+}).refine((d) => d.password === d.password_confirmation, {
   message: 'Les mots de passe ne correspondent pas',
-  path: ['new_password_confirmation'],
+  path: ['password_confirmation'],
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -26,7 +26,7 @@ type FormValues = z.infer<typeof schema>;
 export function SecurityView() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { current_password: '', new_password: '', new_password_confirmation: '' },
+    defaultValues: { current_password: '', password: '', password_confirmation: '' },
   });
 
   const onSubmit = async (values: FormValues) => {
@@ -54,15 +54,41 @@ export function SecurityView() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 max-w-xl">
-              <FormField control={form.control} name="current_password" render={({ field }) => (
-                <FormItem><FormLabel>Mot de passe actuel *</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="new_password" render={({ field }) => (
-                <FormItem><FormLabel>Nouveau mot de passe *</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
-              <FormField control={form.control} name="new_password_confirmation" render={({ field }) => (
-                <FormItem><FormLabel>Confirm Nouveau mot de passe *</FormLabel><FormControl><Input type="password" {...field} /></FormControl><FormMessage /></FormItem>
-              )} />
+              <FormField
+                control={form.control}
+                name="current_password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mot de passe actuel *</FormLabel>
+                    <FormControl><Input type="password" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Changement du name à 'password' */}
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nouveau mot de passe *</FormLabel>
+                    <FormControl><Input type="password" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Changement du name à 'password_confirmation' */}
+              <FormField
+                control={form.control}
+                name="password_confirmation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmer le nouveau mot de passe *</FormLabel>
+                    <FormControl><Input type="password" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="flex justify-end">
                 <Button type="submit" disabled={form.formState.isSubmitting}>
                   {form.formState.isSubmitting ? 'Enregistrement…' : 'Changer le mot de passe'}
