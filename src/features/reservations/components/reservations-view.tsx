@@ -294,6 +294,7 @@ export function ReservationsView() {
     { field: 'status', label: 'Statut', type: 'select', options: RESERVATION_STATUS_OPTIONS },
     { field: 'payment_status', label: 'Paiement', type: 'select', options: PAYMENT_STATUS_OPTIONS },
     { field: 'overdue', label: 'En retard uniquement', type: 'checkbox' },
+    { field: 'legacy_id', label: 'En archive', type: 'checkbox' },
     { field: 'date_from', label: 'Du', type: 'date', group: 'date' },
     { field: 'date_to', label: 'Au', type: 'date', group: 'date' },
   ];

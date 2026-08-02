@@ -93,8 +93,8 @@ type FormValues = CreateValues & Partial<EditValues>;
 /* ─── DateTimeField ───────────────────────────────────────────────────────── */
 
 function DateTimeField({
-  label, value, onChange, placeholder, minDate,
-}: {
+                         label, value, onChange, placeholder, minDate,
+                       }: {
   label: string; value: string; onChange: (v: string) => void;
   placeholder?: string; minDate?: Date;
 }) {
@@ -109,7 +109,7 @@ function DateTimeField({
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline"
-              className={cn('flex-1 justify-start text-left font-normal h-10', !value && 'text-muted-foreground')}>
+                    className={cn('flex-1 justify-start text-left font-normal h-10', !value && 'text-muted-foreground')}>
               <Calendar className="mr-2 h-4 w-4" />
               {parsed ? format(parsed, 'dd/MM/yyyy', { locale: fr }) : (placeholder ?? 'Choisir une date')}
             </Button>
@@ -367,7 +367,12 @@ export function ReservationFormView({ reservation }: Props) {
   const total = subtotal - discount + Number(additionalFees ?? 0);
   const balance = total - Number(initialPaid ?? 0);
 
-  const existingBalance = isEdit ? Number(reservation!.total_amount) - Number(reservation!.paid_amount) : 0;
+  // FIX: previously this used `reservation!.total_amount`, the value stored
+  // server-side at creation time, which never changes when the user edits
+  // dates/rate/discount/fees in the form — so "Solde restant" appeared frozen.
+  // It must be derived from the live recalculated `total` instead, same as
+  // the "Total" line above, so it reacts to date/rate/discount/fee changes.
+  const existingBalance = isEdit ? total - Number(reservation!.paid_amount) : 0;
 
   const onSubmit = async (values: FormValues) => {
     if (isEdit) {
@@ -451,7 +456,7 @@ export function ReservationFormView({ reservation }: Props) {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
-                  onClick={() => router.push(isEdit ? `/reservations/${reservation!.id}` : '/reservations')}>
+                        onClick={() => router.push(isEdit ? `/reservations/${reservation!.id}` : '/reservations')}>
                   <ArrowLeft className="h-4 w-4" />{isEdit ? reservation!.reference : 'Réservations'}
                 </Button>
                 <span className="text-muted-foreground">/</span>
@@ -531,7 +536,7 @@ export function ReservationFormView({ reservation }: Props) {
                       {/* Second driver toggle */}
                       <div className="mt-4">
                         <Button type="button" variant="outline" size="sm" className="gap-1.5"
-                          onClick={() => setShowSecondDriver(p => !p)}>
+                                onClick={() => setShowSecondDriver(p => !p)}>
                           {showSecondDriver ? <UserMinus className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
                           {showSecondDriver ? 'Supprimer le 2ᵉ conducteur' : 'Ajouter un 2ᵉ conducteur'}
                         </Button>
@@ -604,8 +609,8 @@ export function ReservationFormView({ reservation }: Props) {
                     <FormField control={form.control} name="return_date" render={({ field }) => (
                       <FormItem>
                         <DateTimeField label="Date de retour *" value={field.value ?? ''} onChange={field.onChange}
-                          placeholder="Choisir la date de retour"
-                          minDate={pickupDate ? parseISO(pickupDate) : undefined}
+                                       placeholder="Choisir la date de retour"
+                                       minDate={pickupDate ? parseISO(pickupDate) : undefined}
                         />
                         <FormMessage />
                       </FormItem>
@@ -751,7 +756,7 @@ export function ReservationFormView({ reservation }: Props) {
                         className="sm:flex-1"
                       />
                       <Button type="button" variant="outline" className="gap-1.5"
-                        onClick={addPendingDoc} disabled={!docFile || !docTitle.trim()}>
+                              onClick={addPendingDoc} disabled={!docFile || !docTitle.trim()}>
                         <Plus className="h-4 w-4" />Ajouter à la liste
                       </Button>
                     </div>
@@ -764,7 +769,7 @@ export function ReservationFormView({ reservation }: Props) {
                               <div className="text-xs text-muted-foreground truncate">{d.file.name}</div>
                             </div>
                             <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:bg-red-50"
-                              onClick={() => removePendingDoc(i)}>
+                                    onClick={() => removePendingDoc(i)}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </div>

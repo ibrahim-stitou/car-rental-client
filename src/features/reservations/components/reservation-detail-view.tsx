@@ -53,9 +53,13 @@ const FUEL_FR: Record<string, string> = { empty: 'Vide', quarter: '1/4', half: '
 
 /* ─── Helpers ─────────────────────────────────────────────────────────────── */
 
+// FIX: previously this formatted date-only ('dd/MM/yyyy'), dropping the time
+// component even though pickup/return dates are stored as datetimes. Now
+// includes the time (HH:mm) everywhere this helper is used — banner,
+// info rows, and payments table.
 function fmtDate(d: string | null | undefined) {
   if (!d) return '—';
-  try { return format(parseISO(d), 'dd/MM/yyyy', { locale: fr }); } catch { return String(d); }
+  try { return format(parseISO(d), 'dd/MM/yyyy HH:mm', { locale: fr }); } catch { return String(d); }
 }
 function fmtDateTime(d: string | null | undefined) {
   if (!d) return '—';
@@ -107,7 +111,7 @@ function CancelDialog({ open, onOpenChange, reservationId, onSuccess }: {
         <div className="space-y-2 py-2">
           <Label>Motif <span className="text-red-500">*</span></Label>
           <Textarea rows={3} value={reason} onChange={e => setReason(e.target.value)}
-            placeholder="Raison de l'annulation…" className="resize-none" />
+                    placeholder="Raison de l'annulation…" className="resize-none" />
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Fermer</Button>
@@ -182,7 +186,7 @@ function ContractFrame({ resId, resRef }: { resId: string; resRef: string }) {
         </div>
       </div>
       <iframe id="contract-frame" src={blobUrl}
-        className="w-full rounded-lg border shadow-sm" style={{ height: '820px' }} title="Contrat de location" />
+              className="w-full rounded-lg border shadow-sm" style={{ height: '820px' }} title="Contrat de location" />
     </div>
   );
 }
@@ -256,7 +260,7 @@ export function ReservationDetailView({ id }: { id: string }) {
         {/* Breadcrumb */}
         <div className="flex items-center gap-3 flex-wrap">
           <Button variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground hover:text-foreground"
-            onClick={() => router.push('/reservations')}>
+                  onClick={() => router.push('/reservations')}>
             <ArrowLeft className="h-4 w-4" />Réservations
           </Button>
           <span className="text-muted-foreground">/</span>
@@ -285,15 +289,15 @@ export function ReservationDetailView({ id }: { id: string }) {
             {/* Modifier */}
             {['pending', 'confirmed'].includes(reservation.status) && (
               <Button size="sm" variant="outline" className="gap-1 bg-white/60 hover:bg-white"
-                onClick={() => router.push(`/reservations/${id}/edit`)}>
+                      onClick={() => router.push(`/reservations/${id}/edit`)}>
                 <Edit className="h-4 w-4" />Modifier
               </Button>
             )}
             {/* Confirmer */}
             {reservation.status === 'pending' && (
               <Button size="sm" className="gap-1 bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                disabled={!!pendingAction}
-                onClick={() => setValidateOpen(true)}>
+                      disabled={!!pendingAction}
+                      onClick={() => setValidateOpen(true)}>
                 {pendingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                 Confirmer
               </Button>
@@ -301,46 +305,46 @@ export function ReservationDetailView({ id }: { id: string }) {
             {/* Activer */}
             {reservation.status === 'confirmed' && (
               <Button size="sm" className="gap-1 bg-green-600 hover:bg-green-700 text-white shadow-sm"
-                disabled={!!pendingAction}
-                onClick={() => doAction(apiRoutes.reservations.activate(id), 'patch', 'Réservation activée')}>
+                      disabled={!!pendingAction}
+                      onClick={() => doAction(apiRoutes.reservations.activate(id), 'patch', 'Réservation activée')}>
                 <Play className="h-4 w-4" />Activer (départ)
               </Button>
             )}
             {/* Terminer */}
             {reservation.status === 'active' && (
               <Button size="sm" className="gap-1 bg-slate-700 hover:bg-slate-800 text-white shadow-sm"
-                onClick={() => setCompleteOpen(true)}>
+                      onClick={() => setCompleteOpen(true)}>
                 <Square className="h-4 w-4" />Terminer (retour)
               </Button>
             )}
             {/* Paiement */}
             {!['cancelled', 'no_show'].includes(reservation.status) && (
               <Button size="sm" variant="outline" className="gap-1 bg-white/60 hover:bg-violet-50 text-violet-700 border-violet-200"
-                onClick={() => setPaymentOpen(true)}>
+                      onClick={() => setPaymentOpen(true)}>
                 <CreditCard className="h-4 w-4" />Paiements
               </Button>
             )}
             {/* Annuler */}
             {['pending', 'confirmed'].includes(reservation.status) && (
               <Button size="sm" variant="outline" className="gap-1 bg-white/60 hover:bg-red-50 text-red-700 border-red-200"
-                onClick={() => setCancelOpen(true)}>
+                      onClick={() => setCancelOpen(true)}>
                 <X className="h-4 w-4" />Annuler
               </Button>
             )}
             {/* Contrat PDF */}
             <Button size="sm" variant="outline" className="gap-1 bg-white/60 hover:bg-white"
-              onClick={async () => {
-                const toastId = toast.loading('Téléchargement…');
-                try {
-                  const res = await apiClient.get<BlobPart>(apiRoutes.reservationsExt.contract(id), { responseType: 'blob' });
-                  const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
-                  const a = document.createElement('a');
-                  a.href = url; a.download = `contrat-${(r.reference ?? 'reservation').toLowerCase()}.pdf`;
-                  document.body.appendChild(a); a.click(); document.body.removeChild(a);
-                  setTimeout(() => URL.revokeObjectURL(url), 5000);
-                  toast.dismiss(toastId);
-                } catch { toast.dismiss(toastId); toast.error('Impossible de télécharger le contrat'); }
-              }}>
+                    onClick={async () => {
+                      const toastId = toast.loading('Téléchargement…');
+                      try {
+                        const res = await apiClient.get<BlobPart>(apiRoutes.reservationsExt.contract(id), { responseType: 'blob' });
+                        const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+                        const a = document.createElement('a');
+                        a.href = url; a.download = `contrat-${(r.reference ?? 'reservation').toLowerCase()}.pdf`;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+                        setTimeout(() => URL.revokeObjectURL(url), 5000);
+                        toast.dismiss(toastId);
+                      } catch { toast.dismiss(toastId); toast.error('Impossible de télécharger le contrat'); }
+                    }}>
               <Download className="h-4 w-4" />Contrat PDF
             </Button>
           </div>
@@ -386,10 +390,10 @@ export function ReservationDetailView({ id }: { id: string }) {
                       <InfoRow label="Retour prévu" value={fmtDate(reservation.return_date)} />
                       {reservation.actual_return_date && <InfoRow label="Retour effectif" value={fmtDate(reservation.actual_return_date)} />}
                       <InfoRow label="Lieu de départ"
-                        value={<span className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />{r.pickup_location}</span>}
+                               value={<span className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />{r.pickup_location}</span>}
                       />
                       <InfoRow label="Lieu de retour"
-                        value={<span className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />{r.return_location}</span>}
+                               value={<span className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />{r.return_location}</span>}
                       />
                     </div>
                   </CardContent>
@@ -434,7 +438,7 @@ export function ReservationDetailView({ id }: { id: string }) {
                       </div>
                       {reservation.client?.phone && (
                         <InfoRow label="Téléphone"
-                          value={<span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" />{reservation.client.phone}</span>}
+                                 value={<span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-muted-foreground" />{reservation.client.phone}</span>}
                         />
                       )}
                     </div>
@@ -579,7 +583,7 @@ export function ReservationDetailView({ id }: { id: string }) {
                     <CardContent className="pt-4 space-y-2">
                       <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Réservation active</p>
                       <Button size="sm" variant="outline" className="w-full gap-1 text-xs"
-                        onClick={() => setExtendOpen(true)}>
+                              onClick={() => setExtendOpen(true)}>
                         <Calendar className="h-3.5 w-3.5" />Prolonger
                       </Button>
                     </CardContent>
@@ -706,24 +710,24 @@ function PaymentsTab({ reservationId }: { reservationId: string }) {
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b bg-muted/40">
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase">Date</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase">Mode</th>
-                <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase">Montant</th>
-                <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase">Note</th>
-              </tr>
+            <tr className="border-b bg-muted/40">
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase">Date</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase">Mode</th>
+              <th className="px-4 py-2.5 text-right text-xs font-semibold text-muted-foreground uppercase">Montant</th>
+              <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase">Note</th>
+            </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {payments.map((p: any, i: number) => (
-                <tr key={p.id ?? i} className="hover:bg-muted/20">
-                  <td className="px-4 py-3 text-xs">{fmtDate(p.payment_date ?? p.created_at)}</td>
-                  <td className="px-4 py-3">
-                    <Badge variant="outline" className="text-xs">{PAY_METHOD_FR[p.payment_method] ?? p.payment_method}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right font-mono font-semibold">{fmtMoney(p.amount)} MAD</td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground italic">{p.notes ?? '—'}</td>
-                </tr>
-              ))}
+            {payments.map((p: any, i: number) => (
+              <tr key={p.id ?? i} className="hover:bg-muted/20">
+                <td className="px-4 py-3 text-xs">{fmtDate(p.payment_date ?? p.created_at)}</td>
+                <td className="px-4 py-3">
+                  <Badge variant="outline" className="text-xs">{PAY_METHOD_FR[p.payment_method] ?? p.payment_method}</Badge>
+                </td>
+                <td className="px-4 py-3 text-right font-mono font-semibold">{fmtMoney(p.amount)} MAD</td>
+                <td className="px-4 py-3 text-xs text-muted-foreground italic">{p.notes ?? '—'}</td>
+              </tr>
+            ))}
             </tbody>
           </table>
         )}
