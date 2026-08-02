@@ -52,19 +52,27 @@ export function useClientReservations(id: string, params?: { per_page?: number; 
   });
 }
 
-export function useUploadIdDocument(id: string) {
-  const qc = useQueryClient();
+export function useUploadIdDocument(clientId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (file: File) => clientService.uploadIdDocument(id, file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: clientKeys.all }),
+    mutationFn: ({ file, side }: { file: File; side: 'recto' | 'verso' }) =>
+      clientService.uploadIdDocument(clientId, file, side),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['client-statistics', clientId] });
+    },
   });
 }
 
-export function useUploadDrivingLicense(id: string) {
-  const qc = useQueryClient();
+export function useUploadDrivingLicense(clientId: string) {
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (file: File) => clientService.uploadDrivingLicense(id, file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: clientKeys.all }),
+    mutationFn: ({ file, side }: { file: File; side: 'recto' | 'verso' }) =>
+      clientService.uploadDrivingLicense(clientId, file, side),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clients', clientId] });
+      queryClient.invalidateQueries({ queryKey: ['client-statistics', clientId] });
+    },
   });
 }
 

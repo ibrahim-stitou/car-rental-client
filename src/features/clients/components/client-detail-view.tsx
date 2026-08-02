@@ -20,6 +20,7 @@ import {
   IconEdit, IconFileText,
 } from '@tabler/icons-react';
 import PageContainer from '@/components/layout/page-container';
+import type { DocSide } from '@/types/client.types';
 
 interface Props { clientId: string }
 
@@ -50,14 +51,14 @@ function DocViewer({ url, label }: { url: string; label: string }) {
 }
 
 function UploadSection({
-  label,
-  currentUrl,
-  onUpload,
-  onDelete,
-  isPending,
-  isDeleting,
-  accept,
-}: {
+                         label,
+                         currentUrl,
+                         onUpload,
+                         onDelete,
+                         isPending,
+                         isDeleting,
+                         accept,
+                       }: {
   label: string;
   currentUrl?: string | null;
   onUpload: (file: File) => void;
@@ -166,9 +167,22 @@ export function ClientDetailView({ clientId }: Props) {
 
   if (!stats) return <PageContainer><div className="p-6 text-muted-foreground">Client introuvable.</div></PageContainer>;
 
-  const handleUpload = (mutation: typeof uploadId, label: string) => async (file: File) => {
-    mutation.mutate(file, {
-      onSuccess: () => toast.success(`${label} téléversé avec succès`),
+  // Upload recto/verso pour CIN/Passeport et Permis (side requis)
+  const handleDocUpload = (
+    mutation: typeof uploadId | typeof uploadLicense,
+    side: DocSide,
+    label: string,
+  ) => async (file: File) => {
+    mutation.mutate({ file, side }, {
+      onSuccess: () => toast.success(`${label} (${side === 'recto' ? 'recto' : 'verso'}) téléversé avec succès`),
+      onError: () => toast.error('Échec du téléversement'),
+    });
+  };
+
+  // Upload simple pour le selfie (pas de side)
+  const handleSelfieUpload = async (file: File) => {
+    uploadSelfie.mutate(file, {
+      onSuccess: () => toast.success('Selfie téléversé avec succès'),
       onError: () => toast.error('Échec du téléversement'),
     });
   };
@@ -300,44 +314,77 @@ export function ClientDetailView({ clientId }: Props) {
           {/* Documents */}
           <TabsContent value="documents" className="mt-4">
             <div className="grid lg:grid-cols-2 gap-6">
+              {/* CIN / Passeport */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <IconFileText className="h-4 w-4" />CIN / Passeport
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <UploadSection
-                    label="Pièce d'identité"
-                    currentUrl={client?.id_document}
-                    onUpload={handleUpload(uploadId, "Pièce d'identité")}
-                    onDelete={client?.id_document_media_id ? handleDelete(client.id_document_media_id, "Pièce d'identité") : undefined}
-                    isPending={uploadId.isPending}
-                    isDeleting={deleteMedia.isPending}
-                    accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
-                  />
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Recto</p>
+                    <UploadSection
+                      label="CIN / Passeport"
+                      currentUrl={client?.id_document_recto}
+                      onUpload={handleDocUpload(uploadId, 'recto', "Pièce d'identité")}
+                      onDelete={client?.id_document_recto_media_id ? handleDelete(client.id_document_recto_media_id, "Pièce d'identité (recto)") : undefined}
+                      isPending={uploadId.isPending}
+                      isDeleting={deleteMedia.isPending}
+                      accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Verso</p>
+                    <UploadSection
+                      label="CIN / Passeport"
+                      currentUrl={client?.id_document_verso}
+                      onUpload={handleDocUpload(uploadId, 'verso', "Pièce d'identité")}
+                      onDelete={client?.id_document_verso_media_id ? handleDelete(client.id_document_verso_media_id, "Pièce d'identité (verso)") : undefined}
+                      isPending={uploadId.isPending}
+                      isDeleting={deleteMedia.isPending}
+                      accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
+                    />
+                  </div>
                 </CardContent>
               </Card>
 
+              {/* Permis de conduire */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <IconFileText className="h-4 w-4" />Permis de conduire
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <UploadSection
-                    label="Permis de conduire"
-                    currentUrl={client?.driving_license_doc}
-                    onUpload={handleUpload(uploadLicense, 'Permis de conduire')}
-                    onDelete={client?.driving_license_media_id ? handleDelete(client.driving_license_media_id, 'Permis de conduire') : undefined}
-                    isPending={uploadLicense.isPending}
-                    isDeleting={deleteMedia.isPending}
-                    accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
-                  />
+                <CardContent className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Recto</p>
+                    <UploadSection
+                      label="Permis de conduire"
+                      currentUrl={client?.driving_license_recto}
+                      onUpload={handleDocUpload(uploadLicense, 'recto', 'Permis de conduire')}
+                      onDelete={client?.driving_license_recto_media_id ? handleDelete(client.driving_license_recto_media_id, 'Permis de conduire (recto)') : undefined}
+                      isPending={uploadLicense.isPending}
+                      isDeleting={deleteMedia.isPending}
+                      accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Verso</p>
+                    <UploadSection
+                      label="Permis de conduire"
+                      currentUrl={client?.driving_license_verso}
+                      onUpload={handleDocUpload(uploadLicense, 'verso', 'Permis de conduire')}
+                      onDelete={client?.driving_license_verso_media_id ? handleDelete(client.driving_license_verso_media_id, 'Permis de conduire (verso)') : undefined}
+                      isPending={uploadLicense.isPending}
+                      isDeleting={deleteMedia.isPending}
+                      accept={{ 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] }}
+                    />
+                  </div>
                 </CardContent>
               </Card>
 
+              {/* Selfie */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
@@ -348,7 +395,7 @@ export function ClientDetailView({ clientId }: Props) {
                   <UploadSection
                     label="Selfie"
                     currentUrl={client?.selfie}
-                    onUpload={handleUpload(uploadSelfie, 'Selfie')}
+                    onUpload={handleSelfieUpload}
                     onDelete={client?.selfie_media_id ? handleDelete(client.selfie_media_id, 'Selfie') : undefined}
                     isPending={uploadSelfie.isPending}
                     isDeleting={deleteMedia.isPending}
@@ -384,7 +431,7 @@ export function ClientDetailView({ clientId }: Props) {
                           </div>
                           <StatusBadge status={r.status} />
                           <Button variant="ghost" size="sm" className="h-7 text-xs"
-                            onClick={() => setPaymentDialogId({ id: r.id, ref: r.reservation_number })}>
+                                  onClick={() => setPaymentDialogId({ id: r.id, ref: r.reservation_number })}>
                             <IconCurrencyDirham className="h-3.5 w-3.5 mr-1" />Paiements
                           </Button>
                         </div>
@@ -419,7 +466,7 @@ export function ClientDetailView({ clientId }: Props) {
                         <div className="flex items-center gap-3">
                           <span className="font-bold text-orange-700">{fmt(r.credit_amount)} MAD restant</span>
                           <Button size="sm" variant="outline" className="h-7 text-xs border-orange-300"
-                            onClick={() => setPaymentDialogId({ id: r.id, ref: r.reservation_number })}>
+                                  onClick={() => setPaymentDialogId({ id: r.id, ref: r.reservation_number })}>
                             Encaisser
                           </Button>
                         </div>

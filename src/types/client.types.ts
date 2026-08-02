@@ -1,4 +1,5 @@
 export type IdType = 'cin' | 'passport' | 'residence_permit';
+export type DocSide = 'recto' | 'verso';
 
 export interface Client {
   id: string;
@@ -24,10 +25,19 @@ export interface Client {
   is_blacklisted: boolean;
   blacklist_reason: string | null;
   notes: string | null;
-  id_document: string | null;
-  id_document_media_id: number | null;
-  driving_license_doc: string | null;
-  driving_license_media_id: number | null;
+
+  // Pièce d'identité — recto / verso
+  id_document_recto: string | null;
+  id_document_recto_media_id: number | null;
+  id_document_verso: string | null;
+  id_document_verso_media_id: number | null;
+
+  // Permis de conduire — recto / verso
+  driving_license_recto: string | null;
+  driving_license_recto_media_id: number | null;
+  driving_license_verso: string | null;
+  driving_license_verso_media_id: number | null;
+
   selfie: string | null;
   selfie_media_id: number | null;
   reservations_count?: number;

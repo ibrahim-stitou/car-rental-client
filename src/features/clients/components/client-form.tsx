@@ -49,6 +49,7 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+type Side = 'recto' | 'verso';
 
 interface Props {
   client?: Client | null;
@@ -68,8 +69,8 @@ function strToDate(s: string | null | undefined) {
 }
 
 function DocPreview({
-  url, label, onDelete, isDeleting,
-}: {
+                      url, label, onDelete, isDeleting,
+                    }: {
   url: string;
   label: string;
   onDelete?: () => void;
@@ -122,20 +123,64 @@ function DocPreview({
   );
 }
 
+/** One recto or verso slot: shows current doc (edit mode) + dropzone to add/replace it */
+function DocSideSlot({
+                       side, label, url, isEdit, onDropFiles, onDelete, isUploading, isDeleting,
+                     }: {
+  side: Side;
+  label: string;
+  url: string | null;
+  isEdit: boolean;
+  onDropFiles: (files: File[]) => void;
+  onDelete?: () => void;
+  isUploading?: boolean;
+  isDeleting?: boolean;
+}) {
+  const [localFiles, setLocalFiles] = useState<File[]>([]);
+  return (
+    <div>
+      <p className="text-xs font-medium mb-1.5 text-muted-foreground">
+        {side === 'recto' ? 'Recto' : 'Verso'}
+        {isUploading && <span className="ml-1">— Téléversement…</span>}
+      </p>
+      {isEdit && url && (
+        <DocPreview url={url} label={label} onDelete={onDelete} isDeleting={isDeleting} />
+      )}
+      <FileUploader
+        value={isEdit ? [] : localFiles}
+        onValueChange={isEdit ? undefined : (v) => { setLocalFiles(v as File[]); onDropFiles(v as File[]); }}
+        onUpload={isEdit ? onDropFiles : undefined}
+        accept={DOC_ACCEPT}
+        maxSize={DOC_MAX}
+        maxFiles={1}
+        disabled={isUploading || isDeleting}
+      />
+    </div>
+  );
+}
+
 export function ClientForm({ client }: Props) {
   const router = useRouter();
   const isEdit = !!client;
 
-  // Document files (for create: staged until after client creation)
-  const [idDocFiles, setIdDocFiles] = useState<File[]>([]);
-  const [licenseFiles, setLicenseFiles] = useState<File[]>([]);
+  // Staged files for create mode (uploaded after client creation)
+  const [idDocFiles, setIdDocFiles] = useState<{ recto: File[]; verso: File[] }>({ recto: [], verso: [] });
+  const [licenseFiles, setLicenseFiles] = useState<{ recto: File[]; verso: File[] }>({ recto: [], verso: [] });
   const [uploading, setUploading] = useState(false);
 
   // Local doc state (avoids form reset on delete)
-  const [idDocUrl, setIdDocUrl] = useState<string | null>(client?.id_document ?? null);
-  const [idDocMediaId, setIdDocMediaId] = useState<number | null>(client?.id_document_media_id ?? null);
-  const [licenseUrl, setLicenseUrl] = useState<string | null>(client?.driving_license_doc ?? null);
-  const [licenseMediaId, setLicenseMediaId] = useState<number | null>(client?.driving_license_media_id ?? null);
+  const [idDoc, setIdDoc] = useState({
+    rectoUrl: client?.id_document_recto ?? null,
+    rectoMediaId: client?.id_document_recto_media_id ?? null,
+    versoUrl: client?.id_document_verso ?? null,
+    versoMediaId: client?.id_document_verso_media_id ?? null,
+  });
+  const [license, setLicense] = useState({
+    rectoUrl: client?.driving_license_recto ?? null,
+    rectoMediaId: client?.driving_license_recto_media_id ?? null,
+    versoUrl: client?.driving_license_verso ?? null,
+    versoMediaId: client?.driving_license_verso_media_id ?? null,
+  });
 
   // Mutations
   const createMutation = useCreateClient();
@@ -160,11 +205,24 @@ export function ClientForm({ client }: Props) {
   });
 
   useEffect(() => {
-    setIdDocUrl(client?.id_document ?? null);
-    setIdDocMediaId(client?.id_document_media_id ?? null);
-    setLicenseUrl(client?.driving_license_doc ?? null);
-    setLicenseMediaId(client?.driving_license_media_id ?? null);
-  }, [client?.id_document, client?.id_document_media_id, client?.driving_license_doc, client?.driving_license_media_id]);
+    setIdDoc({
+      rectoUrl: client?.id_document_recto ?? null,
+      rectoMediaId: client?.id_document_recto_media_id ?? null,
+      versoUrl: client?.id_document_verso ?? null,
+      versoMediaId: client?.id_document_verso_media_id ?? null,
+    });
+    setLicense({
+      rectoUrl: client?.driving_license_recto ?? null,
+      rectoMediaId: client?.driving_license_recto_media_id ?? null,
+      versoUrl: client?.driving_license_verso ?? null,
+      versoMediaId: client?.driving_license_verso_media_id ?? null,
+    });
+  }, [
+    client?.id_document_recto, client?.id_document_recto_media_id,
+    client?.id_document_verso, client?.id_document_verso_media_id,
+    client?.driving_license_recto, client?.driving_license_recto_media_id,
+    client?.driving_license_verso, client?.driving_license_verso_media_id,
+  ]);
 
   useEffect(() => {
     if (client) {
@@ -207,13 +265,22 @@ export function ClientForm({ client }: Props) {
     }
   };
 
-  const handleDeleteDoc = (type: 'id' | 'license') => () => {
-    const mediaId = type === 'id' ? idDocMediaId : licenseMediaId;
+  const handleDeleteDoc = (type: 'id' | 'license', side: Side) => () => {
+    const mediaId = type === 'id'
+      ? (side === 'recto' ? idDoc.rectoMediaId : idDoc.versoMediaId)
+      : (side === 'recto' ? license.rectoMediaId : license.versoMediaId);
     if (!mediaId) return;
     deleteMediaMutation.mutate(mediaId, {
       onSuccess: () => {
-        if (type === 'id') { setIdDocUrl(null); setIdDocMediaId(null); }
-        else { setLicenseUrl(null); setLicenseMediaId(null); }
+        if (type === 'id') {
+          setIdDoc((s) => side === 'recto'
+            ? { ...s, rectoUrl: null, rectoMediaId: null }
+            : { ...s, versoUrl: null, versoMediaId: null });
+        } else {
+          setLicense((s) => side === 'recto'
+            ? { ...s, rectoUrl: null, rectoMediaId: null }
+            : { ...s, versoUrl: null, versoMediaId: null });
+        }
         toast.success('Document supprimé');
       },
       onError: () => toast.error('Échec de la suppression'),
@@ -221,12 +288,20 @@ export function ClientForm({ client }: Props) {
   };
 
   // Upload docs immediately on edit mode
-  const handleEditUpload = (type: 'id' | 'license') => async (files: File[]) => {
+  const handleEditUpload = (type: 'id' | 'license', side: Side) => async (files: File[]) => {
     if (!files[0] || !client) return;
     const mutation = type === 'id' ? uploadIdMutation : uploadLicenseMutation;
     const label = type === 'id' ? 'Pièce d\'identité' : 'Permis de conduire';
-    mutation.mutate(files[0], {
-      onSuccess: () => toast.success(`${label} téléversé`),
+    mutation.mutate({ file: files[0], side }, {
+      onSuccess: (res: any) => {
+        const url = res?.data?.data?.url ?? res?.data?.url;
+        if (type === 'id') {
+          setIdDoc((s) => side === 'recto' ? { ...s, rectoUrl: url ?? s.rectoUrl } : { ...s, versoUrl: url ?? s.versoUrl });
+        } else {
+          setLicense((s) => side === 'recto' ? { ...s, rectoUrl: url ?? s.rectoUrl } : { ...s, versoUrl: url ?? s.versoUrl });
+        }
+        toast.success(`${label} (${side}) téléversé`);
+      },
       onError: () => toast.error(`Échec du téléversement`),
     });
   };
@@ -246,11 +321,14 @@ export function ClientForm({ client }: Props) {
       createMutation.mutate(payload as any, {
         onSuccess: async (res) => {
           const newId = (res as any)?.data?.id;
-          if (newId && (idDocFiles[0] || licenseFiles[0])) {
+          const hasFiles = idDocFiles.recto[0] || idDocFiles.verso[0] || licenseFiles.recto[0] || licenseFiles.verso[0];
+          if (newId && hasFiles) {
             setUploading(true);
             try {
-              if (idDocFiles[0]) await clientService.uploadIdDocument(newId, idDocFiles[0]);
-              if (licenseFiles[0]) await clientService.uploadDrivingLicense(newId, licenseFiles[0]);
+              if (idDocFiles.recto[0]) await clientService.uploadIdDocument(newId, idDocFiles.recto[0], 'recto');
+              if (idDocFiles.verso[0]) await clientService.uploadIdDocument(newId, idDocFiles.verso[0], 'verso');
+              if (licenseFiles.recto[0]) await clientService.uploadDrivingLicense(newId, licenseFiles.recto[0], 'recto');
+              if (licenseFiles.verso[0]) await clientService.uploadDrivingLicense(newId, licenseFiles.verso[0], 'verso');
             } catch {
               toast.error('Client créé mais l\'upload de documents a échoué');
             } finally {
@@ -417,31 +495,35 @@ export function ClientForm({ client }: Props) {
                   )} />
                 </div>
 
-                {/* Document upload — CIN / Passeport */}
+                {/* Document upload — CIN / Passeport, recto + verso */}
                 <div>
                   <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
                     <IconFileText className="h-4 w-4 text-muted-foreground" />
-                    Scan CIN / Passeport
-                    {isEdit && uploadIdMutation.isPending && <span className="text-xs text-muted-foreground ml-1">Téléversement…</span>}
+                    Scan CIN / Passeport (recto-verso)
                   </p>
-                  {isEdit && idDocUrl && (
-                    <DocPreview
-                      url={idDocUrl}
-                      label="CIN / Passeport"
-                      onDelete={handleDeleteDoc('id')}
+                  <div className="grid grid-cols-2 gap-4">
+                    <DocSideSlot
+                      side="recto" label="CIN / Passeport"
+                      url={idDoc.rectoUrl} isEdit={isEdit}
+                      onDropFiles={isEdit
+                        ? handleEditUpload('id', 'recto')
+                        : (files) => setIdDocFiles((s) => ({ ...s, recto: files }))}
+                      onDelete={isEdit ? handleDeleteDoc('id', 'recto') : undefined}
+                      isUploading={uploadIdMutation.isPending}
                       isDeleting={deleteMediaMutation.isPending}
                     />
-                  )}
-                  <FileUploader
-                    value={isEdit ? [] : idDocFiles}
-                    onValueChange={isEdit ? undefined : setIdDocFiles}
-                    onUpload={isEdit ? handleEditUpload('id') : undefined}
-                    accept={DOC_ACCEPT}
-                    maxSize={DOC_MAX}
-                    maxFiles={1}
-                    disabled={isEdit && (uploadIdMutation.isPending || deleteMediaMutation.isPending)}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG ou PDF — max 5 Mo</p>
+                    <DocSideSlot
+                      side="verso" label="CIN / Passeport"
+                      url={idDoc.versoUrl} isEdit={isEdit}
+                      onDropFiles={isEdit
+                        ? handleEditUpload('id', 'verso')
+                        : (files) => setIdDocFiles((s) => ({ ...s, verso: files }))}
+                      onDelete={isEdit ? handleDeleteDoc('id', 'verso') : undefined}
+                      isUploading={uploadIdMutation.isPending}
+                      isDeleting={deleteMediaMutation.isPending}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG ou PDF — max 5 Mo par côté</p>
                 </div>
               </CardContent>
             </Card>
@@ -502,31 +584,35 @@ export function ClientForm({ client }: Props) {
                   )} />
                 </div>
 
-                {/* Document upload — Permis */}
+                {/* Document upload — Permis, recto + verso */}
                 <div>
                   <p className="text-sm font-medium mb-2 flex items-center gap-1.5">
                     <IconFileText className="h-4 w-4 text-muted-foreground" />
-                    Scan permis de conduire
-                    {isEdit && uploadLicenseMutation.isPending && <span className="text-xs text-muted-foreground ml-1">Téléversement…</span>}
+                    Scan permis de conduire (recto-verso)
                   </p>
-                  {isEdit && licenseUrl && (
-                    <DocPreview
-                      url={licenseUrl}
-                      label="Permis de conduire"
-                      onDelete={handleDeleteDoc('license')}
+                  <div className="grid grid-cols-2 gap-4">
+                    <DocSideSlot
+                      side="recto" label="Permis de conduire"
+                      url={license.rectoUrl} isEdit={isEdit}
+                      onDropFiles={isEdit
+                        ? handleEditUpload('license', 'recto')
+                        : (files) => setLicenseFiles((s) => ({ ...s, recto: files }))}
+                      onDelete={isEdit ? handleDeleteDoc('license', 'recto') : undefined}
+                      isUploading={uploadLicenseMutation.isPending}
                       isDeleting={deleteMediaMutation.isPending}
                     />
-                  )}
-                  <FileUploader
-                    value={isEdit ? [] : licenseFiles}
-                    onValueChange={isEdit ? undefined : setLicenseFiles}
-                    onUpload={isEdit ? handleEditUpload('license') : undefined}
-                    accept={DOC_ACCEPT}
-                    maxSize={DOC_MAX}
-                    maxFiles={1}
-                    disabled={isEdit && (uploadLicenseMutation.isPending || deleteMediaMutation.isPending)}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG ou PDF — max 5 Mo</p>
+                    <DocSideSlot
+                      side="verso" label="Permis de conduire"
+                      url={license.versoUrl} isEdit={isEdit}
+                      onDropFiles={isEdit
+                        ? handleEditUpload('license', 'verso')
+                        : (files) => setLicenseFiles((s) => ({ ...s, verso: files }))}
+                      onDelete={isEdit ? handleDeleteDoc('license', 'verso') : undefined}
+                      isUploading={uploadLicenseMutation.isPending}
+                      isDeleting={deleteMediaMutation.isPending}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">JPEG, PNG ou PDF — max 5 Mo par côté</p>
                 </div>
               </CardContent>
             </Card>
