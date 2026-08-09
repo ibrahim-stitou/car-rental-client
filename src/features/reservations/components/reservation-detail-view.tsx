@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { format, parseISO } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -28,11 +28,13 @@ import { PaymentDialog } from './payment-dialog';
 import { CompleteReservationDialog } from './complete-reservation-dialog';
 import { ExtendReservationDialog } from './extend-reservation-dialog';
 import { ValidateReservationDialog } from './validate-reservation-dialog';
+import { InvalidateContractDialog } from './invalidate-contract-dialog';
 import { DocumentsSection } from '@/components/shared/documents-section';
 import { useReservation } from '../hooks/use-reservations';
+import { useAuth } from '@/hooks/useAuth';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
-import type { Reservation } from '@/types/reservation.types';
+import type { Reservation, ReservationContractEvent } from '@/types/reservation.types';
 import { PAYMENT_METHOD_OPTIONS } from '@/config/constants';
 
 /* ─── Constants ───────────────────────────────────────────────────────────── */
@@ -121,6 +123,112 @@ function CancelDialog({ open, onOpenChange, reservationId, onSuccess }: {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+/* ─── Contract status panel (badge + history + invalidate/regenerate) ────── */
+
+const CONTRACT_STATUS_CFG: Record<string, { label: string; cls: string }> = {
+  not_generated: { label: 'Non généré', cls: 'bg-gray-100 text-gray-600 border-gray-200' },
+  valid:         { label: 'Valide',     cls: 'bg-green-100 text-green-800 border-green-200' },
+  invalidated:   { label: 'Invalidé — à régénérer', cls: 'bg-amber-100 text-amber-800 border-amber-200' },
+};
+const CONTRACT_EVENT_FR: Record<string, string> = {
+  generated: 'Contrat généré', regenerated: 'Contrat régénéré', invalidated: 'Contrat dévalidé',
+};
+
+function ContractStatusPanel({ reservationId, reservationRef, contractStatus, onChanged }: {
+  reservationId: string; reservationRef: string; contractStatus: string; onChanged: () => void;
+}) {
+  const { hasPermission } = useAuth();
+  const queryClient = useQueryClient();
+  const [invalidateOpen, setInvalidateOpen] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
+  const canManage = hasPermission('manage-contract');
+  const historyKey = ['reservation-contract-history', reservationId];
+
+  const { data: history } = useQuery({
+    queryKey: historyKey,
+    queryFn: () => apiClient.get<{ data: ReservationContractEvent[] }>(apiRoutes.reservationsExt.contractHistory(reservationId)).then(r => r.data.data ?? []),
+  });
+
+  const cfg = CONTRACT_STATUS_CFG[contractStatus] ?? CONTRACT_STATUS_CFG.not_generated;
+
+  const refreshAll = () => {
+    queryClient.invalidateQueries({ queryKey: historyKey });
+    onChanged();
+  };
+
+  const regenerate = async () => {
+    setRegenerating(true);
+    try {
+      await apiClient.patch(apiRoutes.reservationsExt.regenerateContract(reservationId));
+      toast.success('Contrat régénéré');
+      refreshAll();
+    } catch (e: any) {
+      toast.error(e?.response?.data?.message ?? 'Impossible de régénérer le contrat');
+    } finally { setRegenerating(false); }
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Statut du contrat :</span>
+          <Badge variant="outline" className={cfg.cls}>{cfg.label}</Badge>
+        </div>
+        {canManage && (
+          <div className="flex gap-2">
+            {contractStatus === 'valid' && (
+              <Button size="sm" variant="outline" className="gap-1 text-amber-700 border-amber-200 hover:bg-amber-50"
+                      onClick={() => setInvalidateOpen(true)}>
+                <AlertTriangle className="h-3.5 w-3.5" />Dévalider le contrat
+              </Button>
+            )}
+            {contractStatus === 'invalidated' && (
+              <Button size="sm" variant="outline" className="gap-1 text-green-700 border-green-200 hover:bg-green-50"
+                      disabled={regenerating} onClick={regenerate}>
+                {regenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCheck className="h-3.5 w-3.5" />}
+                Régénérer le contrat
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {contractStatus === 'invalidated' && (
+        <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+          <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          Ce contrat ne reflète plus les données actuelles de la réservation. Régénérez-le avant de l'imprimer ou de le remettre au client.
+        </div>
+      )}
+
+      {!!history?.length && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Historique</p>
+          <div className="space-y-1.5">
+            {history.map((ev) => (
+              <div key={ev.id} className="flex items-start justify-between gap-3 rounded-md border px-3 py-2 text-xs">
+                <div>
+                  <span className="font-medium">{CONTRACT_EVENT_FR[ev.event_type] ?? ev.event_type}</span>
+                  {ev.reason && <span className="text-muted-foreground"> — {ev.reason}</span>}
+                  {ev.actor && <div className="text-muted-foreground mt-0.5">par {ev.actor.full_name}</div>}
+                </div>
+                <span className="text-muted-foreground shrink-0">{fmtDateTime(ev.created_at)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <InvalidateContractDialog
+        open={invalidateOpen}
+        onOpenChange={setInvalidateOpen}
+        reservationId={reservationId}
+        reservationRef={reservationRef}
+        onSuccess={refreshAll}
+      />
+    </div>
   );
 }
 
@@ -594,10 +702,20 @@ export function ReservationDetailView({ id }: { id: string }) {
           </TabsContent>
 
           {/* ════ CONTRAT PDF ════ */}
-          <TabsContent value="contract" className="mt-0">
+          <TabsContent value="contract" className="mt-0 space-y-4">
             <Card>
               <CardContent className="p-5">
-                <ContractFrame resId={id} resRef={r.reference ?? r.reservation_number ?? 'reservation'} />
+                <ContractStatusPanel
+                  reservationId={id}
+                  reservationRef={r.reference ?? r.reservation_number ?? ''}
+                  contractStatus={r.contract_status ?? 'not_generated'}
+                  onChanged={refetch}
+                />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-5">
+                <ContractFrame key={reservation.updated_at} resId={id} resRef={r.reference ?? r.reservation_number ?? 'reservation'} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -664,6 +782,12 @@ export function ReservationDetailView({ id }: { id: string }) {
           reservationId={id}
           reservationRef={r.reference ?? r.reservation_number ?? ''}
           currentReturnDate={reservation.return_date}
+          pickupDate={reservation.pickup_date}
+          dailyRate={Number(reservation.daily_rate)}
+          discountPercentage={Number(reservation.discount_percentage)}
+          existingAdditionalFees={Number(reservation.additional_fees)}
+          currentTotalAmount={Number(reservation.total_amount)}
+          contractStatus={r.contract_status}
           status={reservation.status}
           onSuccess={() => { refetch(); setExtendOpen(false); }}
         />

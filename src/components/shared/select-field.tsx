@@ -11,6 +11,8 @@ export interface SelectFieldOption {
   value: string;
   label: string;
   sub?: string;
+  /** Extra text matched during filtering but not shown (e.g. a CIN/ID number that a server-side search already matched on). */
+  keywords?: string;
 }
 
 interface SelectFieldProps {
@@ -47,7 +49,8 @@ export function SelectField({
 
   const filtered = options.filter(o =>
     o.label.toLowerCase().includes(search.toLowerCase()) ||
-    (o.sub ?? '').toLowerCase().includes(search.toLowerCase())
+    (o.sub ?? '').toLowerCase().includes(search.toLowerCase()) ||
+    (o.keywords ?? '').toLowerCase().includes(search.toLowerCase())
   );
   const selected = options.find(o => o.value === value);
   const canCreate = !!onCreateNew && search.trim().length > 0 &&

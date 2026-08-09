@@ -9,12 +9,14 @@ import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
 import { parseISO, differenceInMilliseconds, format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { dateOnlyLocal } from '@/utils/date-utils';
 import {
   ArrowLeft, Save, UserPlus, UserMinus, Car, User,
   Calendar, CreditCard, Info, AlertTriangle, Loader2, CalendarX, Coins, CircleDollarSign,
   Paperclip, Trash2, Plus,
 } from 'lucide-react';
 import { DocumentsSection } from '@/components/shared/documents-section';
+import CustomAlertDialog from '@/components/custom/customAlert';
 import { FileUploader } from '@/components/file-uploader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,12 +218,19 @@ interface Props {
   reservation?: Reservation | null;
 }
 
+const CONTRACT_RELEVANT_EDIT_FIELDS = [
+  'pickup_date', 'return_date', 'pickup_location', 'return_location',
+  'daily_rate', 'discount_percentage', 'additional_fees',
+] as const;
+
 export function ReservationFormView({ reservation }: Props) {
   const router = useRouter();
   const isEdit = !!reservation;
   const createMutation = useCreateReservation();
   const updateMutation = useUpdateReservation(reservation?.id ?? '');
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const [confirmInvalidateOpen, setConfirmInvalidateOpen] = useState(false);
+  const [pendingUpdatePayload, setPendingUpdatePayload] = useState<object | null>(null);
 
   const { data: agenciesRes } = useAgencies({ per_page: 200 });
   const { data: vehiclesRes } = useVehicles({ per_page: 200 });
@@ -253,7 +262,12 @@ export function ReservationFormView({ reservation }: Props) {
   const agencies  = (agenciesRes?.data ?? []).map(a => ({ value: a.id, label: a.name, sub: (a as any).city }));
   const vehicles  = (vehiclesRes?.data ?? []).map(v => ({ value: v.id, label: `${v.brand} ${v.model} ${(v as any).year ?? ''}`.trim(), sub: v.registration_number }));
   const rawVehicles = vehiclesRes?.data ?? [];
-  const toClientOption = (c: any) => ({ value: c.id, label: `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(), sub: c.phone });
+  const toClientOption = (c: any) => ({
+    value: c.id,
+    label: `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(),
+    sub: c.id_number ? `${c.phone ?? ''} · CIN ${c.id_number}` : c.phone,
+    keywords: c.id_number,
+  });
 
   const schema = isEdit ? editSchema : createSchema;
 
@@ -374,6 +388,16 @@ export function ReservationFormView({ reservation }: Props) {
   // the "Total" line above, so it reacts to date/rate/discount/fee changes.
   const existingBalance = isEdit ? total - Number(reservation!.paid_amount) : 0;
 
+  const performUpdate = async (payload: object) => {
+    try {
+      await updateMutation.mutateAsync(payload as any);
+      toast.success('Réservation mise à jour');
+      router.push(`/reservations/${reservation!.id}`);
+    } catch (err: any) {
+      applyServerErrors(err, form, 'Échec de la mise à jour');
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     if (isEdit) {
       const payload = {
@@ -390,13 +414,21 @@ export function ReservationFormView({ reservation }: Props) {
         initial_mileage: values.initial_mileage,
         notes: values.notes || undefined,
       };
-      try {
-        await updateMutation.mutateAsync(payload as any);
-        toast.success('Réservation mise à jour');
-        router.push(`/reservations/${reservation!.id}`);
-      } catch (err: any) {
-        applyServerErrors(err, form, 'Échec de la mise à jour');
+
+      // Changing any field printed on the contract invalidates it once it's
+      // already valid (enforced server-side regardless) — warn before saving
+      // so the agent isn't surprised the next time they open the "Contrat PDF" tab.
+      const dirty = form.formState.dirtyFields as Record<string, boolean>;
+      const willInvalidateContract = reservation?.contract_status === 'valid' &&
+        CONTRACT_RELEVANT_EDIT_FIELDS.some((f) => dirty[f]);
+
+      if (willInvalidateContract) {
+        setPendingUpdatePayload(payload);
+        setConfirmInvalidateOpen(true);
+        return;
       }
+
+      await performUpdate(payload);
       return;
     }
 
@@ -415,20 +447,15 @@ export function ReservationFormView({ reservation }: Props) {
       fuel_level_pickup:     values.fuel_level_pickup || undefined,
       agent_notes:           values.agent_notes || undefined,
       notes:                 values.notes || undefined,
+      // Recorded atomically by the backend as part of reservation creation
+      // (gated only by create-reservation) — not a separate payments-endpoint
+      // call, which requires the manage-payment permission for anything after.
+      initial_paid_amount:     initial_paid_amount && initial_paid_amount > 0 ? initial_paid_amount : undefined,
+      initial_payment_method:  initial_paid_amount && initial_paid_amount > 0 ? (initial_payment_method || 'cash') : undefined,
     };
     try {
       const res = await createMutation.mutateAsync(payload as any);
       const newId = (res as any)?.data?.id;
-      if (newId && initial_paid_amount && initial_paid_amount > 0) {
-        try {
-          await (await import('@/services/payment.service')).paymentService.create(newId, {
-            amount: initial_paid_amount,
-            payment_method: (initial_payment_method || 'cash') as any,
-            payment_date: new Date().toISOString().split('T')[0],
-            notes: 'Acompte initial',
-          });
-        } catch {}
-      }
       if (newId && pendingDocs.length > 0) {
         try {
           const formData = new FormData();
@@ -876,6 +903,19 @@ export function ReservationFormView({ reservation }: Props) {
           </div>
         </form>
       </Form>
+
+      <CustomAlertDialog
+        title="Cette modification va invalider le contrat"
+        description="Le contrat déjà généré pour cette réservation affiche des données (dates, tarif, remise ou frais) qui vont changer. Il sera automatiquement marqué « à régénérer » — vous pourrez le régénérer depuis l'onglet Contrat PDF. Continuer ?"
+        confirmText="Enregistrer quand même"
+        cancelText="Annuler"
+        open={confirmInvalidateOpen}
+        setOpen={setConfirmInvalidateOpen}
+        onConfirm={() => {
+          setConfirmInvalidateOpen(false);
+          if (pendingUpdatePayload) performUpdate(pendingUpdatePayload);
+        }}
+      />
     </PageContainer>
   );
 }

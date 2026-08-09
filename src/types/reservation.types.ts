@@ -15,6 +15,15 @@ export type CreditReservation = {
 export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'refunded';
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'check' | 'online';
 export type FuelLevel = 'empty' | 'quarter' | 'half' | 'three_quarters' | 'full';
+export type ContractStatus = 'not_generated' | 'valid' | 'invalidated';
+
+export interface ReservationContractEvent {
+  id: string;
+  event_type: 'generated' | 'regenerated' | 'invalidated';
+  reason: string | null;
+  actor: { id: string; full_name: string } | null;
+  created_at: string;
+}
 
 export interface Reservation {
   id: string;
@@ -34,6 +43,8 @@ export interface Reservation {
   is_favorable: boolean | null;
   closure_comment: string | null;
   contract_generated_at: string | null;
+  contract_status: ContractStatus;
+  contract_events?: ReservationContractEvent[];
   is_overdue?: boolean;
   documents?: MediaItem[];
   status: ReservationStatus;
@@ -89,6 +100,8 @@ export interface CreateReservationInput {
   deposit_amount: number;
   payment_method?: PaymentMethod;
   notes?: string;
+  initial_paid_amount?: number;
+  initial_payment_method?: PaymentMethod;
 }
 
 export type UpdateReservationInput = Partial<CreateReservationInput>;

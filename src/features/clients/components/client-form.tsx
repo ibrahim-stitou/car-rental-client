@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { parseISO } from 'date-fns';
+import { dateOnlyLocal } from '@/utils/date-utils';
 import { useCreateClient, useUpdateClient, useUploadIdDocument, useUploadDrivingLicense, useDeleteClientMedia } from '../hooks/use-clients';
 import { clientService } from '@/services/client.service';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
@@ -60,7 +61,7 @@ const DOC_MAX = 5 * 1024 * 1024;
 
 function dateToStr(d: Date | undefined) {
   if (!d) return '';
-  return d.toISOString().split('T')[0];
+  return dateOnlyLocal(d);
 }
 
 function strToDate(s: string | null | undefined) {

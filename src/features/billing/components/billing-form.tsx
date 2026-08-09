@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { Plus, Trash2 } from 'lucide-react';
 import { useCreateBillingDocument, useUpdateBillingDocument, useBillingDocument } from '../hooks/use-billing';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
+import { dateOnlyLocal } from '@/utils/date-utils';
 import type { BillingDocument } from '@/types/billing.types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -56,7 +57,7 @@ interface Props {
 const BLANK_ITEM = { description: '', quantity: 1, unit_price: 0, tax_rate: 20, total_price: 0 };
 const DEFAULT_FORM = {
   type: 'FA' as const, agency_id: '', client_name: '', client_address: '', client_phone: '',
-  client_email: '', issue_date: new Date().toISOString().split('T')[0], due_date: '',
+  client_email: '', issue_date: dateOnlyLocal(new Date()), due_date: '',
   tax_rate: 20, discount_percentage: 0, payment_method: '', notes: '',
   items: [BLANK_ITEM],
 };

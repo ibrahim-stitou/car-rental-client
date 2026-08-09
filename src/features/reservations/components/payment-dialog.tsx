@@ -20,6 +20,8 @@ import { FormDatePicker } from '@/components/shared/form-date-picker';
 import { applyServerErrors } from '@/lib/form-errors';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import { dateOnlyLocal } from '@/utils/date-utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const PAYMENT_METHODS = [
   { value: 'cash', label: 'Espèces' },
@@ -48,6 +50,8 @@ interface Props {
 
 export function PaymentDialog({ open, onOpenChange, reservationId, reservationRef }: Props) {
   const [showForm, setShowForm] = useState(false);
+  const { hasPermission } = useAuth();
+  const canManagePayments = hasPermission('manage-payment');
   const { data: res, isLoading } = useReservationPayments(reservationId);
   const addPayment = useAddPayment(reservationId);
   const deletePayment = useDeletePayment(reservationId);
@@ -60,7 +64,7 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
     defaultValues: {
       amount: 0,
       payment_method: '',
-      payment_date: new Date().toISOString().split('T')[0],
+      payment_date: dateOnlyLocal(new Date()),
       reference: '',
       notes: '',
     },
@@ -77,7 +81,7 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
         payment_method: values.payment_method as Parameters<typeof addPayment.mutateAsync>[0]['payment_method'],
       });
       toast.success('Paiement enregistré');
-      form.reset({ amount: 0, payment_method: '', payment_date: new Date().toISOString().split('T')[0], reference: '', notes: '' });
+      form.reset({ amount: 0, payment_method: '', payment_date: dateOnlyLocal(new Date()), reference: '', notes: '' });
       setShowForm(false);
     } catch (err) {
       applyServerErrors(err, form, "Erreur lors de l'enregistrement du paiement");
@@ -148,15 +152,17 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
                         {payment.reference && ` · Réf: ${payment.reference}`}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                      onClick={() => handleDelete(payment.id)}
-                      disabled={deletePayment.isPending}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    {canManagePayments && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
+                        onClick={() => handleDelete(payment.id)}
+                        disabled={deletePayment.isPending}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -167,7 +173,12 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
             <Separator />
 
             {/* Add payment form */}
-            {showForm ? (
+            {summary?.is_fully_paid ? (
+              <div className="flex items-center justify-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg py-2.5">
+                <CheckCircle2 className="h-4 w-4" />
+                Réservation entièrement payée
+              </div>
+            ) : !canManagePayments ? null : showForm ? (
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                   <div className="text-sm font-medium">Nouveau paiement</div>
@@ -216,11 +227,6 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
                   </div>
                 </form>
               </Form>
-            ) : summary?.is_fully_paid ? (
-              <div className="flex items-center justify-center gap-2 text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg py-2.5">
-                <CheckCircle2 className="h-4 w-4" />
-                Réservation entièrement payée
-              </div>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setShowForm(true)} className="w-full">
                 <Plus className="h-4 w-4 mr-2" />

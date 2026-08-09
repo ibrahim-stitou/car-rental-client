@@ -12,6 +12,7 @@ import { useCreateClaim, useUpdateClaim, claimKeys } from '../hooks/use-claims';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
 import { useClients } from '@/features/clients/hooks/use-clients';
 import { useParameterOptions } from '@/features/settings/hooks/use-parameters';
+import { dateOnlyLocal } from '@/utils/date-utils';
 import type { Claim } from '@/types/claim.types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -52,7 +53,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const emptyValues: FormValues = {
-  vehicle_id: '', client_id: '', claim_date: new Date().toISOString().split('T')[0],
+  vehicle_id: '', client_id: '', claim_date: dateOnlyLocal(new Date()),
   title: '', description: '', agent_notes: '',
   accident_type: '', is_client_responsible: false, responsible_notes: '',
   status: 'open', total_damage_amount: 0, insurance_amount_recovered: 0,

@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useCreateExpense, useUpdateExpense } from '../hooks/use-expenses';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
+import { dateOnlyLocal } from '@/utils/date-utils';
 import type { Expense, UpdateExpenseInput } from '@/types/expense.types';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -96,7 +97,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
     resolver: zodResolver(schema),
     defaultValues: {
       title: '', category: '', amount: 0,
-      expense_date: new Date().toISOString().split('T')[0],
+      expense_date: dateOnlyLocal(new Date()),
       agency_id: defaultAgencyId ?? '',
       agency_ids: defaultAgencyId ? [defaultAgencyId] : [],
       vehicle_id: defaultVehicleId ?? '',
@@ -121,7 +122,7 @@ export function ExpenseForm({ open, onOpenChange, expense, defaultAgencyId, defa
     } else {
       form.reset({
         title: '', category: '', amount: 0,
-        expense_date: new Date().toISOString().split('T')[0],
+        expense_date: dateOnlyLocal(new Date()),
         agency_id: defaultAgencyId ?? '',
         agency_ids: defaultAgencyId ? [defaultAgencyId] : [],
         vehicle_id: defaultVehicleId ?? '',

@@ -46,8 +46,13 @@ export function ClientsView() {
       data: 'id_type',
       label: 'Pièce d\'identité',
       sortable: false,
-      render: (v) => v
-        ? <Badge variant="outline" className="text-xs">{ID_TYPE_LABELS[v as string] ?? v}</Badge>
+      render: (v, row) => v
+        ? (
+          <div>
+            <Badge variant="outline" className="text-xs">{ID_TYPE_LABELS[v as string] ?? v}</Badge>
+            {row.id_number && <div className="text-xs font-mono text-muted-foreground mt-1">{row.id_number}</div>}
+          </div>
+        )
         : <span className="text-muted-foreground text-sm">—</span>,
     },
     {
@@ -95,7 +100,7 @@ export function ClientsView() {
   ];
 
   const filters: CustomTableFilterConfig[] = [
-    { field: 'search', label: 'Rechercher un client…', type: 'text' },
+    { field: 'search', label: 'Rechercher (nom, téléphone, CIN)…', type: 'text' },
     {
       field: 'is_blacklisted',
       label: 'Statut',
