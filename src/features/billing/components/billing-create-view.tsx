@@ -10,8 +10,11 @@ import { format, parseISO } from 'date-fns';
 import { Plus, Trash2, ArrowLeft, FileText } from 'lucide-react';
 import { useCreateBillingDocument } from '../hooks/use-billing';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
+import { LldReservationField } from './lld-reservation-field';
+import type { Reservation } from '@/types/reservation.types';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -54,7 +57,10 @@ const schema = z.object({
   due_date:       z.string().optional(),
   delivery_date:  z.string().optional(),
   items:          z.array(itemSchema).min(1, 'Au moins une ligne requise'),
-});
+}).refine(
+  (d) => d.type !== 'LLD' || !!d.reservation_id,
+  { message: 'Un contrat LLD doit être sélectionné', path: ['reservation_id'] }
+);
 
 type FormValues = z.infer<typeof schema>;
 
@@ -76,7 +82,7 @@ export function BillingCreateView() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      type: 'FA', agency_id: '',
+      type: 'FA', agency_id: '', reservation_id: '',
       client_name: '', client_address: '', client_phone: '', client_email: '', client_ice: '',
       issue_date: format(new Date(), 'yyyy-MM-dd'),
       due_date: '', delivery_date: '',
@@ -89,6 +95,25 @@ export function BillingCreateView() {
   // Real-time totals
   const watchedItems = useWatch({ control: form.control, name: 'items' });
   const watchedType  = useWatch({ control: form.control, name: 'type' });
+  const watchedReservationId = useWatch({ control: form.control, name: 'reservation_id' });
+  const isLld = watchedType === 'LLD';
+
+  const applyLldReservation = useCallback((reservation: Reservation) => {
+    form.setValue('reservation_id', reservation.id);
+    if (reservation.agency?.id) form.setValue('agency_id', reservation.agency.id);
+    if (reservation.client?.full_name) form.setValue('client_name', reservation.client.full_name);
+    if (reservation.client?.phone) form.setValue('client_phone', reservation.client.phone);
+    const monthsDue = reservation.months_due ?? 1;
+    const monthlyRate = Number(reservation.monthly_rate ?? 0);
+    form.setValue('items', [{
+      description: `Loyer mensuel LLD — Mois ${monthsDue} — ${reservation.vehicle?.full_name ?? ''}`.trim(),
+      quantity: 1,
+      unit: 'Mois',
+      unit_price: monthlyRate,
+      tax_rate: 20,
+      total_price: monthlyRate,
+    }]);
+  }, [form]);
 
   const totals = useMemo(() => {
     const subtotalHT = watchedItems.reduce((s, it) => s + (Number(it.total_price) || 0), 0);
@@ -207,6 +232,14 @@ export function BillingCreateView() {
                       )} />
                     </div>
 
+                    {isLld && (
+                      <LldReservationField
+                        control={form.control}
+                        reservationId={watchedReservationId}
+                        onApply={applyLldReservation}
+                      />
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <FormField control={form.control} name="issue_date" render={({ field }) => (
                         <FormItem>
@@ -256,7 +289,12 @@ export function BillingCreateView() {
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <FormField control={form.control} name="client_address" render={({ field }) => (
-                        <FormItem><FormLabel>Adresse</FormLabel><FormControl><Input placeholder="Adresse complète" {...field} /></FormControl><FormMessage /></FormItem>
+                        <FormItem>
+                          <FormLabel>Adresse</FormLabel>
+                          <FormControl><Textarea rows={2} placeholder="Adresse complète" {...field} /></FormControl>
+                          <p className="text-xs text-muted-foreground">Les retours à la ligne sont conservés sur le document généré.</p>
+                          <FormMessage />
+                        </FormItem>
                       )} />
                       <FormField control={form.control} name="client_ice" render={({ field }) => (
                         <FormItem>
@@ -301,7 +339,7 @@ export function BillingCreateView() {
                             <FormField control={form.control} name={`items.${index}.description`} render={({ field }) => (
                               <FormItem>
                                 <FormLabel className="sm:hidden text-xs">Description</FormLabel>
-                                <FormControl><Input placeholder="Désignation du produit / service" {...field} /></FormControl>
+                                <FormControl><Textarea rows={2} placeholder="Désignation du produit / service" {...field} /></FormControl>
                                 <FormMessage />
                               </FormItem>
                             )} />

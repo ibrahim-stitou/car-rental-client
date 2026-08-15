@@ -1,4 +1,5 @@
 export type VehicleStatus = 'available' | 'rented' | 'maintenance' | 'out_of_service';
+export type VehicleCondition = 'bon_etat' | 'leger_dommage' | 'accidente' | 'hors_service';
 export type FuelType = 'gasoline' | 'diesel' | 'electric' | 'hybrid';
 export type Transmission = 'automatic' | 'manual';
 export type VehicleCategory = 'sedan' | 'suv' | 'van' | 'truck' | 'convertible' | 'coupe' | 'hatchback' | 'minivan';
@@ -18,10 +19,13 @@ export interface Vehicle {
   transmission: Transmission;
   seats: number;
   daily_rate: number;
+  hourly_rate: number | null;
+  monthly_rate: number | null;
   deposit_amount: number;
   mileage: number;
   average_consumption: number | null;
   status: VehicleStatus;
+  condition: VehicleCondition;
   is_active: boolean;
   has_adblue: boolean;
   notes: string | null;
@@ -64,9 +68,12 @@ export interface CreateVehicleInput {
   transmission: Transmission;
   seats: number;
   daily_rate: number;
+  hourly_rate?: number;
+  monthly_rate?: number;
   deposit_amount: number;
   mileage: number;
   average_consumption?: number;
+  condition?: VehicleCondition;
   notes?: string;
   description?: string;
   has_adblue?: boolean;
@@ -84,6 +91,7 @@ export interface VehicleFilters {
   fuel_type?: FuelType;
   transmission?: Transmission;
   is_active?: boolean;
+  returning_today?: boolean;
   search?: string;
   per_page?: number;
   page?: number;

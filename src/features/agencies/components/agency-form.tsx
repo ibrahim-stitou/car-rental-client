@@ -25,6 +25,12 @@ const schema = z.object({
   address: z.string().min(1, 'Adresse requise'),
   city: z.string().min(1, 'Ville requise'),
   country: z.string().min(1, 'Pays requis'),
+  legal_form: z.string().optional(),
+  capital: z.string().optional(),
+  rc: z.string().optional(),
+  tax_id: z.string().optional(),
+  patente: z.string().optional(),
+  ice: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -56,16 +62,27 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco' },
+    defaultValues: {
+      name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco',
+      legal_form: '', capital: '', rc: '', tax_id: '', patente: '', ice: '',
+    },
   });
 
   useEffect(() => {
     if (agency) {
-      form.reset({ name: agency.name, email: agency.email, phone: agency.phone, phone2: agency.phone2 ?? '', address: agency.address, city: agency.city, country: agency.country });
+      form.reset({
+        name: agency.name, email: agency.email, phone: agency.phone, phone2: agency.phone2 ?? '',
+        address: agency.address, city: agency.city, country: agency.country,
+        legal_form: agency.legal_form ?? '', capital: agency.capital ?? '', rc: agency.rc ?? '',
+        tax_id: agency.tax_id ?? '', patente: agency.patente ?? '', ice: agency.ice ?? '',
+      });
       setLogoUrl(agency.logo_url ?? null);
       setLogoMediaId(agency.logo_media_id ?? null);
     } else {
-      form.reset({ name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco' });
+      form.reset({
+        name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco',
+        legal_form: '', capital: '', rc: '', tax_id: '', patente: '', ice: '',
+      });
       setLogoUrl(null);
       setLogoMediaId(null);
       setStagedFile(null);
@@ -242,6 +259,32 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
                   )} />
                   <FormField control={form.control} name="country" render={({ field }) => (
                     <FormItem><FormLabel>Pays *</FormLabel><FormControl><Input placeholder="Morocco" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </div>
+
+                <Separator />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Identifiants fiscaux <span className="font-normal">(affichés sur les factures)</span>
+                </p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="legal_form" render={({ field }) => (
+                    <FormItem><FormLabel>Forme juridique</FormLabel><FormControl><Input placeholder="SARL" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="capital" render={({ field }) => (
+                    <FormItem><FormLabel>Capital social</FormLabel><FormControl><Input placeholder="100 000 MAD" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="rc" render={({ field }) => (
+                    <FormItem><FormLabel>Registre de commerce</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="tax_id" render={({ field }) => (
+                    <FormItem><FormLabel>Identifiant fiscal (IF)</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="patente" render={({ field }) => (
+                    <FormItem><FormLabel>Numéro de patente</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="ice" render={({ field }) => (
+                    <FormItem><FormLabel>ICE</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                 </div>
 

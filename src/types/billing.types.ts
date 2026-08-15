@@ -1,4 +1,4 @@
-export type BillingDocumentType = 'BC' | 'BR' | 'BL' | 'DV' | 'FA' | 'AV';
+export type BillingDocumentType = 'BC' | 'BR' | 'BL' | 'DV' | 'FA' | 'AV' | 'LLD';
 export type BillingStatus = 'draft' | 'pending' | 'approved' | 'paid' | 'cancelled';
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'check' | 'online';
 
@@ -9,6 +9,7 @@ export const BILLING_TYPE_LABELS: Record<BillingDocumentType, string> = {
   DV: 'Devis',
   FA: 'Facture',
   AV: 'Avoir',
+  LLD: 'Facture LLD',
 };
 
 export interface BillingDocumentItem {
@@ -30,7 +31,11 @@ export interface BillingDocument {
   status: BillingStatus;
   agency_id: string;
   reservation_id: string | null;
-  reservation?: { id: string; reservation_number: string } | null;
+  reservation?: {
+    id: string; reservation_number: string; rental_unit?: string;
+    total_months?: number | null; monthly_rate?: number | null;
+    months_due?: number; amount_due_so_far?: number;
+  } | null;
   client_id: string | null;
   client_name: string;
   client_address: string | null;

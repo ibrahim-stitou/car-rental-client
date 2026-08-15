@@ -22,6 +22,8 @@ export function useAddPayment(reservationId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: paymentKeys.list(reservationId) });
       qc.invalidateQueries({ queryKey: ['reservations'] });
+      // A payment can settle a linked LLD invoice — refresh billing lists/details too.
+      qc.invalidateQueries({ queryKey: ['billing'] });
     },
   });
 }
@@ -33,6 +35,8 @@ export function useDeletePayment(reservationId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: paymentKeys.list(reservationId) });
       qc.invalidateQueries({ queryKey: ['reservations'] });
+      // Deleting a payment can revert a linked LLD invoice back to unpaid.
+      qc.invalidateQueries({ queryKey: ['billing'] });
     },
   });
 }

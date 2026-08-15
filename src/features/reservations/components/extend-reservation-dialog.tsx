@@ -11,9 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
+import { DateTimeField } from './date-time-field';
+import { addMonths, differenceInCalendarMonths } from 'date-fns';
 import {
   IconCalendarPlus, IconAlertTriangle, IconArrowRight, IconCalculator,
-  IconClock, IconReceipt2,
+  IconReceipt2,
 } from '@tabler/icons-react';
 
 interface Props {
@@ -23,22 +25,17 @@ interface Props {
   reservationRef: string;
   currentReturnDate?: string;
   pickupDate?: string;
+  rentalUnit?: 'day' | 'hour' | 'month';
   dailyRate?: number;
+  hourlyRate?: number;
+  monthlyRate?: number;
   discountPercentage?: number;
   existingAdditionalFees?: number;
   currentTotalAmount?: number;
+  paidAmount?: number;
   contractStatus?: string;
   status: string;
   onSuccess?: () => void;
-}
-
-function toDatetimeLocal(iso: string | undefined | null) {
-  if (!iso) return '';
-  try {
-    const d = new Date(iso);
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  } catch { return ''; }
 }
 
 function fmtMoney(n: number) {
@@ -49,24 +46,42 @@ function fmtShort(d: Date) {
   return d.toLocaleString('fr-MA', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
-// Mirrors Reservation::calculateTotal() on the backend (ceil of whole days
-// between pickup and return, minimum 1) so the preview shown here matches
-// exactly what the server will persist.
-function daysBetween(pickup: Date, end: Date): number {
-  return Math.max(1, Math.ceil((end.getTime() - pickup.getTime()) / 86400000));
+// Mirrors Reservation::calculateTotal() on the backend (ceil of whole
+// days/hours/months between pickup and return, minimum 1) so the preview
+// shown here matches exactly what the server will persist. Months are
+// calendar-aware (via date-fns), never a fixed-days approximation.
+function unitsBetween(pickup: Date, end: Date, unit: 'day' | 'hour' | 'month'): number {
+  if (unit === 'month') {
+    const whole = Math.max(0, differenceInCalendarMonths(end, pickup));
+    return addMonths(pickup, whole) < end ? whole + 1 : Math.max(1, whole);
+  }
+  const divisor = unit === 'hour' ? 3600000 : 86400000;
+  return Math.max(1, Math.ceil((end.getTime() - pickup.getTime()) / divisor));
 }
 
 export function ExtendReservationDialog({
-  open, onOpenChange, reservationId, reservationRef, currentReturnDate, pickupDate,
-  dailyRate = 0, discountPercentage = 0, existingAdditionalFees = 0, currentTotalAmount = 0,
-  contractStatus, status, onSuccess,
+  open, onOpenChange, reservationId, reservationRef, currentReturnDate, pickupDate, rentalUnit = 'day',
+  dailyRate = 0, hourlyRate = 0, monthlyRate = 0, discountPercentage = 0, existingAdditionalFees = 0, currentTotalAmount = 0,
+  paidAmount = 0, contractStatus, status, onSuccess,
 }: Props) {
   const [newReturnDate, setNewReturnDate] = useState('');
   const [additionalFees, setAdditionalFees] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const isHourly = rentalUnit === 'hour';
+  const isLld = rentalUnit === 'month';
+  const originalRate = isLld ? monthlyRate : isHourly ? hourlyRate : dailyRate;
+  // Rate stays editable at extension time too — comes from the vehicle/
+  // reservation by default, but an agent can override it (e.g. a negotiated
+  // rate for a repeat client), same as at creation.
+  const [rateInput, setRateInput] = useState(String(originalRate || ''));
+  const rate = Number(rateInput) || 0;
+  const unitLabel = isLld ? 'mois' : isHourly ? 'heure' : 'jour';
+  // "mois" is invariable in French — never gets a trailing "s".
+  const pluralize = (n: number) => (n > 1 && !isLld ? `${unitLabel}s` : unitLabel);
+  const rateFieldName = isLld ? 'monthly_rate' : isHourly ? 'hourly_rate' : 'daily_rate';
 
-  const minDate = currentReturnDate ? toDatetimeLocal(currentReturnDate) : '';
+  const minDate = currentReturnDate ? new Date(currentReturnDate) : undefined;
 
   const preview = useMemo(() => {
     if (!newReturnDate || !currentReturnDate || !pickupDate) return null;
@@ -75,19 +90,20 @@ export function ExtendReservationDialog({
     const next = new Date(newReturnDate);
     if (Number.isNaN(next.getTime()) || next <= current) return null;
 
-    const currentDays = daysBetween(pickup, current);
-    const newDays = daysBetween(pickup, next);
-    const daysAdded = newDays - currentDays;
+    const currentUnits = unitsBetween(pickup, current, rentalUnit);
+    const newUnits = unitsBetween(pickup, next, rentalUnit);
+    const unitsAdded = newUnits - currentUnits;
 
-    const newSubtotal = dailyRate * newDays;
+    const newSubtotal = rate * newUnits;
     const discountAmount = newSubtotal * (discountPercentage / 100);
     const enteredFees = Number(additionalFees) || 0;
     const totalFees = existingAdditionalFees + enteredFees;
     const estimatedTotal = newSubtotal - discountAmount + totalFees;
     const extraToPay = estimatedTotal - currentTotalAmount;
+    const remainingBalance = estimatedTotal - paidAmount;
 
-    return { currentDays, newDays, daysAdded, newSubtotal, discountAmount, enteredFees, estimatedTotal, extraToPay, nextDate: next };
-  }, [newReturnDate, currentReturnDate, pickupDate, dailyRate, discountPercentage, additionalFees, existingAdditionalFees, currentTotalAmount]);
+    return { currentUnits, newUnits, unitsAdded, newSubtotal, discountAmount, enteredFees, estimatedTotal, extraToPay, remainingBalance, nextDate: next };
+  }, [newReturnDate, currentReturnDate, pickupDate, rentalUnit, rate, discountPercentage, additionalFees, existingAdditionalFees, currentTotalAmount, paidAmount]);
 
   const handleExtend = async () => {
     if (!newReturnDate) {
@@ -100,8 +116,9 @@ export function ExtendReservationDialog({
         new_return_date: newReturnDate,
         additional_fees: additionalFees ? Number(additionalFees) : undefined,
         notes: notes || undefined,
+        [rateFieldName]: rate !== originalRate && rate > 0 ? rate : undefined,
       });
-      toast.success(`Réservation ${reservationRef} prolongée`);
+      toast.success(`Réservation ${reservationRef} prolongée — à reconfirmer et réactiver`);
       onOpenChange(false);
       onSuccess?.();
     } catch (err: any) {
@@ -129,12 +146,11 @@ export function ExtendReservationDialog({
         </div>
 
         <div className="space-y-5 px-6 py-5 max-h-[70vh] overflow-y-auto">
-          {contractStatus === 'valid' && (
-            <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-800">
-              <IconAlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-              Le contrat déjà généré sera automatiquement dévalidé puis régénéré avec la nouvelle période.
-            </div>
-          )}
+          <div className="flex items-start gap-2 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2.5 text-xs text-blue-800">
+            <IconAlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+            La réservation repassera en <strong>attente de confirmation</strong> : il faudra la reconfirmer puis la
+            réactiver.{contractStatus === 'valid' && ' Le contrat déjà généré sera marqué à régénérer.'}
+          </div>
 
           {/* Date range visual */}
           <div className="flex items-center gap-3 rounded-xl border bg-muted/40 p-3">
@@ -153,31 +169,41 @@ export function ExtendReservationDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="new-return-date" className="flex items-center gap-1.5 text-sm font-medium">
-              <IconClock className="h-3.5 w-3.5" />Nouvelle date &amp; heure de retour *
-            </Label>
-            <Input
-              id="new-return-date"
-              type="datetime-local"
-              min={minDate}
-              value={newReturnDate}
-              onChange={e => setNewReturnDate(e.target.value)}
-              className="text-sm"
-            />
-          </div>
+          <DateTimeField
+            label="Nouvelle date & heure de retour *"
+            value={newReturnDate}
+            onChange={setNewReturnDate}
+            placeholder="Choisir la nouvelle date de retour"
+            minDate={minDate}
+          />
 
-          <div className="space-y-2">
-            <Label htmlFor="extra-fees" className="text-sm font-medium">Frais additionnels (dommages, nettoyage…)</Label>
-            <Input
-              id="extra-fees"
-              type="number"
-              min={0}
-              step={0.01}
-              placeholder="0.00"
-              value={additionalFees}
-              onChange={e => setAdditionalFees(e.target.value)}
-            />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="ext-rate" className="text-sm font-medium">
+                Tarif / {unitLabel} <span className="text-muted-foreground font-normal">(modifiable)</span>
+              </Label>
+              <Input
+                id="ext-rate"
+                type="number"
+                min={0}
+                step={0.01}
+                placeholder="0.00"
+                value={rateInput}
+                onChange={e => setRateInput(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="extra-fees" className="text-sm font-medium">Frais additionnels</Label>
+              <Input
+                id="extra-fees"
+                type="number"
+                min={0}
+                step={0.01}
+                placeholder="0.00"
+                value={additionalFees}
+                onChange={e => setAdditionalFees(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Live recalculation */}
@@ -188,13 +214,13 @@ export function ExtendReservationDialog({
                   <IconCalculator className="h-4 w-4" />Recalcul estimé
                 </div>
                 <Badge className="bg-blue-600 hover:bg-blue-600 text-white">
-                  +{preview.daysAdded} jour{preview.daysAdded > 1 ? 's' : ''}
+                  +{preview.unitsAdded} {pluralize(preview.unitsAdded)}
                 </Badge>
               </div>
 
               <div className="space-y-1.5 text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>Durée totale ({preview.currentDays} → {preview.newDays} jours)</span>
+                  <span>Durée totale ({preview.currentUnits} → {preview.newUnits} {pluralize(preview.newUnits)})</span>
                   <span className="font-medium text-foreground">{fmtMoney(preview.newSubtotal)} MAD</span>
                 </div>
                 {discountPercentage > 0 && (
@@ -216,6 +242,17 @@ export function ExtendReservationDialog({
               <div className="flex items-center justify-between">
                 <span className="text-sm font-semibold text-blue-900">Nouveau total estimé</span>
                 <span className="text-base font-bold text-blue-900">{fmtMoney(preview.estimatedTotal)} MAD</span>
+              </div>
+
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Déjà payé</span>
+                <span className="font-medium text-green-700">{fmtMoney(paidAmount)} MAD</span>
+              </div>
+              <div className="flex justify-between text-sm text-muted-foreground">
+                <span>Solde restant</span>
+                <span className={`font-medium ${preview.remainingBalance > 0 ? 'text-red-600' : 'text-green-700'}`}>
+                  {fmtMoney(preview.remainingBalance)} MAD
+                </span>
               </div>
 
               <div className="flex items-center justify-between rounded-lg bg-blue-600 px-3 py-2 text-white">

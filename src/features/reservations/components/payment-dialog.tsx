@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { Trash2, Plus, CreditCard, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useReservationPayments, useAddPayment, useDeletePayment } from '../hooks/use-payments';
+import { useBillingDocuments } from '@/features/billing/hooks/use-billing';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -37,38 +38,59 @@ const schema = z.object({
   payment_date: z.string().min(1, 'Date requise'),
   reference: z.string().optional(),
   notes: z.string().optional(),
+  billing_document_id: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+const BLANK_FORM = {
+  amount: 0, payment_method: '', payment_date: dateOnlyLocal(new Date()),
+  reference: '', notes: '', billing_document_id: '',
+};
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   reservationId: string;
   reservationRef?: string;
+  /** LLD reservations can settle a specific invoice with a payment — shows the invoice picker below. */
+  isLld?: boolean;
 }
 
-export function PaymentDialog({ open, onOpenChange, reservationId, reservationRef }: Props) {
+export function PaymentDialog({ open, onOpenChange, reservationId, reservationRef, isLld }: Props) {
   const [showForm, setShowForm] = useState(false);
   const { hasPermission } = useAuth();
   const canManagePayments = hasPermission('manage-payment');
   const { data: res, isLoading } = useReservationPayments(reservationId);
   const addPayment = useAddPayment(reservationId);
   const deletePayment = useDeletePayment(reservationId);
+  const { data: lldInvoicesRes } = useBillingDocuments(
+    { reservation_id: reservationId, type: 'LLD' },
+    { enabled: !!isLld && open }
+  );
+  const unpaidLldInvoices = (lldInvoicesRes?.data ?? []).filter((d) => d.status !== 'paid');
 
   const summary = res?.data;
   const payments = summary?.payments ?? [];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      amount: 0,
-      payment_method: '',
-      payment_date: dateOnlyLocal(new Date()),
-      reference: '',
-      notes: '',
-    },
+    defaultValues: BLANK_FORM,
   });
+
+  const selectedInvoiceId = form.watch('billing_document_id');
+  const selectedInvoice = unpaidLldInvoices.find((d) => d.id === selectedInvoiceId);
+
+  const applyInvoice = (invoiceId: string) => {
+    form.setValue('billing_document_id', invoiceId);
+    const invoice = unpaidLldInvoices.find((d) => d.id === invoiceId);
+    if (invoice) form.setValue('amount', Number(invoice.total_amount));
+  };
+
+  const clearInvoice = () => {
+    form.setValue('billing_document_id', '');
+    form.setValue('amount', 0);
+  };
 
   const onSubmit = async (values: FormValues) => {
     if (summary && values.amount > summary.balance) {
@@ -78,10 +100,11 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
     try {
       await addPayment.mutateAsync({
         ...values,
+        billing_document_id: values.billing_document_id || undefined,
         payment_method: values.payment_method as Parameters<typeof addPayment.mutateAsync>[0]['payment_method'],
       });
-      toast.success('Paiement enregistré');
-      form.reset({ amount: 0, payment_method: '', payment_date: dateOnlyLocal(new Date()), reference: '', notes: '' });
+      toast.success(values.billing_document_id ? 'Paiement enregistré — facture marquée payée' : 'Paiement enregistré');
+      form.reset(BLANK_FORM);
       setShowForm(false);
     } catch (err) {
       applyServerErrors(err, form, "Erreur lors de l'enregistrement du paiement");
@@ -151,6 +174,11 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
                         {format(new Date(payment.payment_date), 'dd MMM yyyy', { locale: fr })} · {PAYMENT_METHODS.find(m => m.value === payment.payment_method)?.label}
                         {payment.reference && ` · Réf: ${payment.reference}`}
                       </div>
+                      {payment.billing_document && (
+                        <Badge variant="outline" className="mt-1 text-[10px] font-mono">
+                          Facture {payment.billing_document.document_number} soldée
+                        </Badge>
+                      )}
                     </div>
                     {canManagePayments && (
                       <Button
@@ -182,11 +210,39 @@ export function PaymentDialog({ open, onOpenChange, reservationId, reservationRe
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
                   <div className="text-sm font-medium">Nouveau paiement</div>
+
+                  {isLld && unpaidLldInvoices.length > 0 && (
+                    <FormField control={form.control} name="billing_document_id" render={() => (
+                      <FormItem>
+                        <FormLabel>Facture à régler <span className="text-xs text-muted-foreground font-normal">(optionnel)</span></FormLabel>
+                        <Select value={selectedInvoiceId || 'none'} onValueChange={(v) => v === 'none' ? clearInvoice() : applyInvoice(v)}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Paiement libre (sans facture)" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="none">Paiement libre (sans facture)</SelectItem>
+                            {unpaidLldInvoices.map((inv) => (
+                              <SelectItem key={inv.id} value={inv.id}>
+                                {inv.document_number} — {Number(inv.total_amount).toLocaleString('fr-MA')} MAD
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        {selectedInvoice && (
+                          <p className="text-xs text-muted-foreground">
+                            Le paiement d&apos;une facture doit être intégral — montant verrouillé sur le total de la facture.
+                          </p>
+                        )}
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  )}
+
                   <div className="grid grid-cols-2 gap-3">
                     <FormField control={form.control} name="amount" render={({ field }) => (
                       <FormItem>
                         <FormLabel>Montant (MAD) *</FormLabel>
-                        <FormControl><Input type="number" step="0.01" min={0.01} max={summary?.balance} {...field} /></FormControl>
+                        <FormControl>
+                          <Input type="number" step="0.01" min={0.01} max={summary?.balance} readOnly={!!selectedInvoiceId} {...field} />
+                        </FormControl>
                         {summary && <p className="text-xs text-muted-foreground">Solde restant : {summary.balance.toLocaleString('fr-MA')} MAD</p>}
                         <FormMessage />
                       </FormItem>

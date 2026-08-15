@@ -26,7 +26,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
 import type { Reservation } from '@/types/reservation.types';
-import { RESERVATION_STATUS_OPTIONS, PAYMENT_STATUS_OPTIONS } from '@/config/constants';
+import { RESERVATION_STATUS_OPTIONS, PAYMENT_STATUS_OPTIONS, RENTAL_UNIT_OPTIONS } from '@/config/constants';
 import { format, parseISO } from 'date-fns';
 import { useCreateBillingFromReservation } from '@/features/billing/hooks/use-billing';
 import { billingService } from '@/services/billing.service';
@@ -70,7 +70,7 @@ export function ReservationsView() {
   const [tableInstance, setTableInstance] = useState<Partial<UseTableReturn<Reservation>> | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
-  const [paymentDialog, setPaymentDialog] = useState<{ id: string; ref: string } | null>(null);
+  const [paymentDialog, setPaymentDialog] = useState<{ id: string; ref: string; isLld: boolean } | null>(null);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
   const [completeDialog, setCompleteDialog] = useState<{ id: string; ref: string; initialMileage?: number; returnLocation?: string; scheduledReturnDate?: string } | null>(null);
   const [extendDialog, setExtendDialog] = useState<{ id: string; ref: string; returnDate?: string; status: string } | null>(null);
@@ -79,7 +79,7 @@ export function ReservationsView() {
   const createInvoice = useCreateBillingFromReservation();
 
   const handleViewContract = async (reservationId: string) => {
-    const url = await fetchPdfBlob(apiRoutes.reservationsExt.contract(reservationId));
+    const url = await fetchPdfBlob(`${apiRoutes.reservationsExt.contract(reservationId)}?_=${Date.now()}`);
     if (url) setPdfPreviewUrl(url);
   };
 
@@ -168,8 +168,8 @@ export function ReservationsView() {
       sortable: true,
       render: (v, row) => (
         <div className="text-xs">
-          <div>{v ? format(parseISO(v as string), 'dd/MM/yy') : '—'}</div>
-          <div className="text-muted-foreground">→ {row.return_date ? format(parseISO(row.return_date), 'dd/MM/yy') : '—'}</div>
+          <div>{v ? format(parseISO(v as string), 'dd/MM/yy HH:mm') : '—'}</div>
+          <div className="text-muted-foreground">→ {row.return_date ? format(parseISO(row.return_date), 'dd/MM/yy HH:mm') : '—'}</div>
         </div>
       ),
     },
@@ -214,7 +214,7 @@ export function ReservationsView() {
               <DropdownMenuItem onClick={() => router.push(`/reservations/${row.id}`)}>
                 <ExternalLink className="mr-2 h-4 w-4 text-slate-600" /> Voir les détails
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setPaymentDialog({ id: row.id, ref: row.reference })}>
+              <DropdownMenuItem onClick={() => setPaymentDialog({ id: row.id, ref: row.reference, isLld: row.rental_unit === 'month' })}>
                 <CreditCard className="mr-2 h-4 w-4 text-violet-600" /> Paiements
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => router.push(`/reservations/${row.id}/edit`)}>
@@ -293,6 +293,7 @@ export function ReservationsView() {
     { field: 'search', label: 'Rechercher une réservation…', type: 'text' },
     { field: 'status', label: 'Statut', type: 'select', options: RESERVATION_STATUS_OPTIONS },
     { field: 'payment_status', label: 'Paiement', type: 'select', options: PAYMENT_STATUS_OPTIONS },
+    { field: 'rental_unit', label: 'Type de location', type: 'select', options: RENTAL_UNIT_OPTIONS },
     { field: 'overdue', label: 'En retard uniquement', type: 'checkbox' },
     { field: 'legacy_id', label: 'En archive', type: 'checkbox' },
     { field: 'date_from', label: 'Du', type: 'date', group: 'date' },
@@ -332,6 +333,7 @@ export function ReservationsView() {
           onOpenChange={(o) => !o && setPaymentDialog(null)}
           reservationId={paymentDialog.id}
           reservationRef={paymentDialog.ref}
+          isLld={paymentDialog.isLld}
         />
       )}
       {completeDialog && (

@@ -3,6 +3,7 @@ import type { PaymentMethod } from './reservation.types';
 export interface ReservationPayment {
   id: string;
   reservation_id: string;
+  billing_document_id: string | null;
   recorded_by: string | null;
   amount: number;
   payment_method: PaymentMethod;
@@ -10,6 +11,7 @@ export interface ReservationPayment {
   reference: string | null;
   notes: string | null;
   recorder?: { id: string; first_name: string; last_name: string } | null;
+  billing_document?: { id: string; document_number: string; type: string; total_amount: number; status: string } | null;
   created_at: string;
 }
 
@@ -27,4 +29,5 @@ export interface CreatePaymentInput {
   payment_date: string;
   reference?: string;
   notes?: string;
+  billing_document_id?: string;
 }

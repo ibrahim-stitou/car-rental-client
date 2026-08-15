@@ -21,8 +21,21 @@ import { CalendarIcon, Settings2 } from 'lucide-react';
 
 import { CustomTableFilterConfig, UseCustomTableReturnType } from '@/components/custom/data-table/types';
 import { Calendar } from '@/components/ui/calendar';
-import { dFormat } from '@/utils/date-utils';
+import { dFormat, dateOnlyLocal } from '@/utils/date-utils';
 import { enUS } from 'date-fns/locale';
+
+// Reconstructs a Date from a stored 'yyyy-MM-dd' filter value using LOCAL
+// calendar components — `new Date('yyyy-MM-dd')` parses date-only strings as
+// UTC midnight per spec, which rolls back a day for any negative-UTC-offset
+// viewer once displayed in local time. This keeps the picked calendar day
+// stable regardless of the viewer's timezone offset sign.
+function parseLocalDateOnly(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  if (!match) return null;
+  const [, y, m, d] = match;
+  const date = new Date(Number(y), Number(m) - 1, Number(d));
+  return isNaN(date.getTime()) ? null : date;
+}
 
 interface CustomTableToolbarProps<TData extends Record<string, any>>
   extends React.ComponentProps<'div'> {
@@ -123,7 +136,7 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
                     className={cn('justify-start text-left font-normal', !field.value && 'text-muted-foreground')}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {field.value ? dFormat(new Date(field.value), 'PPP') : <span>{filter.label}</span>}
+                    {field.value && parseLocalDateOnly(field.value) ? dFormat(parseLocalDateOnly(field.value)!, 'PPP') : <span>{filter.label}</span>}
                     {field.value && (
                       <span
                         className="ml-auto flex items-center"
@@ -141,10 +154,10 @@ export function CustomTableToolbar<TData extends Record<string, any>>({
                   <Calendar
                     locale={enUS}
                     mode="single"
-                    selected={field.value ? new Date(field.value) : undefined}
+                    selected={field.value ? parseLocalDateOnly(field.value) ?? undefined : undefined}
                     onSelect={(date) => {
                       if (date instanceof Date && !isNaN(date.getTime())) {
-                        field.onChange(date.toISOString());
+                        field.onChange(dateOnlyLocal(date));
                       } else {
                         field.onChange(null);
                       }

@@ -22,6 +22,7 @@ function nowForDatetimeLocal() {
 
 interface EarlyReturnPreview {
   is_early_return: boolean;
+  unit?: 'day' | 'hour';
   actual_days: number;
   contracted_days: number;
   suggested_total_amount: number;
@@ -192,8 +193,8 @@ export function CompleteReservationDialog({
               <IconAlertTriangle className="h-4 w-4 text-blue-600" />
               <AlertDescription className="text-blue-800 text-sm space-y-2">
                 <p>
-                  Retour anticipé détecté : <strong>{earlyReturnPreview.actual_days} jour(s)</strong> sur{' '}
-                  <strong>{earlyReturnPreview.contracted_days} jour(s)</strong> prévus — montant suggéré :{' '}
+                  Retour anticipé détecté : <strong>{earlyReturnPreview.actual_days} {earlyReturnPreview.unit === 'hour' ? 'heure(s)' : 'jour(s)'}</strong> sur{' '}
+                  <strong>{earlyReturnPreview.contracted_days} {earlyReturnPreview.unit === 'hour' ? 'heure(s)' : 'jour(s)'}</strong> prévus — montant suggéré :{' '}
                   <strong>{earlyReturnPreview.suggested_total_amount.toLocaleString('fr-MA')} MAD</strong>.
                 </p>
                 <div className="space-y-1">

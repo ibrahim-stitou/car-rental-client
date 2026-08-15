@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, differenceInCalendarMonths, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
   ArrowLeft, Car, User, MapPin, Calendar, CreditCard, FileText,
@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -29,6 +30,7 @@ import { CompleteReservationDialog } from './complete-reservation-dialog';
 import { ExtendReservationDialog } from './extend-reservation-dialog';
 import { ValidateReservationDialog } from './validate-reservation-dialog';
 import { InvalidateContractDialog } from './invalidate-contract-dialog';
+import { RegenerateContractDialog } from './regenerate-contract-dialog';
 import { DocumentsSection } from '@/components/shared/documents-section';
 import { useReservation } from '../hooks/use-reservations';
 import { useAuth } from '@/hooks/useAuth';
@@ -69,6 +71,20 @@ function fmtDateTime(d: string | null | undefined) {
 }
 function fmtMoney(n: number | string | null | undefined) {
   return Number(n ?? 0).toLocaleString('fr-MA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+// Read-only preview of what the *planned* duration (pickup -> return_date)
+// would be — mirrors Reservation::calculateTotal()'s ceil rule ("any period
+// started is due in full") purely for display, so an early/late closure can
+// show "prévu" alongside the actual/billed duration without waiting on a
+// server round-trip.
+function plannedUnitsBetween(pickup: Date, planned: Date, unit: 'day' | 'hour' | 'month'): number {
+  if (unit === 'month') {
+    const whole = Math.max(0, differenceInCalendarMonths(planned, pickup));
+    return addMonths(pickup, whole) < planned ? whole + 1 : Math.max(1, whole);
+  }
+  const divisor = unit === 'hour' ? 3600000 : 86400000;
+  return Math.max(1, Math.ceil((planned.getTime() - pickup.getTime()) / divisor));
 }
 
 function InfoRow({ label, value }: { label: string; value?: React.ReactNode }) {
@@ -137,12 +153,17 @@ const CONTRACT_EVENT_FR: Record<string, string> = {
   generated: 'Contrat généré', regenerated: 'Contrat régénéré', invalidated: 'Contrat dévalidé',
 };
 
-function ContractStatusPanel({ reservationId, reservationRef, contractStatus, onChanged }: {
-  reservationId: string; reservationRef: string; contractStatus: string; onChanged: () => void;
+function ContractStatusPanel({
+  reservationId, reservationRef, contractStatus, contractVersions, hasSignature, hasStamp, onChanged,
+}: {
+  reservationId: string; reservationRef: string; contractStatus: string;
+  contractVersions?: { id: number; url: string; file_name: string; created_at: string; is_current: boolean }[];
+  hasSignature?: boolean; hasStamp?: boolean; onChanged: () => void;
 }) {
   const { hasPermission } = useAuth();
   const queryClient = useQueryClient();
   const [invalidateOpen, setInvalidateOpen] = useState(false);
+  const [regenerateOpen, setRegenerateOpen] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
   const canManage = hasPermission('manage-contract');
   const historyKey = ['reservation-contract-history', reservationId];
@@ -164,10 +185,17 @@ function ContractStatusPanel({ reservationId, reservationRef, contractStatus, on
     try {
       await apiClient.patch(apiRoutes.reservationsExt.regenerateContract(reservationId));
       toast.success('Contrat régénéré');
+      setRegenerateOpen(false);
       refreshAll();
     } catch (e: any) {
       toast.error(e?.response?.data?.message ?? 'Impossible de régénérer le contrat');
     } finally { setRegenerating(false); }
+  };
+
+  const downloadVersion = (url: string, fileName: string) => {
+    const a = document.createElement('a');
+    a.href = url; a.download = fileName; a.target = '_blank';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
   };
 
   return (
@@ -187,7 +215,7 @@ function ContractStatusPanel({ reservationId, reservationRef, contractStatus, on
             )}
             {contractStatus === 'invalidated' && (
               <Button size="sm" variant="outline" className="gap-1 text-green-700 border-green-200 hover:bg-green-50"
-                      disabled={regenerating} onClick={regenerate}>
+                      disabled={regenerating} onClick={() => setRegenerateOpen(true)}>
                 {regenerating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <CheckCheck className="h-3.5 w-3.5" />}
                 Régénérer le contrat
               </Button>
@@ -221,12 +249,41 @@ function ContractStatusPanel({ reservationId, reservationRef, contractStatus, on
         </div>
       )}
 
+      {!!contractVersions?.length && (
+        <div className="space-y-1.5">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Historique des versions</p>
+          <div className="space-y-1.5">
+            {contractVersions.map((v) => (
+              <div key={v.id} className="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                  <span className="font-medium">{v.is_current ? 'Version actuelle' : 'Version archivée'}</span>
+                  <span className="text-muted-foreground">{fmtDateTime(v.created_at)}</span>
+                </div>
+                <Button size="sm" variant="ghost" className="h-6 gap-1 px-2 text-xs"
+                        onClick={() => downloadVersion(v.url, v.file_name)}>
+                  <Download className="h-3 w-3" />Télécharger
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <InvalidateContractDialog
         open={invalidateOpen}
         onOpenChange={setInvalidateOpen}
         reservationId={reservationId}
         reservationRef={reservationRef}
         onSuccess={refreshAll}
+      />
+      <RegenerateContractDialog
+        open={regenerateOpen}
+        onOpenChange={setRegenerateOpen}
+        loading={regenerating}
+        hasSignature={hasSignature}
+        hasStamp={hasStamp}
+        onConfirm={regenerate}
       />
     </div>
   );
@@ -243,7 +300,10 @@ function ContractFrame({ resId, resRef }: { resId: string; resRef: string }) {
     if (blobUrl) return;
     setLoading(true); setError(false);
     try {
-      const res = await apiClient.get<BlobPart>(apiRoutes.reservationsExt.contract(resId), { responseType: 'blob' });
+      const res = await apiClient.get<BlobPart>(
+        `${apiRoutes.reservationsExt.contract(resId)}?_=${Date.now()}`,
+        { responseType: 'blob' }
+      );
       setBlobUrl(URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' })));
     } catch { setError(true); }
     finally { setLoading(false); }
@@ -358,8 +418,36 @@ export function ReservationDetailView({ id }: { id: string }) {
 
   const statusCfg = STATUS_CONFIG[reservation.status] ?? STATUS_CONFIG.pending;
   const r = reservation as any;
+  const isHourly = r.rental_unit === 'hour';
+  const isLld = r.rental_unit === 'month';
   const days = r.days_count ?? r.total_days ?? 0;
-  const balance = Number(reservation.total_amount) - Number(reservation.paid_amount);
+  const durationLabel = isLld
+    ? `${r.total_months ?? 0} mois`
+    : isHourly ? `${r.total_hours ?? 0}h` : `${days} jour${days > 1 ? 's' : ''}`;
+
+  // Actual/billed duration (above) already reflects an early/late closure —
+  // this is the *planned* duration for comparison, shown only when the
+  // reservation actually closed on a different date than originally booked.
+  const closedOnDifferentDate = !!reservation.actual_return_date
+    && reservation.pickup_date && reservation.return_date
+    && new Date(reservation.actual_return_date).getTime() !== new Date(reservation.return_date).getTime();
+  const plannedUnit = isLld ? 'month' : isHourly ? 'hour' : 'day';
+  const plannedDuration = closedOnDifferentDate
+    ? plannedUnitsBetween(new Date(reservation.pickup_date), new Date(reservation.return_date), plannedUnit)
+    : null;
+  const plannedDurationLabel = plannedDuration === null ? null
+    : isLld ? `${plannedDuration} mois`
+    : isHourly ? `${plannedDuration}h`
+    : `${plannedDuration} jour${plannedDuration > 1 ? 's' : ''}`;
+  // LLD "credit"/balance is against what's due so far (see backend
+  // Reservation::getAmountDueSoFarAttribute), never the full multi-year
+  // contract value — a 24-month contract isn't "owed in full" on day one.
+  const balance = isLld
+    ? Number(r.amount_due_so_far ?? 0) - Number(reservation.paid_amount)
+    : Number(reservation.total_amount) - Number(reservation.paid_amount);
+  const agencyProfile = !r.agency_id ? null : profileData?.agencies?.find((a: any) => a.id === r.agency_id);
+  const hasSignature = !r.agency_id ? true : !!agencyProfile?.signature_url;
+  const hasStamp = !r.agency_id ? true : !!agencyProfile?.stamp_url;
 
   return (
     <PageContainer scrollable>
@@ -384,10 +472,16 @@ export function ReservationDetailView({ id }: { id: string }) {
                 <h1 className="text-xl font-bold font-mono">{r.reference ?? r.reservation_number}</h1>
                 <Badge variant="outline" className={statusCfg.cls}>{statusCfg.label}</Badge>
                 {r.is_overdue && <Badge variant="destructive" className="text-xs">En retard</Badge>}
+                {closedOnDifferentDate && (
+                  <Badge variant="outline" className={r.is_early_return ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-orange-100 text-orange-800 border-orange-200'}>
+                    {r.is_early_return ? 'Retour anticipé' : 'Retour tardif'}
+                  </Badge>
+                )}
               </div>
               <p className="text-xs mt-0.5 opacity-70">
-                {fmtDate(reservation.pickup_date)} → {fmtDate(reservation.return_date)}
-                {days > 0 && ` · ${days} jour${days > 1 ? 's' : ''}`}
+                {fmtDate(reservation.pickup_date)} → {fmtDate(closedOnDifferentDate ? reservation.actual_return_date : reservation.return_date)}
+                {(isHourly || isLld || days > 0) && ` · ${durationLabel}`}
+                {closedOnDifferentDate && plannedDurationLabel && ` (prévu : ${fmtDate(reservation.return_date)} · ${plannedDurationLabel})`}
               </p>
             </div>
           </div>
@@ -444,7 +538,10 @@ export function ReservationDetailView({ id }: { id: string }) {
                     onClick={async () => {
                       const toastId = toast.loading('Téléchargement…');
                       try {
-                        const res = await apiClient.get<BlobPart>(apiRoutes.reservationsExt.contract(id), { responseType: 'blob' });
+                        const res = await apiClient.get<BlobPart>(
+                          `${apiRoutes.reservationsExt.contract(id)}?_=${Date.now()}`,
+                          { responseType: 'blob' }
+                        );
                         const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
                         const a = document.createElement('a');
                         a.href = url; a.download = `contrat-${(r.reference ?? 'reservation').toLowerCase()}.pdf`;
@@ -493,7 +590,13 @@ export function ReservationDetailView({ id }: { id: string }) {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                       <InfoRow label="Référence" value={<span className="font-mono">{r.reference ?? r.reservation_number}</span>} />
                       <InfoRow label="Statut" value={<Badge variant="outline" className={`${statusCfg.cls} text-xs`}>{statusCfg.label}</Badge>} />
-                      <InfoRow label="Durée" value={days > 0 ? `${days} jour${days > 1 ? 's' : ''}` : '—'} />
+                      <InfoRow
+                        label={closedOnDifferentDate ? 'Durée réelle' : 'Durée'}
+                        value={isHourly || isLld || days > 0 ? durationLabel : '—'}
+                      />
+                      {closedOnDifferentDate && plannedDurationLabel && (
+                        <InfoRow label="Durée prévue" value={plannedDurationLabel} />
+                      )}
                       <InfoRow label="Départ" value={fmtDate(reservation.pickup_date)} />
                       <InfoRow label="Retour prévu" value={fmtDate(reservation.return_date)} />
                       {reservation.actual_return_date && <InfoRow label="Retour effectif" value={fmtDate(reservation.actual_return_date)} />}
@@ -604,8 +707,14 @@ export function ReservationDetailView({ id }: { id: string }) {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">{days}j × {fmtMoney(reservation.daily_rate)} MAD</span>
-                      <span className="font-mono">{fmtMoney(Number(reservation.daily_rate) * days)} MAD</span>
+                      <span className="text-muted-foreground">
+                        {isLld
+                          ? `${r.total_months ?? 0} mois × ${fmtMoney(r.monthly_rate)} MAD`
+                          : isHourly
+                            ? `${r.total_hours ?? 0}h × ${fmtMoney(r.hourly_rate)} MAD`
+                            : `${days}j × ${fmtMoney(reservation.daily_rate)} MAD`}
+                      </span>
+                      <span className="font-mono">{fmtMoney(r.subtotal ?? (Number(reservation.daily_rate) * days))} MAD</span>
                     </div>
                     {Number(reservation.discount_percentage) > 0 && (
                       <div className="flex justify-between text-sm text-green-700">
@@ -658,6 +767,39 @@ export function ReservationDetailView({ id }: { id: string }) {
                   </CardContent>
                 </Card>
 
+                {/* LLD progress — duration + payment catch-up */}
+                {isLld && (
+                  <Card className="border-2 border-primary/10">
+                    <CardHeader className="pb-3">
+                      <CardTitle className="text-base">Progression du contrat LLD</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Durée</span>
+                          <span className="font-medium">{r.months_elapsed ?? 0} / {r.total_months ?? 0} mois</span>
+                        </div>
+                        <Progress value={r.total_months ? (100 * (r.months_elapsed ?? 0)) / r.total_months : 0} />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Paiement (mois dus)</span>
+                          <span className="font-medium">
+                            {fmtMoney(reservation.paid_amount)} / {fmtMoney(r.amount_due_so_far ?? 0)} MAD
+                          </span>
+                        </div>
+                        <Progress
+                          value={r.amount_due_so_far ? Math.min(100, (100 * Number(reservation.paid_amount)) / r.amount_due_so_far) : 0}
+                          className={Number(reservation.paid_amount) < Number(r.amount_due_so_far ?? 0) ? '[&>div]:bg-amber-500' : '[&>div]:bg-green-600'}
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground border-t pt-2">
+                        Valeur totale du contrat : <span className="font-medium text-foreground">{fmtMoney(reservation.total_amount)} MAD</span> ({r.months_due ?? 0}/{r.total_months ?? 0} mois facturables à ce jour)
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Agency */}
                 {reservation.agency && (
                   <Card>
@@ -686,10 +828,10 @@ export function ReservationDetailView({ id }: { id: string }) {
                 </Card>
 
                 {/* Quick actions */}
-                {reservation.status === 'active' && (
+                {['pending', 'confirmed', 'active'].includes(reservation.status) && (
                   <Card className="border-amber-200 bg-amber-50/50">
                     <CardContent className="pt-4 space-y-2">
-                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">Réservation active</p>
+                      <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">{statusCfg.label}</p>
                       <Button size="sm" variant="outline" className="w-full gap-1 text-xs"
                               onClick={() => setExtendOpen(true)}>
                         <Calendar className="h-3.5 w-3.5" />Prolonger
@@ -709,6 +851,9 @@ export function ReservationDetailView({ id }: { id: string }) {
                   reservationId={id}
                   reservationRef={r.reference ?? r.reservation_number ?? ''}
                   contractStatus={r.contract_status ?? 'not_generated'}
+                  contractVersions={r.contract_versions}
+                  hasSignature={hasSignature}
+                  hasStamp={hasStamp}
                   onChanged={refetch}
                 />
               </CardContent>
@@ -746,6 +891,7 @@ export function ReservationDetailView({ id }: { id: string }) {
         onOpenChange={setPaymentOpen}
         reservationId={id}
         reservationRef={r.reference ?? r.reservation_number ?? ''}
+        isLld={isLld}
       />
       {cancelOpen && (
         <CancelDialog open={cancelOpen} onOpenChange={setCancelOpen} reservationId={id} onSuccess={() => { refetch(); setCancelOpen(false); }} />
@@ -767,8 +913,8 @@ export function ReservationDetailView({ id }: { id: string }) {
           open={validateOpen}
           onOpenChange={setValidateOpen}
           loading={!!pendingAction}
-          hasSignature={!r.agency_id ? true : !!profileData?.agencies?.find((a: any) => a.id === r.agency_id)?.signature_url}
-          hasStamp={!r.agency_id ? true : !!profileData?.agencies?.find((a: any) => a.id === r.agency_id)?.stamp_url}
+          hasSignature={hasSignature}
+          hasStamp={hasStamp}
           onConfirm={() => {
             doAction(apiRoutes.reservations.confirm(id), 'patch', 'Réservation confirmée');
             setValidateOpen(false);
@@ -783,10 +929,14 @@ export function ReservationDetailView({ id }: { id: string }) {
           reservationRef={r.reference ?? r.reservation_number ?? ''}
           currentReturnDate={reservation.return_date}
           pickupDate={reservation.pickup_date}
+          rentalUnit={isLld ? 'month' : isHourly ? 'hour' : 'day'}
           dailyRate={Number(reservation.daily_rate)}
+          hourlyRate={r.hourly_rate != null ? Number(r.hourly_rate) : undefined}
+          monthlyRate={r.monthly_rate != null ? Number(r.monthly_rate) : undefined}
           discountPercentage={Number(reservation.discount_percentage)}
           existingAdditionalFees={Number(reservation.additional_fees)}
           currentTotalAmount={Number(reservation.total_amount)}
+          paidAmount={Number(reservation.paid_amount)}
           contractStatus={r.contract_status}
           status={reservation.status}
           onSuccess={() => { refetch(); setExtendOpen(false); }}

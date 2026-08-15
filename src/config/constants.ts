@@ -1,10 +1,11 @@
 import type {
   VehicleStatus,
+  VehicleCondition,
   FuelType,
   Transmission,
   VehicleCategory,
 } from '@/types/vehicle.types';
-import type { ReservationStatus, PaymentStatus, PaymentMethod, FuelLevel } from '@/types/reservation.types';
+import type { ReservationStatus, PaymentStatus, PaymentMethod, FuelLevel, RentalUnit } from '@/types/reservation.types';
 import type { BillingDocumentType, BillingStatus } from '@/types/billing.types';
 import type { InsuranceType } from '@/types/insurance.types';
 import type { MaintenanceStatus, MaintenancePriority } from '@/types/maintenance.types';
@@ -17,6 +18,13 @@ export const VEHICLE_STATUS_OPTIONS: { value: VehicleStatus; label: string }[] =
   { value: 'rented', label: 'Loué' },
   { value: 'maintenance', label: 'En maintenance' },
   { value: 'out_of_service', label: 'Hors service' },
+];
+
+export const VEHICLE_CONDITION_OPTIONS: { value: VehicleCondition; label: string }[] = [
+  { value: 'bon_etat', label: 'Bon état' },
+  { value: 'leger_dommage', label: 'Léger dommage' },
+  { value: 'accidente', label: 'Accidenté' },
+  { value: 'hors_service', label: 'Hors service' },
 ];
 
 export const FUEL_TYPE_OPTIONS: { value: FuelType; label: string }[] = [
@@ -51,6 +59,12 @@ export const RESERVATION_STATUS_OPTIONS: { value: ReservationStatus; label: stri
   { value: 'no_show', label: 'Non présenté' },
 ];
 
+export const RENTAL_UNIT_OPTIONS: { value: RentalUnit; label: string }[] = [
+  { value: 'day', label: 'Journalière' },
+  { value: 'hour', label: 'Horaire' },
+  { value: 'month', label: 'Longue durée (LLD)' },
+];
+
 export const PAYMENT_STATUS_OPTIONS: { value: PaymentStatus; label: string }[] = [
   { value: 'pending', label: 'En attente' },
   { value: 'partial', label: 'Partiel' },
@@ -81,6 +95,7 @@ export const BILLING_TYPE_OPTIONS: { value: BillingDocumentType; label: string }
   { value: 'DV', label: 'DV — Devis' },
   { value: 'FA', label: 'FA — Facture' },
   { value: 'AV', label: 'AV — Avoir' },
+  { value: 'LLD', label: 'LLD — Facture longue durée' },
 ];
 
 export const BILLING_STATUS_OPTIONS: { value: BillingStatus; label: string }[] = [

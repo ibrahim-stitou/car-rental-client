@@ -10,8 +10,12 @@ export const billingKeys = {
   statistics: () => [...billingKeys.all, 'statistics'] as const,
 };
 
-export function useBillingDocuments(filters?: BillingFilters) {
-  return useQuery({ queryKey: billingKeys.list(filters), queryFn: () => billingService.list(filters) });
+export function useBillingDocuments(filters?: BillingFilters, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: billingKeys.list(filters),
+    queryFn: () => billingService.list(filters),
+    enabled: options?.enabled ?? true,
+  });
 }
 export function useBillingDocument(id: string) {
   return useQuery({ queryKey: billingKeys.detail(id), queryFn: () => billingService.show(id), enabled: !!id });

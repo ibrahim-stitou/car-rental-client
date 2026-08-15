@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Building2, Receipt, Bell, CalendarDays, Globe, Hash, ChevronRight, ListChecks,
+  Receipt, Bell, CalendarDays, Globe, Hash, ChevronRight, ListChecks,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -19,15 +19,6 @@ interface SettingCard {
 }
 
 const cards: SettingCard[] = [
-  {
-    href: '/settings/company',
-    icon: Building2,
-    title: "Paramètres d'Entreprise",
-    description: 'Informations générales, identifiants fiscaux, bancaires et forme juridique',
-    active: true,
-    iconColor: 'text-blue-600',
-    iconBg: 'bg-blue-100',
-  },
   {
     href: '#',
     icon: Receipt,

@@ -10,6 +10,7 @@ import CustomAlertDialog from '@/components/custom/customAlert';
 import CustomTable from '@/components/custom/data-table/custom-table';
 import type { CustomTableColumn, CustomTableFilterConfig, UseTableReturn } from '@/components/custom/data-table/types';
 import { VehicleForm } from './vehicle-form';
+import { VehicleActiveReservationHover } from './vehicle-active-reservation-hover';
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -62,9 +63,12 @@ export function VehiclesView() {
     { data: 'category', label: 'Catégorie', sortable: true, render: (v) => <Badge variant="outline" className="capitalize">{v}</Badge> },
     {
       data: 'status', label: 'Statut', sortable: true,
-      render: (v) => (
-        <Badge variant="outline" className={`text-xs font-medium ${STATUS_COLORS[v] ?? ''}`}>{STATUS_LABELS[v] ?? v}</Badge>
-      ),
+      render: (v, row) => {
+        const badge = <Badge variant="outline" className={`text-xs font-medium ${STATUS_COLORS[v] ?? ''} ${v === 'rented' ? 'cursor-help' : ''}`}>{STATUS_LABELS[v] ?? v}</Badge>;
+        return v === 'rented'
+          ? <VehicleActiveReservationHover vehicleId={row.id}>{badge}</VehicleActiveReservationHover>
+          : badge;
+      },
     },
     { data: 'daily_rate', label: 'Tarif/Jour', sortable: true, render: (v) => <span className="font-medium">{Number(v).toLocaleString('fr-MA')} MAD</span> },
     { data: 'mileage', label: 'Kilométrage', sortable: true, render: (v) => <span className="text-sm">{Number(v).toLocaleString()} km</span> },
@@ -84,6 +88,7 @@ export function VehiclesView() {
     { field: 'search', label: 'Rechercher un véhicule…', type: 'text' },
     { field: 'status', label: 'Statut', type: 'select', options: VEHICLE_STATUS_OPTIONS },
     { field: 'category', label: 'Catégorie', type: 'select', options: VEHICLE_CATEGORY_OPTIONS },
+    { field: 'returning_today', label: 'Retour aujourd\'hui', type: 'checkbox' },
   ];
 
   const handleConfirmDelete = async () => {

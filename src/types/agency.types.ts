@@ -15,6 +15,12 @@ export interface Agency {
   logo_url: string | null;
   logo_media_id: number | null;
   vehicles_count?: number;
+  legal_form: string | null;
+  capital: string | null;
+  rc: string | null;
+  tax_id: string | null;
+  patente: string | null;
+  ice: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -36,6 +42,12 @@ export interface CreateAgencyInput {
   phone: string;
   phone2?: string;
   manager_id?: string;
+  legal_form?: string;
+  capital?: string;
+  rc?: string;
+  tax_id?: string;
+  patente?: string;
+  ice?: string;
 }
 
 export type UpdateAgencyInput = Partial<CreateAgencyInput>;

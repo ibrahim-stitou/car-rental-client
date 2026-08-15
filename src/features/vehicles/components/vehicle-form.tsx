@@ -20,7 +20,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import {
-  VEHICLE_CATEGORY_OPTIONS, FUEL_TYPE_OPTIONS, TRANSMISSION_OPTIONS,
+  VEHICLE_CATEGORY_OPTIONS, FUEL_TYPE_OPTIONS, TRANSMISSION_OPTIONS, VEHICLE_CONDITION_OPTIONS,
 } from '@/config/constants';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
@@ -41,9 +41,12 @@ const schema = z.object({
   transmission: z.string().min(1, 'Transmission requise'),
   seats: z.coerce.number().min(2).max(9),
   daily_rate: z.coerce.number().min(0),
+  hourly_rate: z.coerce.number().min(0).optional(),
+  monthly_rate: z.coerce.number().min(0).optional(),
   deposit_amount: z.coerce.number().min(0),
   mileage: z.coerce.number().min(0),
   average_consumption: z.coerce.number().min(0).optional(),
+  condition: z.string().optional(),
   has_adblue: z.boolean().optional(),
   notes: z.string().optional(),
   description: z.string().optional(),
@@ -78,8 +81,8 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
     defaultValues: {
       agency_id: '', brand: '', model: '', year: new Date().getFullYear(),
       registration_number: '', vin: '', color: '', category: '', fuel_type: '',
-      transmission: '', seats: 5, daily_rate: 0, deposit_amount: 0, mileage: 0,
-      average_consumption: undefined,
+      transmission: '', seats: 5, daily_rate: 0, hourly_rate: undefined, monthly_rate: undefined, deposit_amount: 0, mileage: 0,
+      average_consumption: undefined, condition: 'bon_etat',
       has_adblue: false, notes: '', description: '',
       show_on_website: false, website_description: '', website_price_override: undefined,
     },
@@ -100,9 +103,12 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
         transmission: vehicle.transmission,
         seats: vehicle.seats,
         daily_rate: Number(vehicle.daily_rate),
+        hourly_rate: vehicle.hourly_rate != null ? Number(vehicle.hourly_rate) : undefined,
+        monthly_rate: vehicle.monthly_rate != null ? Number(vehicle.monthly_rate) : undefined,
         deposit_amount: Number(vehicle.deposit_amount),
         mileage: vehicle.mileage,
         average_consumption: (vehicle as any).average_consumption != null ? Number((vehicle as any).average_consumption) : undefined,
+        condition: vehicle.condition ?? 'bon_etat',
         has_adblue: vehicle.has_adblue ?? false,
         notes: vehicle.notes ?? '',
         description: vehicle.description ?? '',
@@ -116,8 +122,8 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
       form.reset({
         agency_id: '', brand: '', model: '', year: new Date().getFullYear(),
         registration_number: '', vin: '', color: '', category: '', fuel_type: '',
-        transmission: '', seats: 5, daily_rate: 0, deposit_amount: 0, mileage: 0,
-        average_consumption: undefined,
+        transmission: '', seats: 5, daily_rate: 0, hourly_rate: undefined, monthly_rate: undefined, deposit_amount: 0, mileage: 0,
+        average_consumption: undefined, condition: 'bon_etat',
         has_adblue: false, notes: '', description: '',
         show_on_website: false, website_description: '',
       });
@@ -299,6 +305,18 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
                 )} />
               </div>
 
+              <FormField control={form.control} name="condition" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>État du véhicule</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl><SelectTrigger><SelectValue placeholder="Sélectionner" /></SelectTrigger></FormControl>
+                    <SelectContent>{VEHICLE_CONDITION_OPTIONS.map(o => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">Affiché sur le document de réservation (contrat).</p>
+                  <FormMessage />
+                </FormItem>
+              )} />
+
               {/* AdBlue */}
               <FormField control={form.control} name="has_adblue" render={({ field }) => (
                 <FormItem className="flex items-center justify-between rounded-lg border p-3 bg-blue-50 border-blue-200">
@@ -318,6 +336,22 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <FormField control={form.control} name="daily_rate" render={({ field }) => (
                   <FormItem><FormLabel>Tarif/jour (MAD) *</FormLabel><FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={form.control} name="hourly_rate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tarif/heure (MAD)</FormLabel>
+                    <FormControl><Input type="number" min={0} step={0.01} placeholder="Optionnel" {...field} value={field.value ?? ''} /></FormControl>
+                    <p className="text-xs text-muted-foreground">Active la location à l'heure pour ce véhicule.</p>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={form.control} name="monthly_rate" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tarif/mois (MAD)</FormLabel>
+                    <FormControl><Input type="number" min={0} step={0.01} placeholder="Optionnel" {...field} value={field.value ?? ''} /></FormControl>
+                    <p className="text-xs text-muted-foreground">Active la location longue durée (LLD) pour ce véhicule.</p>
+                    <FormMessage />
+                  </FormItem>
                 )} />
                 <FormField control={form.control} name="deposit_amount" render={({ field }) => (
                   <FormItem><FormLabel>Caution (MAD) *</FormLabel><FormControl><Input type="number" min={0} step={0.01} {...field} /></FormControl><FormMessage /></FormItem>

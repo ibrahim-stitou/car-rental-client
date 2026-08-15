@@ -16,6 +16,7 @@ export type PaymentStatus = 'pending' | 'partial' | 'paid' | 'refunded';
 export type PaymentMethod = 'cash' | 'card' | 'bank_transfer' | 'check' | 'online';
 export type FuelLevel = 'empty' | 'quarter' | 'half' | 'three_quarters' | 'full';
 export type ContractStatus = 'not_generated' | 'valid' | 'invalidated';
+export type RentalUnit = 'day' | 'hour' | 'month';
 
 export interface ReservationContractEvent {
   id: string;
@@ -23,6 +24,14 @@ export interface ReservationContractEvent {
   reason: string | null;
   actor: { id: string; full_name: string } | null;
   created_at: string;
+}
+
+export interface ReservationContractVersion {
+  id: number;
+  url: string;
+  file_name: string;
+  created_at: string;
+  is_current: boolean;
 }
 
 export interface Reservation {
@@ -45,15 +54,31 @@ export interface Reservation {
   contract_generated_at: string | null;
   contract_status: ContractStatus;
   contract_events?: ReservationContractEvent[];
+  contract_versions?: ReservationContractVersion[];
   is_overdue?: boolean;
   documents?: MediaItem[];
   status: ReservationStatus;
+  rental_unit: RentalUnit;
   daily_rate: number;
+  hourly_rate: number | null;
+  monthly_rate: number | null;
+  total_days: number | null;
+  total_hours: number | null;
+  total_months: number | null;
+  /** LLD only — whole calendar months elapsed since pickup, capped at total_months. */
+  months_elapsed?: number;
+  /** LLD only — installments due as of today (months_elapsed + 1, capped). */
+  months_due?: number;
+  /** LLD only — monthly_rate x months_due; the "credit" basis, not the full contract value. */
+  amount_due_so_far?: number;
+  subtotal?: number;
   discount_percentage: number;
   additional_fees: number;
   deposit_amount: number;
   total_amount: number;
   paid_amount: number;
+  /** LLD only — total already billed across this reservation's 'LLD'-type invoices. */
+  invoiced_amount?: number;
   payment_status: PaymentStatus;
   payment_method: PaymentMethod | null;
   initial_mileage: number | null;
@@ -94,7 +119,10 @@ export interface CreateReservationInput {
   return_date: string;
   pickup_location: string;
   return_location: string;
+  rental_unit?: RentalUnit;
   daily_rate: number;
+  hourly_rate?: number;
+  monthly_rate?: number;
   discount_percentage?: number;
   additional_fees?: number;
   deposit_amount: number;
@@ -131,6 +159,7 @@ export interface ReservationFilters {
   client_id?: string;
   status?: ReservationStatus;
   payment_status?: PaymentStatus;
+  rental_unit?: RentalUnit;
   search?: string;
   overdue?: 0 | 1;
   per_page?: number;

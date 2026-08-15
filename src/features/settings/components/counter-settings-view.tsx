@@ -20,6 +20,7 @@ import PageContainer from '@/components/layout/page-container';
 // ─── Document type definitions ────────────────────────────────────────────────
 const TYPES = [
   { key: 'fa',          label: 'Facture',           code: 'FA',  defaultPrefix: 'FA',  defaultDigits: 6, bgColor: 'bg-emerald-500', badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { key: 'lld',         label: 'Facture LLD',       code: 'LLD', defaultPrefix: 'LLD', defaultDigits: 6, bgColor: 'bg-indigo-500',  badgeCls: 'bg-indigo-100 text-indigo-800 border-indigo-200'   },
   { key: 'av',          label: 'Avoir',              code: 'AV',  defaultPrefix: 'AV',  defaultDigits: 6, bgColor: 'bg-rose-500',    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'         },
   { key: 'dv',          label: 'Devis',              code: 'DV',  defaultPrefix: 'DV',  defaultDigits: 6, bgColor: 'bg-blue-500',    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'         },
   { key: 'bc',          label: 'Bon de Commande',    code: 'BC',  defaultPrefix: 'BC',  defaultDigits: 6, bgColor: 'bg-violet-500',  badgeCls: 'bg-violet-100 text-violet-800 border-violet-200'   },
@@ -36,6 +37,10 @@ const schema = z.object({
   fa_separator:          z.string(),
   fa_digits:             z.coerce.number().int().min(1).max(10),
   fa_current:            z.coerce.number().int().min(0),
+  lld_prefix:            z.string().min(1, 'Requis'),
+  lld_separator:         z.string(),
+  lld_digits:            z.coerce.number().int().min(1).max(10),
+  lld_current:           z.coerce.number().int().min(0),
   av_prefix:             z.string().min(1, 'Requis'),
   av_separator:          z.string(),
   av_digits:             z.coerce.number().int().min(1).max(10),
@@ -188,6 +193,7 @@ export function CounterSettingsView() {
     resolver: zodResolver(schema),
     defaultValues: {
       fa_prefix: 'FA',   fa_separator: '-', fa_digits: 6,   fa_current: 0,
+      lld_prefix: 'LLD', lld_separator: '-', lld_digits: 6, lld_current: 0,
       av_prefix: 'AV',   av_separator: '-', av_digits: 6,   av_current: 0,
       dv_prefix: 'DV',   dv_separator: '-', dv_digits: 6,   dv_current: 0,
       bc_prefix: 'BC',   bc_separator: '-', bc_digits: 6,   bc_current: 0,
@@ -202,6 +208,7 @@ export function CounterSettingsView() {
     if (!Object.keys(s).length) return;
     form.reset({
       fa_prefix: s.fa_prefix ?? 'FA',   fa_separator: s.fa_separator ?? '-', fa_digits: Number(s.fa_digits ?? 6),   fa_current: Number(s.fa_current ?? 0),
+      lld_prefix: s.lld_prefix ?? 'LLD', lld_separator: s.lld_separator ?? '-', lld_digits: Number(s.lld_digits ?? 6), lld_current: Number(s.lld_current ?? 0),
       av_prefix: s.av_prefix ?? 'AV',   av_separator: s.av_separator ?? '-', av_digits: Number(s.av_digits ?? 6),   av_current: Number(s.av_current ?? 0),
       dv_prefix: s.dv_prefix ?? 'DV',   dv_separator: s.dv_separator ?? '-', dv_digits: Number(s.dv_digits ?? 6),   dv_current: Number(s.dv_current ?? 0),
       bc_prefix: s.bc_prefix ?? 'BC',   bc_separator: s.bc_separator ?? '-', bc_digits: Number(s.bc_digits ?? 6),   bc_current: Number(s.bc_current ?? 0),
@@ -242,7 +249,7 @@ export function CounterSettingsView() {
 
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
+            {Array.from({ length: TYPES.length }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
           </div>
         ) : (
           <Form {...form}>
