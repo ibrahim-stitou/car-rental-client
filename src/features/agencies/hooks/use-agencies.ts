@@ -94,3 +94,28 @@ export function useAgencyCredits(id: string) {
     enabled: !!id,
   });
 }
+
+export interface AgencyDocumentCounter {
+  document_type: 'fa' | 'av' | 'dv' | 'bc' | 'bl' | 'br' | 'lld';
+  prefix: string;
+  separator: string;
+  digits: number;
+  current: number;
+}
+
+export function useAgencyCounters(id: string) {
+  return useQuery({
+    queryKey: [...agencyKeys.all, 'counters', id],
+    queryFn: () => apiClient.get(apiRoutes.agenciesExt.counters(id)).then((r) => r.data as { data: AgencyDocumentCounter[] }),
+    enabled: !!id,
+  });
+}
+
+export function useUpdateAgencyCounters(id: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (counters: AgencyDocumentCounter[]) =>
+      apiClient.put(apiRoutes.agenciesExt.counters(id), { counters }).then((r) => r.data),
+    onSuccess: () => qc.invalidateQueries({ queryKey: [...agencyKeys.all, 'counters', id] }),
+  });
+}

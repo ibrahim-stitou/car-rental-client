@@ -1,73 +1,84 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { ArrowLeft, Hash, Minus, Plus, Eye } from 'lucide-react';
-import { useSettingGroup, useUpdateSettings } from '../hooks/use-settings';
+import { ArrowLeft, Hash, Minus, Plus, Eye, Building2 } from 'lucide-react';
+import { useAgencies } from '@/features/agencies/hooks/use-agencies';
+import { useAgencyCounters, useUpdateAgencyCounters, type AgencyDocumentCounter } from '@/features/agencies/hooks/use-agencies';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import PageContainer from '@/components/layout/page-container';
 
 // ─── Document type definitions ────────────────────────────────────────────────
+// One counter per agency per type — agencies are distinct legal entities, so
+// each needs its own gapless sequential numbering (tax compliance), not a
+// number space shared across every agency.
 const TYPES = [
-  { key: 'fa',          label: 'Facture',           code: 'FA',  defaultPrefix: 'FA',  defaultDigits: 6, bgColor: 'bg-emerald-500', badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  { key: 'lld',         label: 'Facture LLD',       code: 'LLD', defaultPrefix: 'LLD', defaultDigits: 6, bgColor: 'bg-indigo-500',  badgeCls: 'bg-indigo-100 text-indigo-800 border-indigo-200'   },
-  { key: 'av',          label: 'Avoir',              code: 'AV',  defaultPrefix: 'AV',  defaultDigits: 6, bgColor: 'bg-rose-500',    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'         },
-  { key: 'dv',          label: 'Devis',              code: 'DV',  defaultPrefix: 'DV',  defaultDigits: 6, bgColor: 'bg-blue-500',    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'         },
-  { key: 'bc',          label: 'Bon de Commande',    code: 'BC',  defaultPrefix: 'BC',  defaultDigits: 6, bgColor: 'bg-violet-500',  badgeCls: 'bg-violet-100 text-violet-800 border-violet-200'   },
-  { key: 'bl',          label: 'Bon de Livraison',   code: 'BL',  defaultPrefix: 'BL',  defaultDigits: 6, bgColor: 'bg-cyan-500',    badgeCls: 'bg-cyan-100 text-cyan-800 border-cyan-200'         },
-  { key: 'br',          label: 'Bon de Réception',   code: 'BR',  defaultPrefix: 'BR',  defaultDigits: 6, bgColor: 'bg-orange-500',  badgeCls: 'bg-orange-100 text-orange-800 border-orange-200'   },
-  { key: 'reservation', label: 'Réservation',        code: 'RES', defaultPrefix: 'RES', defaultDigits: 6, bgColor: 'bg-slate-500',   badgeCls: 'bg-slate-100 text-slate-800 border-slate-200'      },
+  { key: 'fa',  label: 'Facture',           code: 'FA',  defaultPrefix: 'FA',  bgColor: 'bg-emerald-500', badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { key: 'lld', label: 'Facture LLD',       code: 'LLD', defaultPrefix: 'LLD', bgColor: 'bg-indigo-500',  badgeCls: 'bg-indigo-100 text-indigo-800 border-indigo-200'   },
+  { key: 'av',  label: 'Avoir',              code: 'AV',  defaultPrefix: 'AV',  bgColor: 'bg-rose-500',    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'         },
+  { key: 'dv',  label: 'Devis',              code: 'DV',  defaultPrefix: 'DV',  bgColor: 'bg-blue-500',    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'         },
+  { key: 'bc',  label: 'Bon de Commande',    code: 'BC',  defaultPrefix: 'BC',  bgColor: 'bg-violet-500',  badgeCls: 'bg-violet-100 text-violet-800 border-violet-200'   },
+  { key: 'bl',  label: 'Bon de Livraison',   code: 'BL',  defaultPrefix: 'BL',  bgColor: 'bg-cyan-500',    badgeCls: 'bg-cyan-100 text-cyan-800 border-cyan-200'         },
+  { key: 'br',  label: 'Bon de Réception',   code: 'BR',  defaultPrefix: 'BR',  bgColor: 'bg-orange-500',  badgeCls: 'bg-orange-100 text-orange-800 border-orange-200'   },
 ] as const;
 
 type TypeKey = typeof TYPES[number]['key'];
 
 // ─── Zod schema (explicit for full type safety) ───────────────────────────────
 const schema = z.object({
-  fa_prefix:             z.string().min(1, 'Requis'),
-  fa_separator:          z.string(),
-  fa_digits:             z.coerce.number().int().min(1).max(10),
-  fa_current:            z.coerce.number().int().min(0),
-  lld_prefix:            z.string().min(1, 'Requis'),
-  lld_separator:         z.string(),
-  lld_digits:            z.coerce.number().int().min(1).max(10),
-  lld_current:           z.coerce.number().int().min(0),
-  av_prefix:             z.string().min(1, 'Requis'),
-  av_separator:          z.string(),
-  av_digits:             z.coerce.number().int().min(1).max(10),
-  av_current:            z.coerce.number().int().min(0),
-  dv_prefix:             z.string().min(1, 'Requis'),
-  dv_separator:          z.string(),
-  dv_digits:             z.coerce.number().int().min(1).max(10),
-  dv_current:            z.coerce.number().int().min(0),
-  bc_prefix:             z.string().min(1, 'Requis'),
-  bc_separator:          z.string(),
-  bc_digits:             z.coerce.number().int().min(1).max(10),
-  bc_current:            z.coerce.number().int().min(0),
-  bl_prefix:             z.string().min(1, 'Requis'),
-  bl_separator:          z.string(),
-  bl_digits:             z.coerce.number().int().min(1).max(10),
-  bl_current:            z.coerce.number().int().min(0),
-  br_prefix:             z.string().min(1, 'Requis'),
-  br_separator:          z.string(),
-  br_digits:             z.coerce.number().int().min(1).max(10),
-  br_current:            z.coerce.number().int().min(0),
-  reservation_prefix:    z.string().min(1, 'Requis'),
-  reservation_separator: z.string(),
-  reservation_digits:    z.coerce.number().int().min(1).max(10),
-  reservation_current:   z.coerce.number().int().min(0),
+  fa_prefix: z.string().min(1, 'Requis'), fa_separator: z.string(), fa_digits: z.coerce.number().int().min(1).max(10), fa_current: z.coerce.number().int().min(0),
+  lld_prefix: z.string().min(1, 'Requis'), lld_separator: z.string(), lld_digits: z.coerce.number().int().min(1).max(10), lld_current: z.coerce.number().int().min(0),
+  av_prefix: z.string().min(1, 'Requis'), av_separator: z.string(), av_digits: z.coerce.number().int().min(1).max(10), av_current: z.coerce.number().int().min(0),
+  dv_prefix: z.string().min(1, 'Requis'), dv_separator: z.string(), dv_digits: z.coerce.number().int().min(1).max(10), dv_current: z.coerce.number().int().min(0),
+  bc_prefix: z.string().min(1, 'Requis'), bc_separator: z.string(), bc_digits: z.coerce.number().int().min(1).max(10), bc_current: z.coerce.number().int().min(0),
+  bl_prefix: z.string().min(1, 'Requis'), bl_separator: z.string(), bl_digits: z.coerce.number().int().min(1).max(10), bl_current: z.coerce.number().int().min(0),
+  br_prefix: z.string().min(1, 'Requis'), br_separator: z.string(), br_digits: z.coerce.number().int().min(1).max(10), br_current: z.coerce.number().int().min(0),
 });
 
 type FormValues = z.infer<typeof schema>;
+
+const DEFAULTS: FormValues = {
+  fa_prefix: 'FA', fa_separator: '-', fa_digits: 6, fa_current: 0,
+  lld_prefix: 'LLD', lld_separator: '-', lld_digits: 6, lld_current: 0,
+  av_prefix: 'AV', av_separator: '-', av_digits: 6, av_current: 0,
+  dv_prefix: 'DV', dv_separator: '-', dv_digits: 6, dv_current: 0,
+  bc_prefix: 'BC', bc_separator: '-', bc_digits: 6, bc_current: 0,
+  bl_prefix: 'BL', bl_separator: '-', bl_digits: 6, bl_current: 0,
+  br_prefix: 'BR', br_separator: '-', br_digits: 6, br_current: 0,
+};
+
+function countersToForm(counters: AgencyDocumentCounter[]): FormValues {
+  const values = { ...DEFAULTS };
+  for (const c of counters) {
+    const key = c.document_type as TypeKey;
+    (values as any)[`${key}_prefix`] = c.prefix;
+    (values as any)[`${key}_separator`] = c.separator;
+    (values as any)[`${key}_digits`] = c.digits;
+    (values as any)[`${key}_current`] = c.current;
+  }
+  return values;
+}
+
+function formToCounters(values: FormValues): AgencyDocumentCounter[] {
+  return TYPES.map((t) => ({
+    document_type: t.key,
+    prefix: (values as any)[`${t.key}_prefix`],
+    separator: (values as any)[`${t.key}_separator`],
+    digits: (values as any)[`${t.key}_digits`],
+    current: (values as any)[`${t.key}_current`],
+  }));
+}
 
 function makePreview(prefix: string, sep: string, digits: number, current: number): string {
   const next = Math.max(1, Number(current) + 1);
@@ -186,47 +197,36 @@ function TypeCounterCard({
 
 // ─── Main view ────────────────────────────────────────────────────────────────
 export function CounterSettingsView() {
-  const { data, isLoading } = useSettingGroup('counters');
-  const updateSettings = useUpdateSettings('counters');
+  const [agencyId, setAgencyId] = useState<string>('');
+  const { data: agenciesRes, isLoading: agenciesLoading } = useAgencies({ per_page: 100 });
+  const agencies = agenciesRes?.data ?? [];
+
+  const { data: countersRes, isLoading: countersLoading } = useAgencyCounters(agencyId);
+  const updateCounters = useUpdateAgencyCounters(agencyId);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      fa_prefix: 'FA',   fa_separator: '-', fa_digits: 6,   fa_current: 0,
-      lld_prefix: 'LLD', lld_separator: '-', lld_digits: 6, lld_current: 0,
-      av_prefix: 'AV',   av_separator: '-', av_digits: 6,   av_current: 0,
-      dv_prefix: 'DV',   dv_separator: '-', dv_digits: 6,   dv_current: 0,
-      bc_prefix: 'BC',   bc_separator: '-', bc_digits: 6,   bc_current: 0,
-      bl_prefix: 'BL',   bl_separator: '-', bl_digits: 6,   bl_current: 0,
-      br_prefix: 'BR',   br_separator: '-', br_digits: 6,   br_current: 0,
-      reservation_prefix: 'RES', reservation_separator: '-', reservation_digits: 6, reservation_current: 0,
-    },
+    defaultValues: DEFAULTS,
   });
 
+  // Auto-select the first agency once the list loads, so the page isn't blank.
+  const firstAgencyId = agencies[0]?.id;
   useEffect(() => {
-    const s = (data as any)?.data ?? {};
-    if (!Object.keys(s).length) return;
-    form.reset({
-      fa_prefix: s.fa_prefix ?? 'FA',   fa_separator: s.fa_separator ?? '-', fa_digits: Number(s.fa_digits ?? 6),   fa_current: Number(s.fa_current ?? 0),
-      lld_prefix: s.lld_prefix ?? 'LLD', lld_separator: s.lld_separator ?? '-', lld_digits: Number(s.lld_digits ?? 6), lld_current: Number(s.lld_current ?? 0),
-      av_prefix: s.av_prefix ?? 'AV',   av_separator: s.av_separator ?? '-', av_digits: Number(s.av_digits ?? 6),   av_current: Number(s.av_current ?? 0),
-      dv_prefix: s.dv_prefix ?? 'DV',   dv_separator: s.dv_separator ?? '-', dv_digits: Number(s.dv_digits ?? 6),   dv_current: Number(s.dv_current ?? 0),
-      bc_prefix: s.bc_prefix ?? 'BC',   bc_separator: s.bc_separator ?? '-', bc_digits: Number(s.bc_digits ?? 6),   bc_current: Number(s.bc_current ?? 0),
-      bl_prefix: s.bl_prefix ?? 'BL',   bl_separator: s.bl_separator ?? '-', bl_digits: Number(s.bl_digits ?? 6),   bl_current: Number(s.bl_current ?? 0),
-      br_prefix: s.br_prefix ?? 'BR',   br_separator: s.br_separator ?? '-', br_digits: Number(s.br_digits ?? 6),   br_current: Number(s.br_current ?? 0),
-      reservation_prefix: s.reservation_prefix ?? 'RES',
-      reservation_separator: s.reservation_separator ?? '-',
-      reservation_digits: Number(s.reservation_digits ?? 6),
-      reservation_current: Number(s.reservation_current ?? 0),
-    });
-  }, [data, form]);
+    if (!agencyId && firstAgencyId) setAgencyId(firstAgencyId);
+  }, [agencyId, firstAgencyId]);
+
+  useEffect(() => {
+    if (countersRes?.data) form.reset(countersToForm(countersRes.data));
+  }, [countersRes, form]);
 
   const onSubmit = (values: FormValues) => {
-    updateSettings.mutate(values as any, {
+    updateCounters.mutate(formToCounters(values), {
       onSuccess: () => toast.success('Compteurs enregistrés avec succès'),
       onError: () => toast.error('Impossible de mettre à jour les compteurs'),
     });
   };
+
+  const isLoading = agenciesLoading || (!!agencyId && countersLoading);
 
   return (
     <PageContainer scrollable>
@@ -242,12 +242,25 @@ export function CounterSettingsView() {
               Gestion des Compteurs
             </h1>
             <p className="text-muted-foreground text-sm mt-0.5">
-              Configuration individuelle des numéros de séquence par type de document
+              Numérotation indépendante par agence — chaque agence a sa propre séquence par type de document
             </p>
           </div>
         </div>
 
-        {isLoading ? (
+        {/* Agency selector */}
+        <div className="flex items-center gap-3 max-w-sm">
+          <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
+          <Select value={agencyId} onValueChange={setAgencyId}>
+            <SelectTrigger><SelectValue placeholder="Sélectionner une agence" /></SelectTrigger>
+            <SelectContent>
+              {agencies.map((a) => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {!agencyId && !agenciesLoading ? (
+          <p className="text-sm text-muted-foreground">Sélectionnez une agence pour configurer ses compteurs.</p>
+        ) : isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {Array.from({ length: TYPES.length }).map((_, i) => <Skeleton key={i} className="h-64 w-full rounded-xl" />)}
           </div>
@@ -262,10 +275,10 @@ export function CounterSettingsView() {
 
               <div className="flex items-center justify-between pt-2 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Les modifications s&apos;appliquent immédiatement aux prochains documents créés.
+                  Les modifications s&apos;appliquent immédiatement aux prochains documents créés par cette agence.
                 </p>
-                <Button type="submit" disabled={updateSettings.isPending} size="lg" className="min-w-40">
-                  {updateSettings.isPending ? 'Enregistrement…' : 'Enregistrer tout'}
+                <Button type="submit" disabled={updateCounters.isPending} size="lg" className="min-w-40">
+                  {updateCounters.isPending ? 'Enregistrement…' : 'Enregistrer tout'}
                 </Button>
               </div>
             </form>

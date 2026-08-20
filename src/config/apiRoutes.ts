@@ -229,6 +229,7 @@ export const apiRoutes = {
     credits: (id: string) => `${BASE}/agencies/${id}/credits`,
     uploadLogo: (id: string) => `${BASE}/agencies/${id}/logo`,
     deleteMedia: (id: string, mediaId: number) => `${BASE}/agencies/${id}/media/${mediaId}`,
+    counters: (id: string) => `${BASE}/agencies/${id}/counters`,
   },
   clientsExt: {
     statistics: (id: string) => `${BASE}/clients/${id}/statistics`,
