@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import Link from 'next/link';
-import { ArrowLeft, Hash, Minus, Plus, Eye, Building2 } from 'lucide-react';
+import { ArrowLeft, Hash, Minus, Plus, Eye, Building2, Globe } from 'lucide-react';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import { useAgencyCounters, useUpdateAgencyCounters, type AgencyDocumentCounter } from '@/features/agencies/hooks/use-agencies';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -14,54 +14,58 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import PageContainer from '@/components/layout/page-container';
 
 // ─── Document type definitions ────────────────────────────────────────────────
-// One counter per agency per type — agencies are distinct legal entities, so
-// each needs its own gapless sequential numbering (tax compliance), not a
-// number space shared across every agency.
+// Each type can be "synchronisé" (one shared counter for every agency) or
+// isolated (each agency keeps its own independent sequence) — a per-type
+// toggle, not fixed: "réservation" starts synced (one running number across
+// all agencies), the billing types start isolated (agencies are distinct
+// legal entities, each needing its own gapless sequence for tax purposes).
 const TYPES = [
-  { key: 'fa',  label: 'Facture',           code: 'FA',  defaultPrefix: 'FA',  bgColor: 'bg-emerald-500', badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-  { key: 'lld', label: 'Facture LLD',       code: 'LLD', defaultPrefix: 'LLD', bgColor: 'bg-indigo-500',  badgeCls: 'bg-indigo-100 text-indigo-800 border-indigo-200'   },
-  { key: 'av',  label: 'Avoir',              code: 'AV',  defaultPrefix: 'AV',  bgColor: 'bg-rose-500',    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'         },
-  { key: 'dv',  label: 'Devis',              code: 'DV',  defaultPrefix: 'DV',  bgColor: 'bg-blue-500',    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'         },
-  { key: 'bc',  label: 'Bon de Commande',    code: 'BC',  defaultPrefix: 'BC',  bgColor: 'bg-violet-500',  badgeCls: 'bg-violet-100 text-violet-800 border-violet-200'   },
-  { key: 'bl',  label: 'Bon de Livraison',   code: 'BL',  defaultPrefix: 'BL',  bgColor: 'bg-cyan-500',    badgeCls: 'bg-cyan-100 text-cyan-800 border-cyan-200'         },
-  { key: 'br',  label: 'Bon de Réception',   code: 'BR',  defaultPrefix: 'BR',  bgColor: 'bg-orange-500',  badgeCls: 'bg-orange-100 text-orange-800 border-orange-200'   },
+  { key: 'reservation', label: 'Réservation',        code: 'RES', defaultPrefix: 'RES', bgColor: 'bg-slate-500',   badgeCls: 'bg-slate-100 text-slate-800 border-slate-200'       },
+  { key: 'fa',          label: 'Facture (+ LLD)',    code: 'FA',  defaultPrefix: 'FA',  bgColor: 'bg-emerald-500', badgeCls: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+  { key: 'av',          label: 'Avoir',              code: 'AV',  defaultPrefix: 'AV',  bgColor: 'bg-rose-500',    badgeCls: 'bg-rose-100 text-rose-800 border-rose-200'          },
+  { key: 'dv',          label: 'Devis',              code: 'DV',  defaultPrefix: 'DV',  bgColor: 'bg-blue-500',    badgeCls: 'bg-blue-100 text-blue-800 border-blue-200'          },
+  { key: 'bc',          label: 'Bon de Commande',    code: 'BC',  defaultPrefix: 'BC',  bgColor: 'bg-violet-500',  badgeCls: 'bg-violet-100 text-violet-800 border-violet-200'    },
+  { key: 'bl',          label: 'Bon de Livraison',   code: 'BL',  defaultPrefix: 'BL',  bgColor: 'bg-cyan-500',    badgeCls: 'bg-cyan-100 text-cyan-800 border-cyan-200'          },
+  { key: 'br',          label: 'Bon de Réception',   code: 'BR',  defaultPrefix: 'BR',  bgColor: 'bg-orange-500',  badgeCls: 'bg-orange-100 text-orange-800 border-orange-200'    },
 ] as const;
 
 type TypeKey = typeof TYPES[number]['key'];
 
 // ─── Zod schema (explicit for full type safety) ───────────────────────────────
 const schema = z.object({
-  fa_prefix: z.string().min(1, 'Requis'), fa_separator: z.string(), fa_digits: z.coerce.number().int().min(1).max(10), fa_current: z.coerce.number().int().min(0),
-  lld_prefix: z.string().min(1, 'Requis'), lld_separator: z.string(), lld_digits: z.coerce.number().int().min(1).max(10), lld_current: z.coerce.number().int().min(0),
-  av_prefix: z.string().min(1, 'Requis'), av_separator: z.string(), av_digits: z.coerce.number().int().min(1).max(10), av_current: z.coerce.number().int().min(0),
-  dv_prefix: z.string().min(1, 'Requis'), dv_separator: z.string(), dv_digits: z.coerce.number().int().min(1).max(10), dv_current: z.coerce.number().int().min(0),
-  bc_prefix: z.string().min(1, 'Requis'), bc_separator: z.string(), bc_digits: z.coerce.number().int().min(1).max(10), bc_current: z.coerce.number().int().min(0),
-  bl_prefix: z.string().min(1, 'Requis'), bl_separator: z.string(), bl_digits: z.coerce.number().int().min(1).max(10), bl_current: z.coerce.number().int().min(0),
-  br_prefix: z.string().min(1, 'Requis'), br_separator: z.string(), br_digits: z.coerce.number().int().min(1).max(10), br_current: z.coerce.number().int().min(0),
+  reservation_shared: z.boolean(), reservation_prefix: z.string().min(1, 'Requis'), reservation_separator: z.string(), reservation_digits: z.coerce.number().int().min(1).max(10), reservation_current: z.coerce.number().int().min(0),
+  fa_shared: z.boolean(), fa_prefix: z.string().min(1, 'Requis'), fa_separator: z.string(), fa_digits: z.coerce.number().int().min(1).max(10), fa_current: z.coerce.number().int().min(0),
+  av_shared: z.boolean(), av_prefix: z.string().min(1, 'Requis'), av_separator: z.string(), av_digits: z.coerce.number().int().min(1).max(10), av_current: z.coerce.number().int().min(0),
+  dv_shared: z.boolean(), dv_prefix: z.string().min(1, 'Requis'), dv_separator: z.string(), dv_digits: z.coerce.number().int().min(1).max(10), dv_current: z.coerce.number().int().min(0),
+  bc_shared: z.boolean(), bc_prefix: z.string().min(1, 'Requis'), bc_separator: z.string(), bc_digits: z.coerce.number().int().min(1).max(10), bc_current: z.coerce.number().int().min(0),
+  bl_shared: z.boolean(), bl_prefix: z.string().min(1, 'Requis'), bl_separator: z.string(), bl_digits: z.coerce.number().int().min(1).max(10), bl_current: z.coerce.number().int().min(0),
+  br_shared: z.boolean(), br_prefix: z.string().min(1, 'Requis'), br_separator: z.string(), br_digits: z.coerce.number().int().min(1).max(10), br_current: z.coerce.number().int().min(0),
 });
 
 type FormValues = z.infer<typeof schema>;
 
 const DEFAULTS: FormValues = {
-  fa_prefix: 'FA', fa_separator: '-', fa_digits: 6, fa_current: 0,
-  lld_prefix: 'LLD', lld_separator: '-', lld_digits: 6, lld_current: 0,
-  av_prefix: 'AV', av_separator: '-', av_digits: 6, av_current: 0,
-  dv_prefix: 'DV', dv_separator: '-', dv_digits: 6, dv_current: 0,
-  bc_prefix: 'BC', bc_separator: '-', bc_digits: 6, bc_current: 0,
-  bl_prefix: 'BL', bl_separator: '-', bl_digits: 6, bl_current: 0,
-  br_prefix: 'BR', br_separator: '-', br_digits: 6, br_current: 0,
+  reservation_shared: true, reservation_prefix: 'RES', reservation_separator: '-', reservation_digits: 6, reservation_current: 0,
+  fa_shared: false, fa_prefix: 'FA', fa_separator: '-', fa_digits: 6, fa_current: 0,
+  av_shared: false, av_prefix: 'AV', av_separator: '-', av_digits: 6, av_current: 0,
+  dv_shared: false, dv_prefix: 'DV', dv_separator: '-', dv_digits: 6, dv_current: 0,
+  bc_shared: false, bc_prefix: 'BC', bc_separator: '-', bc_digits: 6, bc_current: 0,
+  bl_shared: false, bl_prefix: 'BL', bl_separator: '-', bl_digits: 6, bl_current: 0,
+  br_shared: false, br_prefix: 'BR', br_separator: '-', br_digits: 6, br_current: 0,
 };
 
 function countersToForm(counters: AgencyDocumentCounter[]): FormValues {
   const values = { ...DEFAULTS };
   for (const c of counters) {
     const key = c.document_type as TypeKey;
+    (values as any)[`${key}_shared`] = c.shared;
     (values as any)[`${key}_prefix`] = c.prefix;
     (values as any)[`${key}_separator`] = c.separator;
     (values as any)[`${key}_digits`] = c.digits;
@@ -73,6 +77,7 @@ function countersToForm(counters: AgencyDocumentCounter[]): FormValues {
 function formToCounters(values: FormValues): AgencyDocumentCounter[] {
   return TYPES.map((t) => ({
     document_type: t.key,
+    shared: (values as any)[`${t.key}_shared`],
     prefix: (values as any)[`${t.key}_prefix`],
     separator: (values as any)[`${t.key}_separator`],
     digits: (values as any)[`${t.key}_digits`],
@@ -94,6 +99,7 @@ function TypeCounterCard({
   t: typeof TYPES[number];
   form: ReturnType<typeof useForm<FormValues>>;
 }) {
+  const shared  = useWatch({ control: form.control, name: `${t.key}_shared`    as keyof FormValues }) as boolean;
   const prefix  = useWatch({ control: form.control, name: `${t.key}_prefix`    as keyof FormValues }) as string;
   const sep     = useWatch({ control: form.control, name: `${t.key}_separator` as keyof FormValues }) as string;
   const digits  = useWatch({ control: form.control, name: `${t.key}_digits`    as keyof FormValues }) as number;
@@ -108,7 +114,7 @@ function TypeCounterCard({
   };
 
   return (
-    <Card className="overflow-hidden border shadow-sm hover:shadow-md transition-shadow">
+    <Card className={`overflow-hidden border shadow-sm hover:shadow-md transition-shadow ${shared ? 'ring-1 ring-primary/30' : ''}`}>
       {/* Colored top bar */}
       <div className={`h-1.5 w-full ${t.bgColor}`} />
 
@@ -129,6 +135,28 @@ function TypeCounterCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Shared toggle */}
+        <FormField control={form.control} name={`${t.key}_shared` as keyof FormValues} render={({ field }) => (
+          <FormItem className="flex items-center justify-between rounded-lg border p-2.5 bg-muted/30">
+            <div className="flex items-center gap-2">
+              <Globe className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+              <div>
+                <p className="text-xs font-medium leading-none">Synchronisé pour toutes les agences</p>
+                <p className="text-[10px] text-muted-foreground mt-1">Un seul compteur, incrémenté ensemble</p>
+              </div>
+            </div>
+            <FormControl>
+              <Switch checked={field.value as boolean} onCheckedChange={field.onChange} />
+            </FormControl>
+          </FormItem>
+        )} />
+
+        {shared && (
+          <p className="text-[10px] text-primary bg-primary/5 border border-primary/20 rounded px-2 py-1.5">
+            Ces valeurs s&apos;appliquent à toutes les agences, quelle que soit celle sélectionnée ci-dessus.
+          </p>
+        )}
+
         {/* 3 config fields */}
         <div className="grid grid-cols-3 gap-3">
           <FormField control={form.control} name={`${t.key}_prefix` as keyof FormValues} render={({ field }) => (
@@ -242,7 +270,7 @@ export function CounterSettingsView() {
               Gestion des Compteurs
             </h1>
             <p className="text-muted-foreground text-sm mt-0.5">
-              Numérotation indépendante par agence — chaque agence a sa propre séquence par type de document
+              Par agence, ou synchronisé pour toutes les agences — configurable par type de document
             </p>
           </div>
         </div>
@@ -275,7 +303,7 @@ export function CounterSettingsView() {
 
               <div className="flex items-center justify-between pt-2 border-t">
                 <p className="text-sm text-muted-foreground">
-                  Les modifications s&apos;appliquent immédiatement aux prochains documents créés par cette agence.
+                  Les modifications s&apos;appliquent immédiatement aux prochains documents créés.
                 </p>
                 <Button type="submit" disabled={updateCounters.isPending} size="lg" className="min-w-40">
                   {updateCounters.isPending ? 'Enregistrement…' : 'Enregistrer tout'}

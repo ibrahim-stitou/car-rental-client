@@ -96,7 +96,8 @@ export function useAgencyCredits(id: string) {
 }
 
 export interface AgencyDocumentCounter {
-  document_type: 'fa' | 'av' | 'dv' | 'bc' | 'bl' | 'br' | 'lld';
+  document_type: 'fa' | 'av' | 'dv' | 'bc' | 'bl' | 'br' | 'reservation';
+  shared: boolean;
   prefix: string;
   separator: string;
   digits: number;
