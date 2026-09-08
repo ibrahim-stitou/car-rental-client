@@ -26,6 +26,14 @@ function fdate(d?: string) {
   try { return format(new Date(d), 'dd MMM yyyy', { locale: fr }); } catch { return '—'; }
 }
 
+function n(v: unknown) {
+  return Number(v ?? 0).toLocaleString('fr-MA', { maximumFractionDigits: 2 });
+}
+
+function sumCredit(rows?: any[]) {
+  return (rows ?? []).reduce((s, r) => s + Number(r.credit_amount ?? 0), 0);
+}
+
 const TITLES: Record<AgencyStatType, string> = {
   vehicles: 'Véhicules de l’agence',
   rented: 'Véhicules actuellement loués',
@@ -132,27 +140,47 @@ export function AgencyStatDialog({ agencyId, type, onOpenChange }: Props) {
               {(creditsQuery.data?.data ?? []).length === 0 && (
                 <p className="text-sm text-muted-foreground text-center py-6">Aucun contrat en créance</p>
               )}
-              {(creditsQuery.data?.data ?? []).map((r: any) => (
-                <Link key={r.id} href={`/reservations/${r.id}`}
-                  className="flex items-center justify-between p-3 border rounded-lg text-sm hover:bg-muted/50">
-                  <div>
-                    <div className="font-mono font-medium">{r.reservation_number}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {r.client ? `${r.client.first_name} ${r.client.last_name}` : '—'} · {r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{fdate(r.pickup_date)} → {fdate(r.return_date)}</div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <div className="font-semibold text-orange-700">{Number(r.credit_amount).toLocaleString('fr-MA')} MAD</div>
+              {(creditsQuery.data?.data ?? []).length > 0 && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg text-sm">
+                  Total : <strong>{n(sumCredit(creditsQuery.data?.data))} MAD</strong> sur{' '}
+                  <strong>{(creditsQuery.data?.data ?? []).length}</strong> contrat(s).{' '}
+                  Pour la LLD, seuls les mois échus à ce jour sont comptés, pas la valeur totale du contrat.
+                </div>
+              )}
+              {(creditsQuery.data?.data ?? []).map((r: any) => {
+                const isLld = r.rental_unit === 'month';
+                return (
+                  <Link key={r.id} href={`/reservations/${r.id}`}
+                    className="flex items-start justify-between gap-3 p-3 border rounded-lg text-sm hover:bg-muted/50">
+                    <div className="min-w-0">
+                      <div className="font-mono font-medium">{r.reservation_number}</div>
                       <div className="text-xs text-muted-foreground">
-                        {Number(r.paid_amount).toLocaleString('fr-MA')} / {Number(r.total_amount).toLocaleString('fr-MA')} MAD
+                        {r.client ? `${r.client.first_name} ${r.client.last_name}` : '—'} · {r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}
                       </div>
+                      <div className="text-xs text-muted-foreground">{fdate(r.pickup_date)} → {fdate(r.return_date)}</div>
+                      {isLld ? (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          LLD · {n(r.monthly_rate)} MAD/mois × {r.total_months} mois = {n(r.total_amount)} MAD ·{' '}
+                          mois échus <strong>{r.months_due}/{r.total_months}</strong>
+                          <br />
+                          dû à ce jour {n(r.amount_due_so_far)} − payé {n(r.paid_amount)} = <strong>crédit {n(r.credit_amount)} MAD</strong>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-muted-foreground mt-1">
+                          payé {n(r.paid_amount)} / {n(r.total_amount)} MAD
+                        </div>
+                      )}
                     </div>
-                    {r.status && <StatusBadge status={r.status} />}
-                  </div>
-                </Link>
-              ))}
+                    <div className="flex shrink-0 items-center gap-3">
+                      <div className="text-right">
+                        <div className="font-semibold text-orange-700">{n(r.credit_amount)} MAD</div>
+                        {isLld && <div className="text-[11px] text-muted-foreground">{r.months_due}/{r.total_months} mois</div>}
+                      </div>
+                      {r.status && <StatusBadge status={r.status} />}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : null}
         </ScrollArea>

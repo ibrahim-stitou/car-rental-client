@@ -762,12 +762,13 @@ export function ReservationFormView({ reservation }: Props) {
                   </Alert>
                 )}
 
+
                 {/* Type de réservation */}
                 <SectionCard icon={<CheckCircle2 className="h-4 w-4" />} title="Type de réservation">
                   {isEdit ? (
                     <RentalTypeLocked value={rentalUnit} control={form.control} />
                   ) : !vehicleId ? (
-                    <p className="text-sm text-muted-foreground">Sélectionnez d'abord un véhicule pour voir les types de location disponibles.</p>
+                    <p className="text-sm text-muted-foreground">Sélectionnez d&#39;abord un véhicule pour voir les types de location disponibles.</p>
                   ) : (
                     <RentalTypeSelector
                       value={rentalUnit}

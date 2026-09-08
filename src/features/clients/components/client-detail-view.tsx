@@ -456,14 +456,23 @@ export function ClientDetailView({ clientId }: Props) {
                 <CardContent>
                   <div className="space-y-2">
                     {creditReservations.map((r: any) => (
-                      <div key={r.id} className="flex items-center justify-between p-3 border border-orange-100 bg-orange-50 rounded-lg text-sm">
-                        <div>
+                      <div key={r.id} className="flex items-start justify-between gap-3 p-3 border border-orange-100 bg-orange-50 rounded-lg text-sm">
+                        <div className="min-w-0">
                           <div className="font-mono font-medium">{r.reservation_number}</div>
-                          <div className="text-xs text-muted-foreground">
-                            Payé: {fmt(r.paid_amount)} / {fmt(r.total_amount)} MAD
-                          </div>
+                          {r.rental_unit === 'month' ? (
+                            <div className="text-xs text-muted-foreground">
+                              LLD · {fmt(r.monthly_rate)} MAD/mois × {r.total_months} mois = {fmt(r.total_amount)} MAD · mois échus{' '}
+                              <strong>{r.months_due}/{r.total_months}</strong>
+                              <br />
+                              dû à ce jour {fmt(r.amount_due_so_far)} − payé {fmt(r.paid_amount)} = <strong>crédit {fmt(r.credit_amount)} MAD</strong>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-foreground">
+                              Payé: {fmt(r.paid_amount)} / {fmt(r.total_amount)} MAD
+                            </div>
+                          )}
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex shrink-0 items-center gap-3">
                           <span className="font-bold text-orange-700">{fmt(r.credit_amount)} MAD restant</span>
                           <Button size="sm" variant="outline" className="h-7 text-xs border-orange-300"
                                   onClick={() => setPaymentDialogId({ id: r.id, ref: r.reservation_number })}>

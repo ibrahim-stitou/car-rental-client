@@ -312,6 +312,9 @@ export function AgencyDetailView({ agencyId }: Props) {
                   <div className="space-y-2">
                     <div className="p-3 bg-orange-50 rounded-lg text-sm">
                       <strong>{fmt(stats.financials.total_credit)} MAD</strong> de créances sur <strong>{stats.financials.credit_count}</strong> réservation(s)
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Montant dû à ce jour. Pour les contrats LLD, seuls les mois échus sont comptés, pas la valeur totale du contrat.
+                      </div>
                     </div>
                   </div>
                 )}
