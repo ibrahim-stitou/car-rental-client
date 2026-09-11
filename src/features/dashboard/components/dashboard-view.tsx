@@ -228,10 +228,10 @@ export function DashboardView() {
             {isLoading ? Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-12 w-full" />) : (
               <>
                 {[
-                  { label: 'Assurances', value: s?.expiring.insurances ?? 0, icon: IconShield, color: 'text-blue-500', path: paths.insurances.list },
-                  { label: 'Visites techniques', value: s?.expiring.inspections ?? 0, icon: IconCertificate, color: 'text-purple-500', path: paths.technicalInspections.list },
-                  { label: 'Vignettes', value: s?.expiring.vignettes ?? 0, icon: IconReceipt, color: 'text-green-500', path: paths.vignettes.list },
-                  { label: 'Maintenances', value: s?.expiring.maintenances ?? 0, icon: IconTool, color: 'text-orange-500', path: paths.maintenances.list },
+                  { label: 'Assurances', value: s?.expiring.insurances ?? 0, icon: IconShield, color: 'text-blue-500', path: paths.vehicles.list },
+                  { label: 'Visites techniques', value: s?.expiring.inspections ?? 0, icon: IconCertificate, color: 'text-purple-500',  path: paths.vehicles.list  },
+                  { label: 'Vignettes', value: s?.expiring.vignettes ?? 0, icon: IconReceipt, color: 'text-green-500',  path: paths.vehicles.list  },
+                  { label: 'Maintenances', value: s?.expiring.maintenances ?? 0, icon: IconTool, color: 'text-orange-500', path: paths.vehicles.list  },
                 ].map(({ label, value, icon: Icon, color, path }) => (
                   <button key={label} onClick={() => router.push(path)} className="w-full flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors">
                     <div className="flex items-center gap-2">

@@ -14,7 +14,7 @@ import { VehicleActiveReservationHover } from './vehicle-active-reservation-hove
 import { PageHeader } from '@/components/shared/page-header';
 import { apiRoutes } from '@/config/apiRoutes';
 import apiClient from '@/lib/api';
-import type { Vehicle } from '@/types/vehicle.types';
+import type { Vehicle ,DocumentStatus } from '@/types/vehicle.types';
 import { VEHICLE_STATUS_OPTIONS, VEHICLE_CATEGORY_OPTIONS } from '@/config/constants';
 import { IconCar } from '@tabler/icons-react';
 import Link from 'next/link';
@@ -25,6 +25,33 @@ const STATUS_COLORS: Record<string, string> = {
   maintenance: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   out_of_service: 'bg-red-100 text-red-700 border-red-200',
 };
+
+const DOCUMENT_STATUS_CONFIG = {
+  active: {
+    label: 'Valide',
+    className: 'bg-green-100 text-green-700 border-green-200',
+  },
+  expiring_soon: {
+    label: 'Expire bientôt',
+    className: 'bg-orange-100 text-orange-700 border-orange-200',
+  },
+  expired: {
+    label: 'Expiré',
+    className: 'bg-red-100 text-red-700 border-red-200',
+  },
+} as const;
+
+const DOCUMENT_LABELS = {
+  technical_inspection: 'Contrôle technique',
+  insurance: 'Assurance',
+  vignette: 'Vignette',
+} as const;
+
+export const DOCUMENT_STATUS_OPTIONS = [
+  { value: 'active', label: 'Valide' },
+  { value: 'expiring_soon', label: 'Expire bientôt' },
+  { value: 'expired', label: 'Expiré' },
+];
 
 const STATUS_LABELS: Record<string, string> = {
   available: 'Disponible', rented: 'Loué', maintenance: 'En maintenance', out_of_service: 'Hors service',
@@ -73,6 +100,43 @@ export function VehiclesView() {
     { data: 'daily_rate', label: 'Tarif/Jour', sortable: true, render: (v) => <span className="font-medium">{Number(v).toLocaleString('fr-MA')} MAD</span> },
     { data: 'mileage', label: 'Kilométrage', sortable: true, render: (v) => <span className="text-sm">{Number(v).toLocaleString()} km</span> },
     {
+      data: 'documents_status',
+      label: 'Statut des documents',
+      sortable: false,
+      render: (v) => (
+        <div className="flex min-w-[220px] flex-col gap-1.5">
+          {Object.entries(v ?? {}).map(([document, status]) => {
+            const documentStatus = status as DocumentStatus;
+            const config = DOCUMENT_STATUS_CONFIG[documentStatus];
+
+            return (
+              <div
+                key={document}
+                className="flex items-center justify-between gap-3"
+              >
+            <span className="text-sm text-muted-foreground">
+              {DOCUMENT_LABELS[document as keyof typeof DOCUMENT_LABELS] ?? document}
+            </span>
+
+                {config ? (
+                  <Badge
+                    variant="outline"
+                    className={`text-xs font-medium ${config.className}`}
+                  >
+                    {config.label}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs">
+                    Inconnu
+                  </Badge>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      ),
+    },
+    {
       data: 'actions', label: 'Actions', sortable: false,
       render: (_v, row) => (
         <div className="flex items-center gap-1">
@@ -88,6 +152,12 @@ export function VehiclesView() {
     { field: 'search', label: 'Rechercher un véhicule…', type: 'text' },
     { field: 'status', label: 'Statut', type: 'select', options: VEHICLE_STATUS_OPTIONS },
     { field: 'category', label: 'Catégorie', type: 'select', options: VEHICLE_CATEGORY_OPTIONS },
+    {
+      field: 'documents_status',
+      label: 'Statut des documents',
+      type: 'select',
+      options: DOCUMENT_STATUS_OPTIONS,
+    },
     { field: 'returning_today', label: 'Retour aujourd\'hui', type: 'checkbox' },
   ];
 

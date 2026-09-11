@@ -1,8 +1,32 @@
 export type VehicleStatus = 'available' | 'rented' | 'maintenance' | 'out_of_service';
-export type VehicleCondition = 'bon_etat' | 'leger_dommage' | 'accidente' | 'hors_service';
+
+export type VehicleCondition =
+  | 'bon_etat'
+  | 'leger_dommage'
+  | 'accidente'
+  | 'hors_service';
+
 export type FuelType = 'gasoline' | 'diesel' | 'electric' | 'hybrid';
+
 export type Transmission = 'automatic' | 'manual';
-export type VehicleCategory = 'sedan' | 'suv' | 'van' | 'truck' | 'convertible' | 'coupe' | 'hatchback' | 'minivan';
+
+export type VehicleCategory =
+  | 'sedan'
+  | 'suv'
+  | 'van'
+  | 'truck'
+  | 'convertible'
+  | 'coupe'
+  | 'hatchback'
+  | 'minivan';
+
+export type DocumentStatus = 'active' | 'expiring_soon' | 'expired';
+
+export interface VehicleDocumentsStatus {
+  technical_inspection: DocumentStatus;
+  insurance: DocumentStatus;
+  vignette: DocumentStatus;
+}
 
 export interface Vehicle {
   id: string;
@@ -32,9 +56,13 @@ export interface Vehicle {
   description: string | null;
   photos: VehiclePhoto[];
   documents_count?: number;
+
+  documents_status: VehicleDocumentsStatus;
+
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
+
   show_on_website: boolean;
   website_description: string | null;
   website_price_override: number | null;

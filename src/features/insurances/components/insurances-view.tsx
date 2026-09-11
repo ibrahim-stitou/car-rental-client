@@ -49,6 +49,7 @@ export function InsurancesView() {
   ];
 
   const filters: CustomTableFilterConfig[] = [
+    {field:'vehicule',label:'Véhicule',type:'text'},
     { field: 'type', label: 'Type', type: 'select', options: INSURANCE_TYPE_OPTIONS },
   ];
 

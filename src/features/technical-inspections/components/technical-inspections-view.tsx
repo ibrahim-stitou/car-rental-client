@@ -36,14 +36,6 @@ export function TechnicalInspectionsView() {
     { data: 'result', label: 'Résultat', sortable: true, render: (v) => <Badge variant="outline" className={`text-xs ${RESULT_CLS[v] ?? ''}`}>{RESULT_FR[v] ?? v}</Badge> },
     { data: 'inspection_center', label: 'Centre', sortable: false, render: (v) => <span className="text-sm">{v ?? '—'}</span> },
     {
-      data: 'is_expired', label: 'Validité', sortable: false,
-      render: (_v, row) => row.is_expired
-        ? <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200 text-xs">Expirée</Badge>
-        : row.days_until_expiry !== null && (row.days_until_expiry ?? 999) <= 30
-        ? <Badge variant="outline" className="bg-amber-100 text-amber-800 border-amber-200 text-xs">Expire bientôt</Badge>
-        : <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200 text-xs">Valide</Badge>,
-    },
-    {
       data: 'actions', label: 'Actions', sortable: false,
       render: (_v, row) => (
         <div className="flex items-center gap-1">
@@ -56,7 +48,9 @@ export function TechnicalInspectionsView() {
   ];
 
   const filters: CustomTableFilterConfig[] = [
+    {field:'vehicule',label:'Véhicule',type:'text'},
     { field: 'result', label: 'Résultat', type: 'select', options: INSPECTION_RESULT_OPTIONS },
+
   ];
 
   const handleConfirmDelete = async () => {

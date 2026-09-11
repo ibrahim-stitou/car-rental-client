@@ -164,10 +164,11 @@ export function MaintenancesView() {
   ];
 
   const filters: CustomTableFilterConfig[] = [
-    { field: 'search', label: 'Rechercher une maintenance…', type: 'text' },
+    {field:'vehicule',label:'Véhicule',type:'text'},
     { field: 'status',   label: 'Statut',   type: 'select', options: MAINTENANCE_STATUS_OPTIONS },
     { field: 'priority', label: 'Priorité', type: 'select', options: MAINTENANCE_PRIORITY_OPTIONS },
     { field: 'type',     label: 'Type',     type: 'select', options: maintenanceTypeOptions },
+
   ];
 
   const handleConfirmDelete = async () => {

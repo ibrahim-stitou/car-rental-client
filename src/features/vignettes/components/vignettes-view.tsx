@@ -57,7 +57,9 @@ export function VignettesView() {
   ];
 
   const filters: CustomTableFilterConfig[] = [
+    {field:'vehicule',label:'Véhicule',type:'text'},
     { field: 'is_paid', label: 'Paiement', type: 'select', options: [{ value: 'true', label: 'Payée' }, { value: 'false', label: 'Non payée' }] },
+
   ];
 
   const handleConfirmDelete = async () => {
