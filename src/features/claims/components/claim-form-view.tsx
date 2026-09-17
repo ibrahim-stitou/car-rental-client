@@ -76,7 +76,7 @@ export function ClaimFormView({ claim, defaultVehicleId }: Props) {
   const { options: accidentTypeOptions } = useParameterOptions('accident_type');
 
   const vehicles = (vehiclesRes?.data ?? []).map(v => ({ value: v.id, label: `${v.brand} ${v.model} ${(v as any).year ?? ''}`.trim(), sub: v.registration_number }));
-  const clients  = (clientsRes?.data ?? []).map(c => ({ value: c.id, label: `${(c as any).first_name ?? ''} ${(c as any).last_name ?? ''}`.trim(), sub: (c as any).phone }));
+  const clients  = (clientsRes?.data ?? []).map(c => ({ value: c.id, label: ((c as any).full_name ?? `${(c as any).first_name ?? ''} ${(c as any).last_name ?? ''}`).trim(), sub: (c as any).phone }));
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 

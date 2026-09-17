@@ -1,13 +1,28 @@
 export type IdType = 'cin' | 'passport' | 'residence_permit';
 export type DocSide = 'recto' | 'verso';
+export type ClientType = 'physical' | 'moral';
 
 export interface Client {
   id: string;
+  client_type: ClientType;
   agencies: ClientAgency[];
-  first_name: string;
-  last_name: string;
+  first_name: string | null;
+  last_name: string | null;
+  full_name?: string;
   email: string | null;
   phone: string;
+  company_name: string | null;
+  company_type: string | null;
+  company_phone: string | null;
+  company_email: string | null;
+  company_ice: string | null;
+  company_address: string | null;
+  company_city: string | null;
+  company_country: string | null;
+  bank_name: string | null;
+  bank_account_name: string | null;
+  bank_account_number: string | null;
+  bank_address: string | null;
   date_of_birth: string | null;
   birth_place: string | null;
   nationality: string | null;
@@ -53,9 +68,10 @@ export interface ClientAgency {
 }
 
 export interface CreateClientInput {
+  client_type: ClientType;
   agency_ids: string[];
-  first_name: string;
-  last_name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   email?: string;
   phone: string;
   date_of_birth?: string;
@@ -69,6 +85,18 @@ export interface CreateClientInput {
   driving_license_expiry?: string;
   license_issue_date?: string;
   license_issue_place?: string;
+  company_name?: string | null;
+  company_type?: string | null;
+  company_phone?: string | null;
+  company_email?: string | null;
+  company_ice?: string | null;
+  company_address?: string | null;
+  company_city?: string | null;
+  company_country?: string | null;
+  bank_name?: string | null;
+  bank_account_name?: string | null;
+  bank_account_number?: string | null;
+  bank_address?: string | null;
   address?: string;
   city?: string;
   country?: string;
@@ -80,6 +108,7 @@ export type UpdateClientInput = Partial<CreateClientInput>;
 export interface ClientFilters {
   agency_id?: string;
   is_blacklisted?: boolean;
+  client_type?: ClientType;
   city?: string;
   search?: string;
   per_page?: number;

@@ -23,15 +23,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileUploader } from '@/components/file-uploader';
 import Link from 'next/link';
 import { Trash2 } from 'lucide-react';
-import { IconArrowLeft, IconFileText } from '@tabler/icons-react';
+import { IconArrowLeft, IconFileText, IconAlertTriangle, IconBuilding, IconBuildingBank } from '@tabler/icons-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import type { ClientType } from '@/types/client.types';
 import PageContainer from '@/components/layout/page-container';
 
 const schema = z.object({
+  client_type: z.enum(['physical', 'moral']),
   agency_ids: z.array(z.string()).min(1, 'Au moins une agence requise'),
-  first_name: z.string().min(1, 'Prénom requis'),
-  last_name: z.string().min(1, 'Nom requis'),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
-  phone: z.string().min(1, 'Téléphone requis'),
+  phone: z.string().optional(),
   date_of_birth: z.string().optional(),
   birth_place: z.string().optional(),
   nationality: z.string().optional(),
@@ -43,10 +46,44 @@ const schema = z.object({
   driving_license_expiry: z.string().optional(),
   license_issue_date: z.string().optional(),
   license_issue_place: z.string().optional(),
+  company_name: z.string().optional(),
+  company_type: z.string().optional(),
+  company_phone: z.string().optional(),
+  company_email: z.string().email('Email invalide').optional().or(z.literal('')),
+  company_ice: z.string().optional(),
+  company_address: z.string().optional(),
+  company_city: z.string().optional(),
+  company_country: z.string().optional(),
+  bank_name: z.string().optional(),
+  bank_account_name: z.string().optional(),
+  bank_account_number: z.string().optional(),
+  bank_address: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
   notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.client_type === 'moral') {
+    if (!data.company_name?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['company_name'], message: 'Raison sociale requise' });
+    }
+    if (!data.company_address?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['company_address'], message: 'Adresse complète requise' });
+    }
+    if (!data.phone?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phone'], message: 'Téléphone requis' });
+    }
+  } else {
+    if (!data.first_name?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['first_name'], message: 'Prénom requis' });
+    }
+    if (!data.last_name?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['last_name'], message: 'Nom requis' });
+    }
+    if (!data.phone?.trim()) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['phone'], message: 'Téléphone requis' });
+    }
+  }
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -132,7 +169,7 @@ function DocSideSlot({
   label: string;
   url: string | null;
   isEdit: boolean;
-  onDropFiles: (files: File[]) => void;
+  onDropFiles: (files: File[]) => void | Promise<void>;
   onDelete?: () => void;
   isUploading?: boolean;
   isDeleting?: boolean;
@@ -150,7 +187,7 @@ function DocSideSlot({
       <FileUploader
         value={isEdit ? [] : localFiles}
         onValueChange={isEdit ? undefined : (v) => { setLocalFiles(v as File[]); onDropFiles(v as File[]); }}
-        onUpload={isEdit ? onDropFiles : undefined}
+        onUpload={isEdit ? (files) => Promise.resolve(onDropFiles(files)) : undefined}
         accept={DOC_ACCEPT}
         maxSize={DOC_MAX}
         maxFiles={1}
@@ -197,13 +234,19 @@ export function ClientForm({ client }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      agency_ids: [], first_name: '', last_name: '', email: '', phone: '',
+      client_type: 'physical', agency_ids: [], first_name: '', last_name: '', email: '', phone: '',
       date_of_birth: '', birth_place: '', nationality: '', id_type: undefined, id_number: '',
       id_expiry_date: '', driving_license_number: '', driving_license_category: '',
       driving_license_expiry: '', license_issue_date: '', license_issue_place: '',
+      company_name: '', company_type: '', company_phone: '', company_email: '', company_ice: '',
+      company_address: '', company_city: '', company_country: '',
+      bank_name: '', bank_account_name: '', bank_account_number: '', bank_address: '',
       address: '', city: '', country: 'Morocco', notes: '',
     },
   });
+
+  const watchClientType: ClientType = form.watch('client_type') ?? 'physical';
+  const isMoral = watchClientType === 'moral';
 
   useEffect(() => {
     setIdDoc({
@@ -228,9 +271,10 @@ export function ClientForm({ client }: Props) {
   useEffect(() => {
     if (client) {
       form.reset({
+        client_type: client.client_type ?? 'physical',
         agency_ids: client.agencies?.map((a) => a.id) ?? [],
-        first_name: client.first_name,
-        last_name: client.last_name,
+        first_name: client.first_name ?? '',
+        last_name: client.last_name ?? '',
         email: client.email ?? '',
         phone: client.phone,
         date_of_birth: client.date_of_birth ?? '',
@@ -244,6 +288,18 @@ export function ClientForm({ client }: Props) {
         driving_license_expiry: client.driving_license_expiry ?? '',
         license_issue_date: client.license_issue_date ?? '',
         license_issue_place: client.license_issue_place ?? '',
+        company_name: client.company_name ?? '',
+        company_type: client.company_type ?? '',
+        company_phone: client.company_phone ?? '',
+        company_email: client.company_email ?? '',
+        company_ice: client.company_ice ?? '',
+        company_address: client.company_address ?? '',
+        company_city: client.company_city ?? '',
+        company_country: client.company_country ?? '',
+        bank_name: client.bank_name ?? '',
+        bank_account_name: client.bank_account_name ?? '',
+        bank_account_number: client.bank_account_number ?? '',
+        bank_address: client.bank_address ?? '',
         address: client.address ?? '',
         city: client.city ?? '',
         country: client.country ?? 'Morocco',
@@ -323,7 +379,7 @@ export function ClientForm({ client }: Props) {
         onSuccess: async (res) => {
           const newId = (res as any)?.data?.id;
           const hasFiles = idDocFiles.recto[0] || idDocFiles.verso[0] || licenseFiles.recto[0] || licenseFiles.verso[0];
-          if (newId && hasFiles) {
+          if (newId && hasFiles && !isMoral) {
             setUploading(true);
             try {
               if (idDocFiles.recto[0]) await clientService.uploadIdDocument(newId, idDocFiles.recto[0], 'recto');
@@ -365,6 +421,37 @@ export function ClientForm({ client }: Props) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
+            {/* Type de client */}
+            <Card>
+              <CardHeader><CardTitle className="text-base">Type de client</CardTitle></CardHeader>
+              <CardContent>
+                <FormField control={form.control} name="client_type" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Type <span className="text-destructive">*</span></FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger><SelectValue placeholder="Sélectionner un type" /></SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="physical">Personne physique</SelectItem>
+                        <SelectItem value="moral">Personne morale (société)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                {isMoral && (
+                  <Alert className="mt-4 border-amber-300 bg-amber-50 text-amber-800">
+                    <IconAlertTriangle className="text-amber-600" />
+                    <AlertTitle className="text-amber-800">Client LLD uniquement</AlertTitle>
+                    <AlertDescription className="text-amber-700">
+                      Ce client (personne morale) ne peut effectuer que des réservations / contrats LLD (location longue durée).
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Agence */}
             <Card>
               <CardHeader><CardTitle className="text-base">Agence</CardTitle></CardHeader>
@@ -385,6 +472,8 @@ export function ClientForm({ client }: Props) {
               </CardContent>
             </Card>
 
+            {!isMoral && (
+              <>
             {/* Informations personnelles */}
             <Card>
               <CardHeader><CardTitle className="text-base">Informations personnelles</CardTitle></CardHeader>
@@ -617,6 +706,128 @@ export function ClientForm({ client }: Props) {
                 </div>
               </CardContent>
             </Card>
+              </>
+            )}
+
+            {/* Entreprise */}
+            {isMoral && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <IconBuilding className="h-4 w-4 text-muted-foreground" />Entreprise
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="company_name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Raison sociale <span className="text-destructive">*</span></FormLabel>
+                        <FormControl><Input placeholder="Société XYZ SARL" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="company_type" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Type de société</FormLabel>
+                        <FormControl><Input placeholder="SARL, SA, SAS…" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="company_ice" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ICE</FormLabel>
+                        <FormControl><Input placeholder="N° ICE" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email entreprise</FormLabel>
+                        <FormControl><Input type="email" placeholder="contact@societe.com" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="phone" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Téléphone <span className="text-destructive">*</span></FormLabel>
+                        <FormControl><Input placeholder="+212 5XX XX XX XX" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="company_address" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Adresse complète <span className="text-destructive">*</span></FormLabel>
+                      <FormControl><Input placeholder="N°, rue, quartier, ville" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="company_city" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ville</FormLabel>
+                        <FormControl><Input placeholder="Casablanca" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="company_country" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Pays</FormLabel>
+                        <FormControl><Input placeholder="Morocco" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Informations bancaires */}
+            {isMoral && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <IconBuildingBank className="h-4 w-4 text-muted-foreground" />Informations bancaires
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField control={form.control} name="bank_name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Banque</FormLabel>
+                        <FormControl><Input placeholder="Attijariwafa Bank" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="bank_account_name" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Titulaire du compte</FormLabel>
+                        <FormControl><Input placeholder="Raison sociale du titulaire" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                  </div>
+                  <FormField control={form.control} name="bank_account_number" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>N° de compte / RIB</FormLabel>
+                      <FormControl><Input placeholder="RIB" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                  <FormField control={form.control} name="bank_address" render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Adresse de la banque</FormLabel>
+                      <FormControl><Input placeholder="Agence, ville" {...field} /></FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )} />
+                </CardContent>
+              </Card>
+            )}
 
             {/* Adresse */}
             <Card>

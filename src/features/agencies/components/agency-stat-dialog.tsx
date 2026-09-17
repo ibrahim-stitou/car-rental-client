@@ -128,7 +128,7 @@ export function AgencyStatDialog({ agencyId, type, onOpenChange }: Props) {
                 <Link key={c.id} href={`/clients/${c.id}`}
                   className="flex items-center justify-between p-3 border rounded-lg text-sm hover:bg-muted/50">
                   <div>
-                    <div className="font-medium">{c.first_name} {c.last_name}</div>
+                    <div className="font-medium">{c.full_name ?? `${c.first_name ?? ''} ${c.last_name ?? ''}`}</div>
                     <div className="text-xs text-muted-foreground">{c.phone}</div>
                   </div>
                   {c.is_blacklisted && <span className="text-xs text-red-600 font-medium">Blacklisté</span>}
@@ -155,7 +155,7 @@ export function AgencyStatDialog({ agencyId, type, onOpenChange }: Props) {
                     <div className="min-w-0">
                       <div className="font-mono font-medium">{r.reservation_number}</div>
                       <div className="text-xs text-muted-foreground">
-                        {r.client ? `${r.client.first_name} ${r.client.last_name}` : '—'} · {r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}
+                        {r.client ? `${r.client.full_name ?? `${r.client.first_name} ${r.client.last_name}`}` : '—'} · {r.vehicle ? `${r.vehicle.brand} ${r.vehicle.model}` : '—'}
                       </div>
                       <div className="text-xs text-muted-foreground">{fdate(r.pickup_date)} → {fdate(r.return_date)}</div>
                       {isLld ? (

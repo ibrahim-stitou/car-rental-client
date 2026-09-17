@@ -35,10 +35,20 @@ export function ClientsView() {
       sortable: true,
       render: (_value, row) => (
         <div>
-          <div className="font-medium text-sm">{row.first_name} {row.last_name}</div>
+          <div className="font-medium text-sm">
+            {row.client_type === 'moral' ? (row.company_name ?? '—') : `${row.first_name ?? ''} ${row.last_name ?? ''}`}
+          </div>
           {row.email && <div className="text-xs text-muted-foreground">{row.email}</div>}
         </div>
       ),
+    },
+    {
+      data: 'client_type',
+      label: 'Type',
+      sortable: false,
+      render: (v) => (v === 'moral'
+        ? <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200 text-xs">Société</Badge>
+        : <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 text-xs">Personne physique</Badge>),
     },
     { data: 'phone', label: 'Téléphone', sortable: false, render: (v) => <span className="font-mono text-sm">{v}</span> },
     { data: 'agency', label: 'Agence', sortable: false, render: (_v, row) => <span className="text-sm">{row.agencies?.map((a) => a.name).join(', ') || '—'}</span> },
@@ -46,14 +56,16 @@ export function ClientsView() {
       data: 'id_type',
       label: 'Pièce d\'identité',
       sortable: false,
-      render: (v, row) => v
-        ? (
-          <div>
-            <Badge variant="outline" className="text-xs">{ID_TYPE_LABELS[v as string] ?? v}</Badge>
-            {row.id_number && <div className="text-xs font-mono text-muted-foreground mt-1">{row.id_number}</div>}
-          </div>
-        )
-        : <span className="text-muted-foreground text-sm">—</span>,
+      render: (v, row) => row.client_type === 'moral'
+        ? <span className="text-muted-foreground text-sm">—</span>
+        : v
+          ? (
+            <div>
+              <Badge variant="outline" className="text-xs">{ID_TYPE_LABELS[v as string] ?? v}</Badge>
+              {row.id_number && <div className="text-xs font-mono text-muted-foreground mt-1">{row.id_number}</div>}
+            </div>
+          )
+          : <span className="text-muted-foreground text-sm">—</span>,
     },
     {
       data: 'is_blacklisted',
@@ -100,7 +112,16 @@ export function ClientsView() {
   ];
 
   const filters: CustomTableFilterConfig[] = [
-    { field: 'search', label: 'Rechercher (nom, téléphone, CIN)…', type: 'text' },
+    { field: 'search', label: 'Rechercher (nom, téléphone, CIN, société)…', type: 'text' },
+    {
+      field: 'client_type',
+      label: 'Type',
+      type: 'select',
+      options: [
+        { value: 'physical', label: 'Personne physique' },
+        { value: 'moral', label: 'Personne morale (société)' },
+      ],
+    },
     {
       field: 'is_blacklisted',
       label: 'Statut',

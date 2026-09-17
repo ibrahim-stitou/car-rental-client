@@ -354,7 +354,7 @@ export function ReservationFormView({ reservation }: Props) {
   const rawVehicles = vehiclesRes?.data ?? [];
   const toClientOption = (c: any) => ({
     value: c.id,
-    label: `${c.first_name ?? ''} ${c.last_name ?? ''}`.trim(),
+    label: (c.full_name ?? `${c.first_name ?? ''} ${c.last_name ?? ''}`).trim(),
     sub: c.id_number ? `${c.phone ?? ''} · CIN ${c.id_number}` : c.phone,
     keywords: c.id_number,
   });

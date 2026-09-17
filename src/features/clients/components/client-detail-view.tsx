@@ -17,8 +17,9 @@ import { toast } from 'sonner';
 import { Trash2 } from 'lucide-react';
 import {
   IconCurrencyDirham, IconCalendar, IconArrowLeft, IconAlertTriangle,
-  IconEdit, IconFileText,
+  IconEdit, IconFileText, IconBuilding, IconBuildingBank,
 } from '@tabler/icons-react';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import PageContainer from '@/components/layout/page-container';
 import type { DocSide } from '@/types/client.types';
 
@@ -28,6 +29,11 @@ const ID_TYPE_LABELS: Record<string, string> = {
   cin: 'CIN',
   passport: 'Passeport',
   residence_permit: 'Titre de séjour',
+};
+
+const CLIENT_TYPE_LABELS: Record<string, string> = {
+  physical: 'Personne physique',
+  moral: 'Société',
 };
 
 function fmt(n: number | undefined) { return (n ?? 0).toLocaleString('fr-MA'); }
@@ -160,6 +166,7 @@ export function ClientDetailView({ clientId }: Props) {
   const client = stats?.client;
   const reservations = (reservationsRes as any)?.data?.data ?? [];
   const creditReservations = stats?.credit_reservations ?? [];
+  const isMoral = client?.client_type === 'moral';
 
   if (isLoading) {
     return <PageContainer><div className="p-6 space-y-4 w-full">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
@@ -204,7 +211,14 @@ export function ClientDetailView({ clientId }: Props) {
             <Link href="/clients"><IconArrowLeft className="h-4 w-4 mr-1" />Retour</Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold">{client?.first_name} {client?.last_name}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold">
+                {isMoral ? (client?.company_name ?? '—') : `${client?.first_name ?? ''} ${client?.last_name ?? ''}`}
+              </h1>
+              <Badge variant="outline" className={isMoral ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-slate-100 text-slate-600 border-slate-200'}>
+                {CLIENT_TYPE_LABELS[client?.client_type ?? 'physical'] ?? client?.client_type}
+              </Badge>
+            </div>
             <p className="text-muted-foreground text-sm">{client?.phone}</p>
           </div>
           <div className="flex items-center gap-2">
@@ -216,6 +230,17 @@ export function ClientDetailView({ clientId }: Props) {
             </Button>
           </div>
         </div>
+
+        {/* Alerte LLD — personnes morales */}
+        {isMoral && (
+          <Alert className="border-amber-300 bg-amber-50">
+            <IconAlertTriangle className="text-amber-600" />
+            <AlertTitle className="text-amber-800">Client LLD uniquement</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              Ce client (personne morale) ne peut effectuer que des réservations / contrats LLD (location longue durée).
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -247,6 +272,47 @@ export function ClientDetailView({ clientId }: Props) {
 
           {/* Info */}
           <TabsContent value="info" className="mt-4">
+            {isMoral ? (
+              <div className="grid lg:grid-cols-2 gap-4">
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><IconBuilding className="h-4 w-4 text-muted-foreground" />Entreprise</CardTitle></CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    {[
+                      ['Raison sociale', client?.company_name ?? '—'],
+                      ['Type de société', client?.company_type ?? '—'],
+                      ['ICE', client?.company_ice ?? '—'],
+                      ['Téléphone', client?.phone ?? '—'],
+                      ['Email', client?.email ?? '—'],
+                      ['Adresse', client?.company_address ?? '—'],
+                      ['Ville', client?.company_city ?? '—'],
+                      ['Pays', client?.company_country ?? '—'],
+                    ].map(([k, v]) => (
+                      <div key={k as string} className="flex justify-between py-1 border-b last:border-0">
+                        <span className="text-muted-foreground">{k}</span>
+                        <span className="font-medium">{v as string}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader><CardTitle className="text-base flex items-center gap-2"><IconBuildingBank className="h-4 w-4 text-muted-foreground" />Informations bancaires</CardTitle></CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    {[
+                      ['Banque', client?.bank_name ?? '—'],
+                      ['Titulaire du compte', client?.bank_account_name ?? '—'],
+                      ['N° de compte / RIB', client?.bank_account_number ?? '—'],
+                      ['Adresse de la banque', client?.bank_address ?? '—'],
+                    ].map(([k, v]) => (
+                      <div key={k as string} className="flex justify-between py-1 border-b last:border-0">
+                        <span className="text-muted-foreground">{k}</span>
+                        <span className="font-medium">{v as string}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </div>
+            ) : (
             <div className="grid lg:grid-cols-2 gap-4">
               <Card>
                 <CardHeader><CardTitle className="text-base">Identité</CardTitle></CardHeader>
@@ -282,16 +348,17 @@ export function ClientDetailView({ clientId }: Props) {
                     ['Catégorie permis', client?.driving_license_category ?? '—'],
                     ['Expiration permis', fdate(client?.driving_license_expiry)],
                     ['Délivré le', fdate(client?.license_issue_date)],
-                    ['Délivré à', client?.license_issue_place ?? '—'],
-                  ].map(([k, v]) => (
-                    <div key={k as string} className="flex justify-between py-1 border-b last:border-0">
-                      <span className="text-muted-foreground">{k}</span>
-                      <span className="font-medium">{v as string}</span>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+['Délivré à', client?.license_issue_place ?? '—'],
+                    ].map(([k, v]) => (
+                      <div key={k as string} className="flex justify-between py-1 border-b last:border-0">
+                        <span className="text-muted-foreground">{k}</span>
+                        <span className="font-medium">{v as string}</span>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
             </div>
+            )}
 
             {/* Reservation stats */}
             <div className="grid grid-cols-4 gap-3 mt-4">
@@ -313,6 +380,13 @@ export function ClientDetailView({ clientId }: Props) {
 
           {/* Documents */}
           <TabsContent value="documents" className="mt-4">
+            {isMoral ? (
+              <Card>
+                <CardContent className="text-sm text-muted-foreground py-8 text-center">
+                  Aucun document d&apos;identité ou permis de conduire requis pour une personne morale.
+                </CardContent>
+              </Card>
+            ) : (
             <div className="grid lg:grid-cols-2 gap-6">
               {/* CIN / Passeport */}
               <Card>
@@ -404,6 +478,7 @@ export function ClientDetailView({ clientId }: Props) {
                 </CardContent>
               </Card>
             </div>
+            )}
           </TabsContent>
 
           {/* Reservations */}
