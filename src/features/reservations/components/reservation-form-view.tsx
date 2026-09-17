@@ -977,7 +977,7 @@ export function ReservationFormView({ reservation }: Props) {
                       <FormField control={form.control} name="insurance_included" render={({ field }) => (
                         <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3">
                           <div>
-                            <FormLabel className="mb-0.5">Assurance, carte grise, vignette</FormLabel>
+                            <FormLabel className="mb-0.5">Assurance, carte grise, vignette, autorisation de circulation</FormLabel>
                             <p className="text-xs text-muted-foreground">Incluse dans le loyer ?</p>
                           </div>
                           <FormControl><Switch checked={field.value ?? false} onCheckedChange={field.onChange} /></FormControl>
