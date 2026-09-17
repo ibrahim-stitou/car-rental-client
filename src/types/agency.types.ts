@@ -21,6 +21,11 @@ export interface Agency {
   tax_id: string | null;
   patente: string | null;
   ice: string | null;
+  bank_name: string | null;
+  bank_branch: string | null;
+  bank_address: string | null;
+  bank_account: string | null;
+  bank_rib: string | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -48,6 +53,11 @@ export interface CreateAgencyInput {
   tax_id?: string;
   patente?: string;
   ice?: string;
+  bank_name?: string;
+  bank_branch?: string;
+  bank_address?: string;
+  bank_account?: string;
+  bank_rib?: string;
 }
 
 export type UpdateAgencyInput = Partial<CreateAgencyInput>;

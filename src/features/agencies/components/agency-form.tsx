@@ -31,6 +31,11 @@ const schema = z.object({
   tax_id: z.string().optional(),
   patente: z.string().optional(),
   ice: z.string().optional(),
+  bank_name: z.string().optional(),
+  bank_branch: z.string().optional(),
+  bank_address: z.string().optional(),
+  bank_account: z.string().optional(),
+  bank_rib: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -65,6 +70,7 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
     defaultValues: {
       name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco',
       legal_form: '', capital: '', rc: '', tax_id: '', patente: '', ice: '',
+      bank_name: '', bank_branch: '', bank_address: '', bank_account: '', bank_rib: '',
     },
   });
 
@@ -75,6 +81,9 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
         address: agency.address, city: agency.city, country: agency.country,
         legal_form: agency.legal_form ?? '', capital: agency.capital ?? '', rc: agency.rc ?? '',
         tax_id: agency.tax_id ?? '', patente: agency.patente ?? '', ice: agency.ice ?? '',
+        bank_name: agency.bank_name ?? '', bank_branch: agency.bank_branch ?? '',
+        bank_address: agency.bank_address ?? '', bank_account: agency.bank_account ?? '',
+        bank_rib: agency.bank_rib ?? '',
       });
       setLogoUrl(agency.logo_url ?? null);
       setLogoMediaId(agency.logo_media_id ?? null);
@@ -82,6 +91,7 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
       form.reset({
         name: '', email: '', phone: '', phone2: '', address: '', city: '', country: 'Morocco',
         legal_form: '', capital: '', rc: '', tax_id: '', patente: '', ice: '',
+        bank_name: '', bank_branch: '', bank_address: '', bank_account: '', bank_rib: '',
       });
       setLogoUrl(null);
       setLogoMediaId(null);
@@ -285,6 +295,29 @@ export function AgencyForm({ open, onOpenChange, agency, onSuccess }: Props) {
                   )} />
                   <FormField control={form.control} name="ice" render={({ field }) => (
                     <FormItem><FormLabel>ICE</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                </div>
+
+                <Separator />
+                <p className="text-sm font-medium text-muted-foreground">
+                  Coordonnées bancaires <span className="font-normal">(compte à créditer sur les contrats LLD)</span>
+                </p>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField control={form.control} name="bank_name" render={({ field }) => (
+                    <FormItem><FormLabel>Nom de la banque</FormLabel><FormControl><Input placeholder="Attijariwafa Bank" {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="bank_branch" render={({ field }) => (
+                    <FormItem><FormLabel>Agence / Centre d&apos;affaires</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="bank_address" render={({ field }) => (
+                    <FormItem><FormLabel>Adresse de la banque</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="bank_account" render={({ field }) => (
+                    <FormItem><FormLabel>Numéro de compte</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                  )} />
+                  <FormField control={form.control} name="bank_rib" render={({ field }) => (
+                    <FormItem><FormLabel>RIB</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
                   )} />
                 </div>
 

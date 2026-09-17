@@ -281,6 +281,7 @@ export function ClientDetailView({ clientId }: Props) {
                       ['Raison sociale', client?.company_name ?? '—'],
                       ['Type de société', client?.company_type ?? '—'],
                       ['ICE', client?.company_ice ?? '—'],
+                      ['N° Registre de Commerce', client?.company_rc ?? '—'],
                       ['Téléphone', client?.phone ?? '—'],
                       ['Email', client?.email ?? '—'],
                       ['Adresse', client?.company_address ?? '—'],

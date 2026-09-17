@@ -29,6 +29,8 @@ export interface CompanySettings {
   if: string;
   patent: string;
   bank_name: string;
+  bank_branch: string;
+  bank_address: string;
   bank_account: string;
   bank_rib: string;
   bank_swift: string;

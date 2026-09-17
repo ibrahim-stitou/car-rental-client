@@ -16,6 +16,7 @@ export interface Client {
   company_phone: string | null;
   company_email: string | null;
   company_ice: string | null;
+  company_rc: string | null;
   company_address: string | null;
   company_city: string | null;
   company_country: string | null;
@@ -90,6 +91,7 @@ export interface CreateClientInput {
   company_phone?: string | null;
   company_email?: string | null;
   company_ice?: string | null;
+  company_rc?: string | null;
   company_address?: string | null;
   company_city?: string | null;
   company_country?: string | null;

@@ -51,6 +51,7 @@ const schema = z.object({
   company_phone: z.string().optional(),
   company_email: z.string().email('Email invalide').optional().or(z.literal('')),
   company_ice: z.string().optional(),
+  company_rc: z.string().optional(),
   company_address: z.string().optional(),
   company_city: z.string().optional(),
   company_country: z.string().optional(),
@@ -238,7 +239,7 @@ export function ClientForm({ client }: Props) {
       date_of_birth: '', birth_place: '', nationality: '', id_type: undefined, id_number: '',
       id_expiry_date: '', driving_license_number: '', driving_license_category: '',
       driving_license_expiry: '', license_issue_date: '', license_issue_place: '',
-      company_name: '', company_type: '', company_phone: '', company_email: '', company_ice: '',
+      company_name: '', company_type: '', company_phone: '', company_email: '', company_ice: '', company_rc: '',
       company_address: '', company_city: '', company_country: '',
       bank_name: '', bank_account_name: '', bank_account_number: '', bank_address: '',
       address: '', city: '', country: 'Morocco', notes: '',
@@ -293,6 +294,7 @@ export function ClientForm({ client }: Props) {
         company_phone: client.company_phone ?? '',
         company_email: client.company_email ?? '',
         company_ice: client.company_ice ?? '',
+        company_rc: client.company_rc ?? '',
         company_address: client.company_address ?? '',
         company_city: client.company_city ?? '',
         company_country: client.company_country ?? '',
@@ -742,10 +744,10 @@ export function ClientForm({ client }: Props) {
                         <FormMessage />
                       </FormItem>
                     )} />
-                    <FormField control={form.control} name="email" render={({ field }) => (
+                    <FormField control={form.control} name="company_rc" render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email entreprise</FormLabel>
-                        <FormControl><Input type="email" placeholder="contact@societe.com" {...field} /></FormControl>
+                        <FormLabel>N° Registre de Commerce</FormLabel>
+                        <FormControl><Input placeholder="N° RC" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />
@@ -755,6 +757,13 @@ export function ClientForm({ client }: Props) {
                       <FormItem>
                         <FormLabel>Téléphone <span className="text-destructive">*</span></FormLabel>
                         <FormControl><Input placeholder="+212 5XX XX XX XX" {...field} /></FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )} />
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email entreprise</FormLabel>
+                        <FormControl><Input type="email" placeholder="contact@societe.com" {...field} /></FormControl>
                         <FormMessage />
                       </FormItem>
                     )} />

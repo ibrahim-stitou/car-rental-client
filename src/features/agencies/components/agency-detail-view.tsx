@@ -185,6 +185,45 @@ export function AgencyDetailView({ agencyId }: Props) {
           <PeriodFilter range={period} onChange={setPeriod} />
         </div>
 
+        {/* Coordonnées bancaires (compte à créditer sur les contrats) */}
+        {(agency as any)?.bank_name && (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Coordonnées bancaires</CardTitle></CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                <div>
+                  <div className="text-xs text-muted-foreground">Banque</div>
+                  <div className="font-medium">{(agency as any)?.bank_name}</div>
+                </div>
+                {(agency as any)?.bank_branch && (
+                  <div>
+                    <div className="text-xs text-muted-foreground">Agence / Centre d&apos;affaires</div>
+                    <div className="font-medium">{(agency as any)?.bank_branch}</div>
+                  </div>
+                )}
+                {(agency as any)?.bank_address && (
+                  <div>
+                    <div className="text-xs text-muted-foreground">Adresse</div>
+                    <div className="font-medium">{(agency as any)?.bank_address}</div>
+                  </div>
+                )}
+                {(agency as any)?.bank_account && (
+                  <div>
+                    <div className="text-xs text-muted-foreground">N° de compte</div>
+                    <div className="font-mono">{(agency as any)?.bank_account}</div>
+                  </div>
+                )}
+                {(agency as any)?.bank_rib && (
+                  <div>
+                    <div className="text-xs text-muted-foreground">RIB</div>
+                    <div className="font-mono">{(agency as any)?.bank_rib}</div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* KPI */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[

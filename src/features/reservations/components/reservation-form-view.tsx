@@ -410,6 +410,10 @@ export function ReservationFormView({ reservation }: Props) {
   // merge it in so its name keeps showing instead of reverting to the placeholder.
   const { data: selectedClientRes } = useClient(!isEdit && clientId ? clientId : '');
   const { data: selectedSecondDriverRes } = useClient(!isEdit && secondDriverId ? secondDriverId : '');
+  // Personnes morales : réservation LLD (month) uniquement et aucun 2ᵉ conducteur.
+  const isMoralClient = isEdit
+    ? (reservation as any)?.client?.client_type === 'moral'
+    : selectedClientRes?.data?.client_type === 'moral';
   const clients = useMemo(() => {
     const base = (clientsRes?.data ?? []).map(toClientOption);
     for (const extra of [selectedClientRes?.data, selectedSecondDriverRes?.data]) {
@@ -467,6 +471,15 @@ export function ReservationFormView({ reservation }: Props) {
   const selectedVehicle = rawVehicles.find(v => v.id === vehicleId);
   const hasAdblue = (selectedVehicle as any)?.has_adblue === true;
   const depositAmount = watch('deposit_amount');
+
+  // Forcer le type LLD (month) dès qu'un client personne morale est
+  // sélectionné, et masquer le 2ᵉ conducteur (interdit côté backend).
+  useEffect(() => {
+    if (!isEdit && isMoralClient) {
+      setValue('rental_unit', 'month');
+      setShowSecondDriver(false);
+    }
+  }, [isEdit, isMoralClient, setValue]);
 
   useEffect(() => { setConflictDismissed(false); }, [pickupDate, returnDate]);
 
@@ -577,10 +590,14 @@ export function ReservationFormView({ reservation }: Props) {
       ...rest,
       hourly_rate:            rentalUnit === 'hour' ? values.hourly_rate : undefined,
       monthly_rate:           rentalUnit === 'month' ? values.monthly_rate : undefined,
-      second_driver_id:      values.second_driver_id || undefined,
-      second_driver_name:    values.second_driver_name || undefined,
-      second_driver_license: values.second_driver_license || undefined,
-      second_driver_phone:   values.second_driver_phone || undefined,
+      ...(isMoralClient
+        ? {}
+        : {
+            second_driver_id:      values.second_driver_id || undefined,
+            second_driver_name:    values.second_driver_name || undefined,
+            second_driver_license: values.second_driver_license || undefined,
+            second_driver_phone:   values.second_driver_phone || undefined,
+          }),
       payment_method:        values.payment_method || undefined,
       fuel_level_pickup:     values.fuel_level_pickup || undefined,
       agent_notes:           values.agent_notes || undefined,
@@ -698,6 +715,8 @@ export function ReservationFormView({ reservation }: Props) {
 
                       {clientStatsData && <div className="mt-3"><ClientAlerts stats={clientStatsData} label="Client principal" /></div>}
 
+                      {!isMoralClient && (
+                        <>
                       {/* Second driver toggle */}
                       <div className="mt-4">
                         <Button type="button" variant="outline" size="sm" className="gap-1.5"
@@ -738,6 +757,8 @@ export function ReservationFormView({ reservation }: Props) {
                           {secondDriverStatsData && <ClientAlerts stats={secondDriverStatsData} label="2ᵉ conducteur" />}
                         </div>
                       )}
+                        </>
+                      )}
                     </>
                   )}
                 </SectionCard>
@@ -767,6 +788,17 @@ export function ReservationFormView({ reservation }: Props) {
                 <SectionCard icon={<CheckCircle2 className="h-4 w-4" />} title="Type de réservation">
                   {isEdit ? (
                     <RentalTypeLocked value={rentalUnit} control={form.control} />
+                  ) : isMoralClient ? (
+                    <div className="space-y-3">
+                      <Alert className="border-blue-300 bg-blue-50">
+                        <Info className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                        <AlertDescription className="text-blue-800 text-sm">
+                          Ce client est une <strong>personne morale</strong> : la réservation est limitée au contrat{' '}
+                          <strong>Longue durée (LLD)</strong> et aucun 2ᵉ conducteur ne peut y être ajouté.
+                        </AlertDescription>
+                      </Alert>
+                      <RentalTypeLocked value="month" control={form.control} />
+                    </div>
                   ) : !vehicleId ? (
                     <p className="text-sm text-muted-foreground">Sélectionnez d&#39;abord un véhicule pour voir les types de location disponibles.</p>
                   ) : (
