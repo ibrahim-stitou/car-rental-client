@@ -27,6 +27,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import PageContainer from '@/components/layout/page-container';
 import { SelectField } from '@/components/shared/select-field';
 import { DateTimeField } from './date-time-field';
@@ -77,6 +78,15 @@ const reservationFieldsSchema = z.object({
   initial_mileage:        z.coerce.number().min(0).optional(),
   notes:                  z.string().optional(),
   agent_notes:            z.string().optional(),
+  // Options de la section « Loyer » du contrat LLD corporate
+  insurance_included:         z.boolean().optional(),
+  replacement_vehicle_included: z.boolean().optional(),
+  replacement_vehicle:        z.string().optional(),
+  tire_replacement:           z.string().optional(),
+  all_risk_franchise_pct:     z.coerce.number().min(0).max(100).optional(),
+  fuel_included:              z.boolean().optional(),
+  extra_km_rate:              z.coerce.number().min(0).optional(),
+  return_km:                  z.coerce.number().int().min(0).optional(),
   initial_paid_amount:    z.coerce.number().min(0).optional(),
   initial_payment_method: z.string().optional(),
 });
@@ -115,6 +125,9 @@ const editSchema = withRentalUnitRules(reservationFieldsSchema.pick({
   monthly_rate: true, duration_months: true,
   deposit_amount: true, discount_percentage: true, additional_fees: true,
   payment_method: true, fuel_level_pickup: true, initial_mileage: true, notes: true,
+  insurance_included: true, replacement_vehicle_included: true, replacement_vehicle: true,
+  tire_replacement: true, all_risk_franchise_pct: true, fuel_included: true,
+  extra_km_rate: true, return_km: true,
 }));
 
 const DOC_ACCEPT = { 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'], 'application/msword': ['.doc'], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'] };
@@ -311,6 +324,8 @@ const CONTRACT_RELEVANT_EDIT_FIELDS = [
   'pickup_date', 'return_date', 'pickup_location', 'return_location',
   'daily_rate', 'hourly_rate', 'duration_hours', 'monthly_rate', 'duration_months',
   'discount_percentage', 'additional_fees',
+  'insurance_included', 'replacement_vehicle_included', 'replacement_vehicle',
+  'tire_replacement', 'all_risk_franchise_pct', 'fuel_included', 'extra_km_rate', 'return_km',
 ] as const;
 
 export function ReservationFormView({ reservation }: Props) {
@@ -379,6 +394,14 @@ export function ReservationFormView({ reservation }: Props) {
       payment_method: reservation!.payment_method ?? '',
       fuel_level_pickup: reservation!.fuel_level_pickup ?? '',
       initial_mileage: reservation!.initial_mileage ?? undefined,
+      insurance_included: reservation!.insurance_included ?? false,
+      replacement_vehicle_included: reservation!.replacement_vehicle_included ?? false,
+      replacement_vehicle: reservation!.replacement_vehicle ?? '',
+      tire_replacement: reservation!.tire_replacement ?? '',
+      all_risk_franchise_pct: reservation!.all_risk_franchise_pct ?? undefined,
+      fuel_included: reservation!.fuel_included ?? false,
+      extra_km_rate: reservation!.extra_km_rate ?? undefined,
+      return_km: reservation!.return_km ?? undefined,
       notes: reservation!.notes ?? '',
     } : {
       agency_id: '', vehicle_id: '', client_id: '',
@@ -389,6 +412,9 @@ export function ReservationFormView({ reservation }: Props) {
       monthly_rate: undefined, duration_months: 12,
       deposit_amount: 0, discount_percentage: 0, additional_fees: 0,
       payment_method: '', fuel_level_pickup: '', initial_mileage: undefined,
+      insurance_included: false, replacement_vehicle_included: false, replacement_vehicle: '',
+      tire_replacement: '', all_risk_franchise_pct: undefined, fuel_included: false,
+      extra_km_rate: undefined, return_km: undefined,
       notes: '', agent_notes: '',
       initial_paid_amount: 0, initial_payment_method: '',
     },
@@ -561,6 +587,14 @@ export function ReservationFormView({ reservation }: Props) {
         payment_method: values.payment_method || undefined,
         fuel_level_pickup: values.fuel_level_pickup || undefined,
         initial_mileage: values.initial_mileage,
+        insurance_included: rentalUnit === 'month' ? values.insurance_included : undefined,
+        replacement_vehicle_included: rentalUnit === 'month' ? values.replacement_vehicle_included : undefined,
+        replacement_vehicle: rentalUnit === 'month' ? values.replacement_vehicle || undefined : undefined,
+        tire_replacement: rentalUnit === 'month' ? values.tire_replacement || undefined : undefined,
+        all_risk_franchise_pct: rentalUnit === 'month' ? values.all_risk_franchise_pct : undefined,
+        fuel_included: rentalUnit === 'month' ? values.fuel_included : undefined,
+        extra_km_rate: rentalUnit === 'month' ? values.extra_km_rate : undefined,
+        return_km: rentalUnit === 'month' ? values.return_km : undefined,
         notes: values.notes || undefined,
       };
 
@@ -768,8 +802,8 @@ export function ReservationFormView({ reservation }: Props) {
                   <Alert className="border-blue-300 bg-blue-50">
                     <AlertTriangle className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-800 text-sm font-medium">
-                      Ce véhicule est équipé du système <strong>AdBlue</strong>. Informez le client de l'obligation de
-                      maintenir le niveau d'urée. En cas de panne, le moteur se bride.
+                      Ce véhicule est équipé du système <strong>AdBlue</strong>. Informez le client de l&#39;obligation de
+                      maintenir le niveau d&#39;urée. En cas de panne, le moteur se bride.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -932,6 +966,81 @@ export function ReservationFormView({ reservation }: Props) {
                     )} />
                   </div>
                 </SectionCard>
+
+                {/* Loyer — options du contrat LLD corporate */}
+                {rentalUnit === 'month' && (
+                  <SectionCard icon={<Building2 className="h-4 w-4" />} title="Loyer — inclusions du contrat">
+                    <p className="text-xs text-muted-foreground -mt-1 mb-3">
+                      Ces options figurent sur le contrat LLD (personne morale). Renseignez les inclusions choisies.
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <FormField control={form.control} name="insurance_included" render={({ field }) => (
+                        <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                          <div>
+                            <FormLabel className="mb-0.5">Assurance, carte grise, vignette</FormLabel>
+                            <p className="text-xs text-muted-foreground">Incluse dans le loyer ?</p>
+                          </div>
+                          <FormControl><Switch checked={field.value ?? false} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="fuel_included" render={({ field }) => (
+                        <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                          <div>
+                            <FormLabel className="mb-0.5">Carburant</FormLabel>
+                            <p className="text-xs text-muted-foreground">Inclus dans le loyer ?</p>
+                          </div>
+                          <FormControl><Switch checked={field.value ?? false} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="replacement_vehicle_included" render={({ field }) => (
+                        <FormItem className="flex items-center justify-between gap-3 rounded-lg border p-3">
+                          <div>
+                            <FormLabel className="mb-0.5">Voiture de remplacement</FormLabel>
+                            <p className="text-xs text-muted-foreground">Incluse ?</p>
+                          </div>
+                          <FormControl><Switch checked={field.value ?? false} onCheckedChange={field.onChange} /></FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="replacement_vehicle" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Voiture de remplacement — précision</FormLabel>
+                          <FormControl><Input placeholder="ex. Clio 5, même catégorie…" {...field} value={field.value ?? ''} /></FormControl>
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="all_risk_franchise_pct" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Assurance tout risque — franchise %</FormLabel>
+                          <FormControl><Input type="number" min={0} max={100} step={0.5} placeholder="ex. 3" {...field} value={field.value ?? ''} /></FormControl>
+                          <p className="text-xs text-muted-foreground">% de la valeur à neuf du véhicule</p>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="tire_replacement" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Remplacement de pneumatiques</FormLabel>
+                          <FormControl><Input placeholder="ex. Inclus / 2 pneus / Non inclus" {...field} value={field.value ?? ''} /></FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="extra_km_rate" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kilométrage sup. HT</FormLabel>
+                          <FormControl><Input type="number" min={0} step={0.01} placeholder="ex. 1.50" {...field} value={field.value ?? ''} /></FormControl>
+                          <p className="text-xs text-muted-foreground">Montant en MAD</p>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                      <FormField control={form.control} name="return_km" render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kilométrage de retour</FormLabel>
+                          <FormControl><Input type="number" min={0} placeholder="ex. 90000" {...field} value={field.value ?? ''} /></FormControl>
+                          <p className="text-xs text-muted-foreground">Km prévus au retour</p>
+                          <FormMessage />
+                        </FormItem>
+                      )} />
+                    </div>
+                  </SectionCard>
+                )}
 
                 {/* Véhicule départ */}
                 <SectionCard icon={<Car className="h-4 w-4" />} title="État du véhicule au départ">

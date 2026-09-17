@@ -85,6 +85,15 @@ export interface Reservation {
   final_mileage: number | null;
   fuel_level_pickup: FuelLevel | null;
   fuel_level_return: FuelLevel | null;
+  /** Options de la section « Loyer » du contrat LLD corporate. */
+  insurance_included?: boolean;
+  replacement_vehicle_included?: boolean;
+  replacement_vehicle?: string | null;
+  tire_replacement?: string | null;
+  all_risk_franchise_pct?: number | null;
+  fuel_included?: boolean;
+  extra_km_rate?: number | null;
+  return_km?: number | null;
   notes: string | null;
   cancellation_reason: string | null;
   days_count: number;
@@ -128,6 +137,15 @@ export interface CreateReservationInput {
   deposit_amount: number;
   payment_method?: PaymentMethod;
   notes?: string;
+  /** Options de la section « Loyer » du contrat LLD corporate. */
+  insurance_included?: boolean;
+  replacement_vehicle_included?: boolean;
+  replacement_vehicle?: string;
+  tire_replacement?: string;
+  all_risk_franchise_pct?: number;
+  fuel_included?: boolean;
+  extra_km_rate?: number;
+  return_km?: number;
   initial_paid_amount?: number;
   initial_payment_method?: PaymentMethod;
 }
