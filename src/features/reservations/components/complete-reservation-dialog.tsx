@@ -22,10 +22,13 @@ function nowForDatetimeLocal() {
 
 interface EarlyReturnPreview {
   is_early_return: boolean;
-  unit?: 'day' | 'hour';
+  is_late_return?: boolean;
+  unit?: 'day' | 'hour' | 'month';
   actual_days: number;
   contracted_days: number;
   suggested_total_amount: number;
+  extra_units_detected?: number;
+  extra_unit_rate?: number;
 }
 
 interface Props {
@@ -52,22 +55,28 @@ export function CompleteReservationDialog({
   const [closureComment, setClosureComment] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const [earlyReturnPreview, setEarlyReturnPreview] = useState<EarlyReturnPreview | null>(null);
-  const [finalTotalAmount, setFinalTotalAmount] = useState('');
-  const [finalTotalAmountTouched, setFinalTotalAmountTouched] = useState(false);
+  const [returnPreview, setReturnPreview] = useState<EarlyReturnPreview | null>(null);
+  // How many of the detected late days/hours the agent actually wants to bill
+  // (0..extra_units_detected — e.g. 1 of 2 extra days, or none at all even if
+  // the car came back late). Kept as a string to match <Input> state; reset
+  // to the full detected count each time a new late-return preview arrives.
+  const [confirmedExtraDays, setConfirmedExtraDays] = useState('');
 
   const mileageDiff = finalMileage && initialMileage
     ? Number(finalMileage) - initialMileage
     : null;
   const mileageError = finalMileage && initialMileage && Number(finalMileage) < initialMileage;
 
-  // Detect an early return and fetch a prorated amount suggestion (debounced).
+  // Detect an early or late return and fetch a proration/extra-days preview
+  // (debounced). The price itself is never editable from this dialog — early
+  // returns are billed automatically from the prorated suggestion, late
+  // returns only from the agent's explicit extra-days confirmation below.
   useEffect(() => {
-    if (!scheduledReturnDate || !actualReturnDate) { setEarlyReturnPreview(null); return; }
+    if (!scheduledReturnDate || !actualReturnDate) { setReturnPreview(null); return; }
     const actual = new Date(actualReturnDate);
     const scheduled = new Date(scheduledReturnDate);
-    if (Number.isNaN(actual.getTime()) || actual >= scheduled) {
-      setEarlyReturnPreview(null);
+    if (Number.isNaN(actual.getTime()) || actual.getTime() === scheduled.getTime()) {
+      setReturnPreview(null);
       return;
     }
 
@@ -77,15 +86,19 @@ export function CompleteReservationDialog({
       }).then((res) => {
         const preview = res.data?.data as EarlyReturnPreview | undefined;
         if (preview) {
-          setEarlyReturnPreview(preview);
-          if (!finalTotalAmountTouched) setFinalTotalAmount(preview.suggested_total_amount.toFixed(2));
+          setReturnPreview(preview);
+          if (preview.is_late_return) setConfirmedExtraDays(String(preview.extra_units_detected ?? 0));
         }
-      }).catch(() => setEarlyReturnPreview(null));
+      }).catch(() => setReturnPreview(null));
     }, 400);
 
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actualReturnDate, scheduledReturnDate, reservationId]);
+
+  const extraDaysDetected = returnPreview?.is_late_return ? (returnPreview.extra_units_detected ?? 0) : 0;
+  const extraDaysUnitLabel = returnPreview?.unit === 'hour' ? 'heure(s)' : 'jour(s)';
+  const confirmedExtraDaysNum = Math.min(extraDaysDetected, Math.max(0, Number(confirmedExtraDays) || 0));
+  const extraDaysAmount = confirmedExtraDaysNum * (returnPreview?.extra_unit_rate ?? 0);
 
   const handleComplete = async () => {
     if (mileageError) {
@@ -102,7 +115,7 @@ export function CompleteReservationDialog({
         actual_return_location: actualReturnLocation || undefined,
         is_favorable: isFavorable === 'favorable',
         closure_comment: closureComment || undefined,
-        final_total_amount: earlyReturnPreview?.is_early_return && finalTotalAmount ? Number(finalTotalAmount) : undefined,
+        confirmed_extra_days: extraDaysDetected > 0 ? confirmedExtraDaysNum : undefined,
       });
       toast.success(`Réservation ${reservationRef} clôturée`);
       onOpenChange(false);
@@ -188,26 +201,50 @@ export function CompleteReservationDialog({
             </div>
           </div>
 
-          {earlyReturnPreview?.is_early_return && (
+          {returnPreview?.is_early_return && (
             <Alert className="border-blue-200 bg-blue-50">
               <IconAlertTriangle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800 text-sm space-y-2">
+              <AlertDescription className="text-blue-800 text-sm space-y-1">
                 <p>
-                  Retour anticipé détecté : <strong>{earlyReturnPreview.actual_days} {earlyReturnPreview.unit === 'hour' ? 'heure(s)' : 'jour(s)'}</strong> sur{' '}
-                  <strong>{earlyReturnPreview.contracted_days} {earlyReturnPreview.unit === 'hour' ? 'heure(s)' : 'jour(s)'}</strong> prévus — montant suggéré :{' '}
-                  <strong>{earlyReturnPreview.suggested_total_amount.toLocaleString('fr-MA')} MAD</strong>.
+                  Retour anticipé détecté : <strong>{returnPreview.actual_days} {returnPreview.unit === 'hour' ? 'heure(s)' : 'jour(s)'}</strong> sur{' '}
+                  <strong>{returnPreview.contracted_days} {returnPreview.unit === 'hour' ? 'heure(s)' : 'jour(s)'}</strong> prévus.
+                </p>
+                <p>
+                  Montant recalculé automatiquement : <strong>{returnPreview.suggested_total_amount.toLocaleString('fr-MA')} MAD</strong>.
+                </p>
+                <p className="text-xs opacity-80">Le prix n&apos;est pas modifiable depuis cet écran — il est recalculé au prorata de la durée réellement effectuée.</p>
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {returnPreview?.is_late_return && extraDaysDetected > 0 && (
+            <Alert className="border-orange-200 bg-orange-50">
+              <IconAlertTriangle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-900 text-sm space-y-2">
+                <p>
+                  Retour tardif détecté : <strong>{extraDaysDetected} {extraDaysUnitLabel} de plus</strong> que prévu
+                  {' '}(prix : {(returnPreview.extra_unit_rate ?? 0).toLocaleString('fr-MA')} MAD / {returnPreview.unit === 'hour' ? 'heure' : 'jour'}).
                 </p>
                 <div className="space-y-1">
-                  <Label htmlFor="final-total-amount">Montant final (MAD)</Label>
+                  <Label htmlFor="confirmed-extra-days">
+                    Combien de {extraDaysUnitLabel} supplémentaires facturer ? (0 à {extraDaysDetected})
+                  </Label>
                   <Input
-                    id="final-total-amount"
+                    id="confirmed-extra-days"
                     type="number"
                     min={0}
-                    step={0.01}
-                    value={finalTotalAmount}
-                    onChange={(e) => { setFinalTotalAmount(e.target.value); setFinalTotalAmountTouched(true); }}
+                    max={extraDaysDetected}
+                    value={confirmedExtraDays}
+                    onChange={(e) => setConfirmedExtraDays(e.target.value)}
                   />
                 </div>
+                {confirmedExtraDaysNum > 0 ? (
+                  <p>
+                    Montant ajouté : <strong>+{extraDaysAmount.toLocaleString('fr-MA')} MAD</strong> ({confirmedExtraDaysNum} {extraDaysUnitLabel} × {(returnPreview.extra_unit_rate ?? 0).toLocaleString('fr-MA')} MAD)
+                  </p>
+                ) : (
+                  <p className="text-xs opacity-80">Aucun jour supplémentaire ne sera facturé.</p>
+                )}
               </AlertDescription>
             </Alert>
           )}

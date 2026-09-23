@@ -74,6 +74,9 @@ export interface Reservation {
   subtotal?: number;
   discount_percentage: number;
   additional_fees: number;
+  /** Late-return extra days confirmed by the agent at closure (0..detected), and the resulting amount (extra_unit_rate x extra_days_charged). */
+  extra_days_charged?: number | null;
+  extra_days_amount?: number | null;
   deposit_amount: number;
   total_amount: number;
   paid_amount: number;

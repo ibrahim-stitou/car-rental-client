@@ -600,6 +600,12 @@ export function ReservationDetailView({ id }: { id: string }) {
                       <InfoRow label="Départ" value={fmtDate(reservation.pickup_date)} />
                       <InfoRow label="Retour prévu" value={fmtDate(reservation.return_date)} />
                       {reservation.actual_return_date && <InfoRow label="Retour effectif" value={fmtDate(reservation.actual_return_date)} />}
+                      {r.extra_days_charged != null && r.extra_days_charged > 0 && (
+                        <InfoRow
+                          label="Jours suppl. facturés"
+                          value={<span className="text-orange-700 font-semibold">{r.extra_days_charged} j — +{fmtMoney(r.extra_days_amount)} MAD</span>}
+                        />
+                      )}
                       <InfoRow label="Lieu de départ"
                                value={<span className="flex items-start gap-1.5"><MapPin className="h-3.5 w-3.5 mt-0.5 text-muted-foreground" />{r.pickup_location}</span>}
                       />
@@ -726,6 +732,12 @@ export function ReservationDetailView({ id }: { id: string }) {
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Frais supp.</span>
                         <span className="font-mono">+{fmtMoney(reservation.additional_fees)} MAD</span>
+                      </div>
+                    )}
+                    {r.extra_days_charged != null && r.extra_days_charged > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Jours suppl. ({r.extra_days_charged}j)</span>
+                        <span className="font-mono">+{fmtMoney(r.extra_days_amount)} MAD</span>
                       </div>
                     )}
                     <Separator />

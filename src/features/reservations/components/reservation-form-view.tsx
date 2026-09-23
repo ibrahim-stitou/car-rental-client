@@ -348,7 +348,6 @@ export function ReservationFormView({ reservation }: Props) {
   const { data: clientsRes } = useClients({ per_page: 20, search: debouncedClientSearch || undefined });
 
   const [showSecondDriver, setShowSecondDriver] = useState(false);
-  const [conflictDismissed, setConflictDismissed] = useState(false);
 
   // Documents staged locally at creation time — uploaded right after the reservation is created
   const [pendingDocs, setPendingDocs] = useState<{ file: File; title: string }[]>([]);
@@ -507,10 +506,11 @@ export function ReservationFormView({ reservation }: Props) {
     }
   }, [isEdit, isMoralClient, setValue]);
 
-  useEffect(() => { setConflictDismissed(false); }, [pickupDate, returnDate]);
-
-  // Conflict check (excludes current reservation when editing)
-  const canCheckConflict = !!vehicleId && !!pickupDate && !!returnDate && !conflictDismissed;
+  // Conflict check (excludes current reservation when editing). This hard-
+  // blocks submission below — a vehicle already booked for an overlapping
+  // period can't be double-booked from this form, it must be dismissed there
+  // isn't an escape hatch to acknowledge-and-proceed.
+  const canCheckConflict = !!vehicleId && !!pickupDate && !!returnDate;
   const { data: conflictData, isFetching: checkingConflict } = useQuery({
     queryKey: ['reservation-conflict', vehicleId, pickupDate, returnDate, reservation?.id],
     queryFn: () => apiClient.get(apiRoutes.reservationsExt.checkConflict, {
@@ -519,7 +519,7 @@ export function ReservationFormView({ reservation }: Props) {
     enabled: canCheckConflict,
     staleTime: 10_000,
   });
-  const hasConflict = !conflictDismissed && conflictData?.has_conflict;
+  const hasConflict = !!conflictData?.has_conflict;
 
   // Client stats (credit + accidents) — create mode only, since client can't change on edit
   const { data: clientStatsData } = useQuery({
@@ -567,11 +567,22 @@ export function ReservationFormView({ reservation }: Props) {
       toast.success('Réservation mise à jour');
       router.push(`/reservations/${reservation!.id}`);
     } catch (err: any) {
+      // Conflict errors carry a `conflict` object (not a field-level message
+      // array) — applyServerErrors expects string[] per field, so handle
+      // this shape separately instead of letting it call form.setError('conflict', ...).
+      if (err?.response?.data?.errors?.conflict) {
+        toast.error(err.response.data.message ?? 'Véhicule déjà réservé sur cette période');
+        return;
+      }
       applyServerErrors(err, form, 'Échec de la mise à jour');
     }
   };
 
   const onSubmit = async (values: FormValues) => {
+    if (hasConflict) {
+      toast.error('Ce véhicule est déjà réservé sur cette période — impossible de continuer.');
+      return;
+    }
     if (isEdit) {
       const payload = {
         pickup_date: values.pickup_date,
@@ -658,6 +669,10 @@ export function ReservationFormView({ reservation }: Props) {
       toast.success('Réservation créée avec succès');
       router.push('/reservations');
     } catch (err: any) {
+      if (err?.response?.data?.errors?.conflict) {
+        toast.error(err.response.data.message ?? 'Véhicule déjà réservé sur cette période');
+        return;
+      }
       applyServerErrors(err, form, 'Erreur lors de la création');
     }
   };
@@ -682,19 +697,19 @@ export function ReservationFormView({ reservation }: Props) {
                 <Button type="button" variant="outline" onClick={() => router.push(isEdit ? `/reservations/${reservation!.id}` : '/reservations')}>
                   Annuler
                 </Button>
-                <Button type="submit" disabled={isPending} className="gap-1.5">
+                <Button type="submit" disabled={isPending || hasConflict} className="gap-1.5">
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer les modifications' : 'Créer la réservation')}
                 </Button>
               </div>
             </div>
 
-            {/* Conflict alert — informational only, doesn't block submission */}
+            {/* Conflict alert — hard block, creation/modification is disabled while this shows */}
             {hasConflict && conflictData?.conflict && (
-              <Alert className="border-amber-400 bg-amber-50">
-                <CalendarX className="h-4 w-4 text-amber-600 flex-shrink-0" />
-                <AlertDescription className="text-amber-800 text-sm">
-                  <div className="font-semibold mb-1">Ce véhicule est déjà réservé sur cette période</div>
+              <Alert className="border-red-400 bg-red-50">
+                <CalendarX className="h-4 w-4 text-red-600 flex-shrink-0" />
+                <AlertDescription className="text-red-800 text-sm">
+                  <div className="font-semibold mb-1">Ce véhicule est déjà réservé sur cette période — {isEdit ? 'modification' : 'création'} bloquée</div>
                   <div>
                     Réservation <span className="font-mono font-bold">{conflictData.conflict.reservation_number}</span>
                     {' '}— statut : <Badge variant="outline" className="text-xs capitalize">{conflictData.conflict.status}</Badge>
@@ -703,8 +718,9 @@ export function ReservationFormView({ reservation }: Props) {
                   <div className="text-xs mt-1">
                     Du {formatDT(conflictData.conflict.pickup_date)} au {formatDT(conflictData.conflict.return_date)}
                   </div>
-                  <Button type="button" variant="ghost" size="sm" className="mt-1 h-6 text-xs text-amber-700 hover:text-amber-900 p-0" onClick={() => setConflictDismissed(true)}>
-                    Masquer
+                  <Button type="button" variant="outline" size="sm" className="mt-2 h-7 text-xs border-red-300 text-red-800 hover:bg-red-100"
+                          onClick={() => window.open(`/reservations/${conflictData.conflict.id}`, '_blank')}>
+                    Voir / clôturer cette réservation
                   </Button>
                 </AlertDescription>
               </Alert>
