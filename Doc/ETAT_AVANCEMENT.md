@@ -327,5 +327,5 @@ src/
 | Base de données | MySQL | — |
 
 ---
-
+test
 *Document généré automatiquement le 2026-06-01*
