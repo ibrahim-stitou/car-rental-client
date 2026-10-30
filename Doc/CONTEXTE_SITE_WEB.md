@@ -125,12 +125,16 @@ Le lot 5 (maquettes) a été sauté à la demande de l'utilisateur : le site a �
   - tunnel complet, dont l'erreur `driver_too_young` traduite, puis WEB-2026-0005 envoyée, suivie et annulée ;
   - version arabe en RTL.
 - Reste à faire :
-  - vérifier le rendu sur un vrai téléphone ;
-  - remplacer le logo provisoire (`src/components/ui/logo.tsx`) et les couleurs si la charte change ;
+  - vérifier le rendu sur un vrai téléphone (simulé à 360 et 390 px : aucun débordement) ;
+  - remplacer le logo provisoire (`src/components/ui/logo.tsx`) ;
   - renseigner dans l'admin le contenu du site (coordonnées, réseaux, textes) ;
   - configurer `WEBSITE_API_KEY`, Turnstile et `REVALIDATE_SECRET` ;
   - tester le build de production (`pnpm build`).
 - Lancement : `pnpm dev --port 3001` (l'admin utilise le port 3000).
+- Charte (commit `3aa732f`, remplace la refonte sombre `82ef157`) : « Rouge sport & graphite », modes clair et sombre.
+  - Couleurs en variables CSS dans `src/app/globals.css` (`:root` = clair, `.dark` = sombre) ; les composants utilisent `bg-bg`, `text-fg`, `text-muted`, `border-line`, `bg-tint`, `brand`, `steel`… jamais de couleur en dur.
+  - Bouton soleil/lune (`src/components/layout/theme.tsx`) : choix mémorisé (`localStorage` `itiban-theme`), sinon réglage du téléphone.
+  - Téléphone : grilles avec `grid-cols-1` / `minmax(0,1fr)` obligatoires, hero compact, parallaxe désactivée sous 1024 px.
 
 ## 7. Lots suivants
 - **Lot 5** : analyser des sites pros de location (aucune référence fournie par l'utilisateur) et produire 2 maquettes de la page d'accueil à faire valider.
