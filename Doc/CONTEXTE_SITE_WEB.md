@@ -107,7 +107,32 @@ Le lot est commité sur `feature/site-web` dans `car-rental-client`, avec un cor
   - le fil d'Ariane affiche les segments d'URL en anglais ;
   - avant l'hydratation, le formulaire de connexion s'envoie en GET avec le mot de passe dans l'URL (vu dans le log : `/sign-in?email=…&password=…`).
 
-## 6. Lots suivants
+## 5 bis. Recette du 2026-10-30 (après-midi)
+- Admin, commit `1983a2b` :
+  - fiches web : le formulaire n'est rempli qu'une fois, donc l'envoi d'une photo n'efface plus les saisies non enregistrées ;
+  - les boutons Publier / Retirer ne soumettent plus le formulaire ;
+  - le client est présélectionné quand une seule correspondance existe ;
+  - middleware : une session dont le jeton n'a pas pu être rafraîchi est traitée comme déconnectée (avant, la page restait en chargement infini) ;
+  - le formulaire de connexion est en POST (avant, le mot de passe pouvait apparaître dans l'URL).
+- Admin, commit `320dfe0`, et API, commit `f81afa8` : un texte traduisible vide était enregistré `[]` et faisait planter `GET /public/extras` (erreur 500).
+- **Problème hors module, à traiter côté serveur** : le Maroc est revenu à GMT le 20/09/2026 (décret 2.26.530). La base de fuseaux de PHP (2025.2) applique encore GMT+1, donc toutes les heures enregistrées par l'API s'affichent avec 1 h de décalage. Il faut mettre à jour la base de fuseaux de PHP (version de PHP plus récente ou extension `timezonedb`) en local et en production.
+
+## 6. Lot 6 — site public (FAIT le 2026-10-30, commit `170a101` sur `car-rental-website/develop`)
+Le lot 5 (maquettes) a été sauté à la demande de l'utilisateur : le site a été développé directement.
+- Toutes les pages du § 5.2 de la proposition existent, en FR/AR/EN ; le README du repo les décrit.
+- Recette faite dans le navigateur :
+  - accueil, catalogue avec dates (indisponibilité correcte), fiche véhicule avec estimation en direct ;
+  - tunnel complet, dont l'erreur `driver_too_young` traduite, puis WEB-2026-0005 envoyée, suivie et annulée ;
+  - version arabe en RTL.
+- Reste à faire :
+  - vérifier le rendu sur un vrai téléphone ;
+  - remplacer le logo provisoire (`src/components/ui/logo.tsx`) et les couleurs si la charte change ;
+  - renseigner dans l'admin le contenu du site (coordonnées, réseaux, textes) ;
+  - configurer `WEBSITE_API_KEY`, Turnstile et `REVALIDATE_SECRET` ;
+  - tester le build de production (`pnpm build`).
+- Lancement : `pnpm dev --port 3001` (l'admin utilise le port 3000).
+
+## 7. Lots suivants
 - **Lot 5** : analyser des sites pros de location (aucune référence fournie par l'utilisateur) et produire 2 maquettes de la page d'accueil à faire valider.
 - **Lot 6** : site `car-rental-website` :
   - pages : accueil, `/voitures`, `/voitures/[slug]`, `/agences`, `/agences/[slug]`, tunnel `/reservation` en 3 étapes, `/reservation/confirmation/[reference]`, `/suivi/[token]`, à propos, contact, FAQ, pages légales (loi 09-08) ;
