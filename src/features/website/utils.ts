@@ -45,11 +45,15 @@ export function formatMad(value: number | string | null | undefined) {
   return `${Number(value ?? 0).toLocaleString('fr-MA', { maximumFractionDigits: 2 })} MAD`;
 }
 
-/** Retire les clés vides pour ne pas écraser une traduction par une chaîne vide inutile. */
+/**
+ * Texte traduisible prêt à l'envoi : les trois langues sont toujours présentes
+ * (null si vides). Un objet vide serait enregistré comme une liste `[]`.
+ */
 export function cleanTranslatable(value: Translatable | undefined | null): Translatable {
   const out: Translatable = {};
-  for (const [key, text] of Object.entries(value ?? {})) {
-    out[key as keyof Translatable] = text?.trim() ? text.trim() : null;
+  for (const locale of ['fr', 'ar', 'en'] as const) {
+    const text = value?.[locale];
+    out[locale] = text?.trim() ? text.trim() : null;
   }
   return out;
 }
