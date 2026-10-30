@@ -136,6 +136,8 @@ Le lot 5 (maquettes) a été sauté à la demande de l'utilisateur : le site a �
   - Bouton soleil/lune (`src/components/layout/theme.tsx`) : choix mémorisé (`localStorage` `itiban-theme`), sinon réglage du téléphone.
   - Téléphone : grilles avec `grid-cols-1` / `minmax(0,1fr)` obligatoires, hero compact, parallaxe désactivée sous 1024 px.
 
+- SEO (commit sur `develop` après `3aa732f`) : pages ville `/location-voiture/{ville}`, titres orientés recherche, canonical + hreflang, données structurées, sitemap trilingue. Plan d'action hors site : `Doc/SEO_SITE_WEB.md`.
+
 ## 7. Lots suivants
 - **Lot 5** : analyser des sites pros de location (aucune référence fournie par l'utilisateur) et produire 2 maquettes de la page d'accueil à faire valider.
 - **Lot 6** : site `car-rental-website` :
