@@ -167,12 +167,20 @@ export const navItems: NavItem[] = [
     permission: 'view-reports',
   },
   {
+    // Visible dès qu'un des sous-menus l'est (voir app-sidebar)
     title: 'Site web',
     url: '/website',
     icon: 'globe',
     isActive: false,
     shortcut: ['w', 'b'],
-    items: [],
-    permission: 'manage-website',
+    items: [
+      { title: "Vue d'ensemble", url: '/website', permission: 'view-website-requests' },
+      { title: 'Demandes', url: '/website/requests', shortcut: ['w', 'r'], permission: 'view-website-requests' },
+      { title: 'Véhicules publiés', url: '/website/vehicles', permission: 'manage-website-catalog' },
+      { title: 'Agences du site', url: '/website/agencies', permission: 'manage-website-catalog' },
+      { title: 'Options de location', url: '/website/extras', permission: 'manage-website-content' },
+      { title: 'Conditions de location', url: '/website/conditions', permission: 'manage-website-content' },
+      { title: 'Contenu du site', url: '/website/content', permission: 'manage-website-content' },
+    ],
   },
 ];

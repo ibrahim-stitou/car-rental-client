@@ -92,6 +92,12 @@ type Side = 'recto' | 'verso';
 
 interface Props {
   client?: Client | null;
+  /** Création uniquement : valeurs connues à l'avance (ex. demande du site web). */
+  prefill?: Partial<FormValues>;
+  /** Création uniquement : appelé avec l'id du client créé, à la place de la redirection vers sa fiche. */
+  onCreated?: (clientId: string) => void;
+  /** Lien des boutons « Retour » et « Annuler » (par défaut la liste ou la fiche client). */
+  backHref?: string;
 }
 
 const DOC_ACCEPT = { 'image/jpeg': [], 'image/png': [], 'application/pdf': ['.pdf'] };
@@ -198,7 +204,7 @@ function DocSideSlot({
   );
 }
 
-export function ClientForm({ client }: Props) {
+export function ClientForm({ client, prefill, onCreated, backHref }: Props) {
   const router = useRouter();
   const isEdit = !!client;
 
@@ -243,6 +249,7 @@ export function ClientForm({ client }: Props) {
       company_address: '', company_city: '', company_country: '',
       bank_name: '', bank_account_name: '', bank_account_number: '', bank_address: '',
       address: '', city: '', country: 'Morocco', notes: '',
+      ...prefill,
     },
   });
 
@@ -395,6 +402,10 @@ export function ClientForm({ client }: Props) {
             }
           }
           toast.success('Client créé');
+          if (onCreated && newId) {
+            onCreated(newId);
+            return;
+          }
           router.push(newId ? `/clients/${newId}` : '/clients');
         },
         onError: handleBackendErrors,
@@ -408,7 +419,7 @@ export function ClientForm({ client }: Props) {
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button variant="outline" size="sm" asChild>
-            <Link href={client ? `/clients/${client.id}` : '/clients'}>
+            <Link href={backHref ?? (client ? `/clients/${client.id}` : '/clients')}>
               <IconArrowLeft className="h-4 w-4 mr-1" />Retour
             </Link>
           </Button>
@@ -885,7 +896,7 @@ export function ClientForm({ client }: Props) {
             {/* Actions */}
             <div className="flex justify-end gap-3 pb-6">
               <Button type="button" variant="outline" asChild>
-                <Link href={client ? `/clients/${client.id}` : '/clients'}>Annuler</Link>
+                <Link href={backHref ?? (client ? `/clients/${client.id}` : '/clients')}>Annuler</Link>
               </Button>
               <Button type="submit" disabled={isPending}>
                 {isPending ? 'Enregistrement…' : isEdit ? 'Mettre à jour' : 'Créer le client'}

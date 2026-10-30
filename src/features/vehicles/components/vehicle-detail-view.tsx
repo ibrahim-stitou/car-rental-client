@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import {
-  IconCar, IconCurrencyDirham, IconTool, IconShield, IconCertificate,
+  IconCurrencyDirham, IconTool, IconShield, IconCertificate,
   IconCalendar, IconReceipt, IconArrowLeft, IconPlus, IconGauge,
   IconBuildingStore, IconMapPin, IconPhone, IconWorld, IconFileText,
 } from '@tabler/icons-react';
@@ -244,42 +244,29 @@ export function VehicleDetailView({ vehicleId }: Props) {
             </div>
           </TabsContent>
 
-          {/* Website preview tab */}
+          {/* Website tab: the sheet itself is managed in the Site web module */}
           <TabsContent value="website" className="mt-4">
             <Card>
               <CardHeader className="flex flex-row items-center gap-2">
                 <IconWorld className="h-4 w-4 text-muted-foreground" />
                 <div>
-                  <CardTitle className="text-base">Aperçu — telle qu'affichée sur le site web</CardTitle>
+                  <CardTitle className="text-base">Site web public</CardTitle>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {vehicle.show_on_website ? 'Ce véhicule est actuellement visible sur le site public.' : "Ce véhicule n'est pas affiché sur le site public."}
                   </p>
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="max-w-md mx-auto border rounded-xl overflow-hidden shadow-sm">
-                  <div className="aspect-video bg-muted flex items-center justify-center">
-                    {vehicle.photos?.[0] ? (
-                      <img src={vehicle.photos[0].url} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      <IconCar className="h-10 w-10 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h3 className="font-semibold text-lg">{vehicle.brand} {vehicle.model} {vehicle.year}</h3>
-                      <Badge variant="secondary">{vehicle.category}</Badge>
-                    </div>
-                    <div className="text-primary font-bold text-xl">
-                      {fmt(vehicle.website_price ?? vehicle.daily_rate)} MAD<span className="text-sm font-normal text-muted-foreground">/jour</span>
-                    </div>
-                    {vehicle.website_description ? (
-                      <RichTextContent html={vehicle.website_description} />
-                    ) : (
-                      <p className="text-sm text-muted-foreground italic">Aucune description site web renseignée</p>
-                    )}
-                  </div>
+              <CardContent className="space-y-4">
+                <div className="text-sm">
+                  Prix affiché : <strong>{fmt(vehicle.website_price ?? vehicle.daily_rate)} MAD</strong>
+                  <span className="text-muted-foreground"> / jour</span>
                 </div>
+                <p className="text-sm text-muted-foreground">
+                  Les textes en trois langues, les photos, les équipements et la publication se gèrent dans la fiche web du véhicule.
+                </p>
+                <Button size="sm" asChild>
+                  <Link href={`/website/vehicles/${vehicle.id}`}>Ouvrir la fiche web</Link>
+                </Button>
               </CardContent>
             </Card>
           </TabsContent>

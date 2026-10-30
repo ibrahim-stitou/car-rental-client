@@ -70,29 +70,42 @@
 - Données de prod : 15 véhicules ont un `daily_rate` < 50 MAD (jusqu'à 0,10) ; la checklist bloque leur publication (`min_publish_price` = 50).
 - E-mails envoyés de façon synchrone : vérifier qu'un worker de file tourne en prod avant de passer en différé.
 
-## 5. Lot 4 — interface admin (EN COURS, rien d'écrit pour l'instant)
-Repo `car-rental-client`, branche `feature/site-web` (le dernier commit `0ac403f` ne contient que la proposition).
-
-Existant à **remplacer**, car il cible les anciennes routes :
-- `src/services/website.service.ts`, `src/features/website/hooks/use-website.ts`, `src/types/website.types.ts` ;
-- `apiRoutes.website` et `apiRoutes.public` dans `src/config/apiRoutes.ts` (vers la ligne 183) ;
-- `src/app/(dashboard)/website/page.tsx` (placeholder « Coming soon ») ;
-- les champs web de `src/features/vehicles/components/vehicle-form.tsx` (lignes ~53-55, 87, 115-117, 427-447 : switch `show_on_website`, description, prix) : les retirer et renvoyer vers le module Site web.
-
-Conventions à suivre : regarder `src/features/claims` (components `*-view.tsx`, `*-form-view.tsx`, `*-detail-view.tsx`, hooks `use-claims.ts`), `src/app/(dashboard)/claims/{page,new,[id]}`, `CustomTable` et `useCustomTable` (pagination Laravel `meta`), `CustomAlertDialog`, `apiClient` dans `@/lib/api`, React Query, react-hook-form + zod, shadcn/ui, `@dnd-kit` (déjà installé), `src/components/layout/app-sidebar.tsx`, `src/config/route-permissions.ts`, `src/constants/data.ts`. Les réponses API ont la forme `{success, message, data, meta?}`.
-
-À construire :
-1. Types, service et hooks pour toutes les routes `/website/*` du § 4.
-2. Menu « Site web » (permissions ci-dessus) : Tableau de bord · Demandes (badge des nouvelles) · Véhicules publiés · Agences · Options · Conditions · Contenu.
-3. Demandes :
-   - liste avec onglets par statut, recherche, indicateur « en retard (> 2 h) » ;
-   - fiche : coordonnées avec boutons tel:, WhatsApp (`whatsapp_url`) et mailto:, timeline des `events`, formulaire d'échange, assignation, disponibilité et alternatives, clients correspondants ;
-   - **Accepter** : choisir ou créer le client (formulaire client existant prérempli), puis le formulaire de réservation prérempli avec `conversion_defaults`, puis POST convert ;
-   - **Refuser** : code, motif et case « prévenir le client ».
-4. Fiche web d'un véhicule : textes FR/AR/EN (champ AR en `dir="rtl"`), équipements (codes `Vehicle::FEATURES` : gps, bluetooth, carplay, android_auto, usb, rear_camera, parking_sensors, cruise_control, heated_seats, sunroof, keyless, isofix, abs, airbags), portes, bagages, prix web, conditions, gestion des photos (drag & drop pour l'ordre, couverture, alt, upload multiple), checklist avec score, Publier / Dépublier, Copier depuis un autre véhicule, lien vers la page publique.
-5. Fiche web d'une agence : description FR/AR/EN, carte Leaflet pour la position (à ajouter : `leaflet` + `react-leaflet`, versions récentes stables), éditeur d'horaires (monday…sunday, créneaux open/close HH:mm), services, WhatsApp, photos, points de livraison, checklist, Publier / Dépublier.
-6. Écrans Options (CRUD), Conditions et Contenu (textes FR/AR/EN, interrupteurs `booking_enabled` / `show_prices`).
-7. Vérifier `npx tsc --noEmit` et lancer l'admin pour tester sur la base `ges_site_web_test`.
+## 5. Lot 4 — interface admin (TERMINÉ le 2026-10-30)
+Le lot est commité sur `feature/site-web` dans `car-rental-client`, avec un correctif de la règle de modification d'une fiche publiée dans `car-rental-api`.
+- Fichiers :
+  - `src/types/website.types.ts` et `src/services/website.service.ts` ;
+  - `src/features/website/{hooks/use-website.ts, constants.ts, utils.ts, components/*}` ;
+  - les pages `src/app/(dashboard)/website/**`.
+- Menu « Site web » : sous-menus filtrés par permission et badge des nouvelles demandes. Les routes sont protégées dans `route-permissions.ts`.
+- Parcours « Accepter » : il réutilise les formulaires existants.
+  - `ClientForm` reçoit les props `prefill`, `onCreated` et `backHref`.
+  - `ReservationFormView` reçoit la prop `webRequest` : l'envoi passe par `/convert` et le prix web est conservé.
+- Les champs web ont été retirés du formulaire véhicule. L'onglet « Site web » de la fiche véhicule renvoie vers la fiche web.
+- Leaflet 1.9.4 et react-leaflet 5.0.0 sont installés avec npm (le déploiement utilise `npm ci`).
+- API : une fiche publiée peut désormais être modifiée tant que la modification n'ajoute pas de point manquant (`assertNothingRemoved`). Avant, une fiche publiée déjà incomplète (agences de démo sans photo) ne pouvait plus être corrigée. Un test couvre ce cas ; 41 tests du site passent.
+- Recette dans le navigateur sur `ges_site_web_test`, tout est OK :
+  - tableau de bord ;
+  - liste et fiche d'une demande ; ajout d'un échange (la demande passe en « Contactée ») ;
+  - Accepter avec création du client : WEB-2026-0002 → RES-000263 (700,28 MAD) ;
+  - Refuser avec « autre motif » et e-mail : WEB-2026-0003 ;
+  - liste et fiche web des véhicules ;
+  - fiche agence : carte, enregistrement, envoi de 2 photos, changement de couverture, réordonnancement ;
+  - pages Options (modification), Conditions (enregistrement) et Contenu.
+- Corrections faites pendant la recette :
+  - Select Radix vidé au montage dans un formulaire : les valeurs vides sont ignorées ;
+  - fiches véhicule et agence : utilisation de `useForm({ values, resetOptions: { keepDirtyValues: true } })`, sinon plantage au premier rendu et perte des modifications non enregistrées lors d'un rafraîchissement ;
+  - la molette ne zoome plus la carte ;
+  - libellés des notifications dans l'historique.
+- Non testés dans le navigateur : texte alternatif et suppression d'une photo, points de livraison, copie de fiche. Le glisser-déposer des photos au clavier n'a pas réagi au test automatisé ; à la souris, il fonctionne.
+- Pièges d'environnement :
+  - une session NextAuth expirée laisse les pages en chargement infini : il faut se reconnecter ;
+  - un `next dev` orphelin peut garder le port 3000 ;
+  - deux serveurs sur le même `.next` font geler le navigateur.
+- Points relevés hors module, non corrigés :
+  - le pied de `CustomTable` affiche le nombre de lignes de la page au lieu de `meta.total` ;
+  - les heures s'affichent avec 1 h de décalage dans le navigateur (le même décalage existe sur les réservations) ;
+  - le fil d'Ariane affiche les segments d'URL en anglais ;
+  - avant l'hydratation, le formulaire de connexion s'envoie en GET avec le mot de passe dans l'URL (vu dans le log : `/sign-in?email=…&password=…`).
 
 ## 6. Lots suivants
 - **Lot 5** : analyser des sites pros de location (aucune référence fournie par l'utilisateur) et produire 2 maquettes de la page d'accueil à faire valider.

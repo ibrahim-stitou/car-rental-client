@@ -37,6 +37,7 @@ import { Icons } from '../icons';
 import { useSidebar } from '@/components/ui/sidebar';
 import Logowhite from '@/components/logowhite';
 import { APP_NAME, CONTACT_EMAILS, WEBSITE_DOMAIN } from '@/config/brand';
+import { useWebRequestStats } from '@/features/website/hooks/use-website';
 
 export default function AppSidebar() {
   const { data: session } = useSession();
@@ -45,9 +46,18 @@ export default function AppSidebar() {
 
   const isSuperAdmin = session?.user?.roles?.includes('super-admin') ?? false;
   const permissions = session?.user?.permissions ?? [];
-  const visibleNavItems = navItems.filter(
-    (item) => isSuperAdmin || !item.permission || permissions.includes(item.permission)
-  );
+  const canSee = (item: { permission?: string }) =>
+    isSuperAdmin || !item.permission || permissions.includes(item.permission);
+  // A menu with sub-items is shown as long as one of them is visible
+  const visibleNavItems = navItems.flatMap((item) => {
+    if (!canSee(item)) return [];
+    if (!item.items?.length) return [item];
+    const items = item.items.filter(canSee);
+    return items.length ? [{ ...item, items }] : [];
+  });
+  const canSeeWebRequests = canSee({ permission: 'view-website-requests' });
+  const { data: webStats } = useWebRequestStats({ refetchInterval: 60_000, enabled: !!session && canSeeWebRequests });
+  const newWebRequests = webStats?.data?.by_status?.new ?? 0;
 
   return (
     <Sidebar collapsible="icon">
@@ -86,7 +96,7 @@ export default function AppSidebar() {
                 <Collapsible
                   key={item.title}
                   asChild
-                  defaultOpen={item.isActive}
+                  defaultOpen={item.isActive || pathname.startsWith(item.url)}
                   className="group/collapsible"
                 >
                   <SidebarMenuItem>
@@ -104,6 +114,11 @@ export default function AppSidebar() {
                             <SidebarMenuSubButton asChild isActive={pathname === subItem.url}>
                               <Link href={subItem.url}>
                                 <span>{subItem.title}</span>
+                                {subItem.url === '/website/requests' && newWebRequests > 0 && (
+                                  <span className="ml-auto rounded-full bg-red-500 px-1.5 text-[10px] font-semibold leading-4 text-white">
+                                    {newWebRequests}
+                                  </span>
+                                )}
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>

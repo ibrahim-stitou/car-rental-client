@@ -32,6 +32,7 @@ import PageContainer from '@/components/layout/page-container';
 import { SelectField } from '@/components/shared/select-field';
 import { DateTimeField } from './date-time-field';
 import { useCreateReservation, useUpdateReservation } from '../hooks/use-reservations';
+import { useConvertWebRequest } from '@/features/website/hooks/use-website';
 import { useAgencies } from '@/features/agencies/hooks/use-agencies';
 import { useVehicles } from '@/features/vehicles/hooks/use-vehicles';
 import { useClients, useClient } from '@/features/clients/hooks/use-clients';
@@ -318,6 +319,11 @@ function formatDT(iso: string | undefined | null) {
 
 interface Props {
   reservation?: Reservation | null;
+  /**
+   * Acceptation d'une demande du site : le formulaire est prérempli avec la
+   * demande et l'envoi passe par POST /website/requests/{id}/convert.
+   */
+  webRequest?: { id: string; reference: string; defaults: Partial<FormValues> };
 }
 
 const CONTRACT_RELEVANT_EDIT_FIELDS = [
@@ -328,12 +334,15 @@ const CONTRACT_RELEVANT_EDIT_FIELDS = [
   'tire_replacement', 'all_risk_franchise_pct', 'fuel_included', 'extra_km_rate', 'return_km',
 ] as const;
 
-export function ReservationFormView({ reservation }: Props) {
+export function ReservationFormView({ reservation, webRequest }: Props) {
   const router = useRouter();
   const isEdit = !!reservation;
   const createMutation = useCreateReservation();
   const updateMutation = useUpdateReservation(reservation?.id ?? '');
-  const isPending = createMutation.isPending || updateMutation.isPending;
+  const convertMutation = useConvertWebRequest(webRequest?.id ?? '');
+  const isPending = createMutation.isPending || updateMutation.isPending || convertMutation.isPending;
+  const backHref = isEdit ? `/reservations/${reservation!.id}` : webRequest ? `/website/requests/${webRequest.id}` : '/reservations';
+  const webRequestVehicleId = webRequest?.defaults.vehicle_id;
   const [confirmInvalidateOpen, setConfirmInvalidateOpen] = useState(false);
   const [pendingUpdatePayload, setPendingUpdatePayload] = useState<object | null>(null);
 
@@ -416,6 +425,7 @@ export function ReservationFormView({ reservation }: Props) {
       extra_km_rate: undefined, return_km: undefined,
       notes: '', agent_notes: '',
       initial_paid_amount: 0, initial_payment_method: '',
+      ...webRequest?.defaults,
     },
   });
 
@@ -452,13 +462,15 @@ export function ReservationFormView({ reservation }: Props) {
     if (isEdit || !vehicleId) return;
     const v = rawVehicles.find(x => x.id === vehicleId);
     if (!v) return;
-    if ((v as any).daily_rate) setValue('daily_rate', Number((v as any).daily_rate));
+    // A website request keeps the price shown on the site for the requested vehicle
+    const keepWebsiteRate = !!webRequestVehicleId && vehicleId === webRequestVehicleId;
+    if ((v as any).daily_rate && !keepWebsiteRate) setValue('daily_rate', Number((v as any).daily_rate));
     if ((v as any).deposit_amount) setValue('deposit_amount', Number((v as any).deposit_amount));
     // Only pre-fill when the vehicle has a preset — Horaire/LLD stay selectable
     // either way, the agent just types the rate in manually when there's none.
     setValue('hourly_rate', (v as any).hourly_rate != null ? Number((v as any).hourly_rate) : undefined);
     setValue('monthly_rate', (v as any).monthly_rate != null ? Number((v as any).monthly_rate) : undefined);
-  }, [vehicleId, rawVehicles, setValue, isEdit]);
+  }, [vehicleId, rawVehicles, setValue, isEdit, webRequestVehicleId]);
 
   // Hourly bookings don't let the agent pick a return date directly — it's
   // always derived from pickup_date + the chosen duration in hours.
@@ -654,8 +666,10 @@ export function ReservationFormView({ reservation }: Props) {
       initial_payment_method:  initial_paid_amount && initial_paid_amount > 0 ? (initial_payment_method || 'cash') : undefined,
     };
     try {
-      const res = await createMutation.mutateAsync(payload as any);
-      const newId = (res as any)?.data?.id;
+      const res = webRequest
+        ? await convertMutation.mutateAsync(payload as any)
+        : await createMutation.mutateAsync(payload as any);
+      const newId = webRequest ? (res as any)?.data?.reservation?.id : (res as any)?.data?.id;
       if (newId && pendingDocs.length > 0) {
         try {
           const formData = new FormData();
@@ -666,8 +680,8 @@ export function ReservationFormView({ reservation }: Props) {
           toast.error('Réservation créée mais erreur lors du téléversement des documents');
         }
       }
-      toast.success('Réservation créée avec succès');
-      router.push('/reservations');
+      toast.success(webRequest ? 'Demande acceptée : réservation créée' : 'Réservation créée avec succès');
+      router.push(webRequest && newId ? `/reservations/${newId}` : '/reservations');
     } catch (err: any) {
       if (err?.response?.data?.errors?.conflict) {
         toast.error(err.response.data.message ?? 'Véhicule déjà réservé sur cette période');
@@ -687,19 +701,19 @@ export function ReservationFormView({ reservation }: Props) {
             <div className="flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <Button type="button" variant="ghost" size="sm" className="gap-1 pl-0 text-muted-foreground"
-                        onClick={() => router.push(isEdit ? `/reservations/${reservation!.id}` : '/reservations')}>
-                  <ArrowLeft className="h-4 w-4" />{isEdit ? reservation!.reference : 'Réservations'}
+                        onClick={() => router.push(backHref)}>
+                  <ArrowLeft className="h-4 w-4" />{isEdit ? reservation!.reference : webRequest ? webRequest.reference : 'Réservations'}
                 </Button>
                 <span className="text-muted-foreground">/</span>
-                <h1 className="text-lg font-bold">{isEdit ? 'Modifier la réservation' : 'Nouvelle réservation'}</h1>
+                <h1 className="text-lg font-bold">{isEdit ? 'Modifier la réservation' : webRequest ? 'Accepter la demande du site' : 'Nouvelle réservation'}</h1>
               </div>
               <div className="flex gap-2">
-                <Button type="button" variant="outline" onClick={() => router.push(isEdit ? `/reservations/${reservation!.id}` : '/reservations')}>
+                <Button type="button" variant="outline" onClick={() => router.push(backHref)}>
                   Annuler
                 </Button>
                 <Button type="submit" disabled={isPending || hasConflict} className="gap-1.5">
                   {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer les modifications' : 'Créer la réservation')}
+                  {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer les modifications' : webRequest ? 'Accepter et créer la réservation' : 'Créer la réservation')}
                 </Button>
               </div>
             </div>
@@ -1259,7 +1273,7 @@ export function ReservationFormView({ reservation }: Props) {
 
                     <Button type="submit" className="w-full gap-1.5 mt-2" disabled={isPending}>
                       {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer' : 'Créer la réservation')}
+                      {isPending ? 'Enregistrement…' : (isEdit ? 'Enregistrer' : webRequest ? 'Accepter et créer la réservation' : 'Créer la réservation')}
                     </Button>
                   </CardContent>
                 </Card>

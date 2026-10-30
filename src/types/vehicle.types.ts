@@ -105,9 +105,6 @@ export interface CreateVehicleInput {
   notes?: string;
   description?: string;
   has_adblue?: boolean;
-  show_on_website?: boolean;
-  website_description?: string;
-  website_price_override?: number;
 }
 
 export type UpdateVehicleInput = Partial<CreateVehicleInput>;

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -50,9 +51,6 @@ const schema = z.object({
   has_adblue: z.boolean().optional(),
   notes: z.string().optional(),
   description: z.string().optional(),
-  show_on_website: z.boolean().optional(),
-  website_description: z.string().optional(),
-  website_price_override: z.coerce.number().optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -84,7 +82,6 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
       transmission: '', seats: 5, daily_rate: 0, hourly_rate: undefined, monthly_rate: undefined, deposit_amount: 0, mileage: 0,
       average_consumption: undefined, condition: 'bon_etat',
       has_adblue: false, notes: '', description: '',
-      show_on_website: false, website_description: '', website_price_override: undefined,
     },
   });
 
@@ -112,9 +109,6 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
         has_adblue: vehicle.has_adblue ?? false,
         notes: vehicle.notes ?? '',
         description: vehicle.description ?? '',
-        show_on_website: vehicle.show_on_website ?? false,
-        website_description: vehicle.website_description ?? '',
-        website_price_override: vehicle.website_price_override ? Number(vehicle.website_price_override) : undefined,
       });
       // Load existing photos
       setPhotos(vehicle.photos?.map(p => ({ id: Number(p.id), url: p.url })) ?? []);
@@ -125,7 +119,6 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
         transmission: '', seats: 5, daily_rate: 0, hourly_rate: undefined, monthly_rate: undefined, deposit_amount: 0, mileage: 0,
         average_consumption: undefined, condition: 'bon_etat',
         has_adblue: false, notes: '', description: '',
-        show_on_website: false, website_description: '',
       });
       setPhotos([]);
     }
@@ -421,38 +414,12 @@ export function VehicleForm({ open, onOpenChange, vehicle, onSuccess }: Props) {
                 )}
               </div>
 
-              <Separator />
-              <p className="text-sm font-medium text-muted-foreground">Paramètres site web</p>
-
-              <FormField control={form.control} name="show_on_website" render={({ field }) => (
-                <FormItem className="flex items-center justify-between rounded-lg border p-3">
-                  <div>
-                    <FormLabel>Afficher sur le site web</FormLabel>
-                    <p className="text-xs text-muted-foreground mt-0.5">Afficher ce véhicule sur le site public</p>
-                  </div>
-                  <FormControl><Switch checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                </FormItem>
-              )} />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField control={form.control} name="website_price_override" render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Prix spécial site web (MAD)</FormLabel>
-                    <FormControl><Input type="number" min={0} placeholder="Laisser vide = tarif journalier" {...field} value={field.value ?? ''} /></FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )} />
-              </div>
-
-              <FormField control={form.control} name="website_description" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description site web</FormLabel>
-                  <FormControl>
-                    <RichTextEditor value={field.value ?? ''} onChange={field.onChange} placeholder="Description telle qu'affichée sur le site public…" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
+              {vehicle && (
+                <p className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
+                  Textes, photos, prix et publication sur le site public :{' '}
+                  <Link href={`/website/vehicles/${vehicle.id}`} className="font-medium text-foreground underline">fiche web du véhicule</Link>.
+                </p>
+              )}
 
               <div className="flex justify-end gap-3 pt-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>Annuler</Button>
