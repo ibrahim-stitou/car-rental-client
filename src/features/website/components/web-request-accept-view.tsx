@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, UserPlus } from 'lucide-react';
 import PageContainer from '@/components/layout/page-container';
@@ -122,6 +122,11 @@ function ClientStep({ request, clientId, onSelect, onNext, onCreate }: {
   })), [clientsRes]);
 
   const isMatch = matches.some((m) => m.id === clientId);
+
+  // A single client with the same phone or e-mail is almost always the right one
+  useEffect(() => {
+    if (!clientId && matches.length === 1) onSelect(matches[0].id);
+  }, [clientId, matches, onSelect]);
 
   return (
     <PageContainer scrollable>

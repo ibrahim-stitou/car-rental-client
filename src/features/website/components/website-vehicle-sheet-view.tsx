@@ -106,15 +106,6 @@ function toPayload(values: FormValues): UpdateWebsiteVehicleInput {
 export function WebsiteVehicleSheetView({ vehicleId }: { vehicleId: string }) {
   const { data: res, isLoading } = useWebsiteVehicle(vehicleId);
   const vehicle = res?.data;
-  const updateMutation = useUpdateWebsiteVehicle(vehicleId);
-  const publishMutation = usePublishWebsiteVehicle(vehicleId);
-  const [copyOpen, setCopyOpen] = useState(false);
-
-  // `values` fills the form from the first render; keepDirtyValues keeps unsaved
-  // edits when the sheet is refetched (photo upload, publication…)
-  const values = useMemo(() => (vehicle ? toFormValues(vehicle) : undefined), [vehicle]);
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), values, resetOptions: { keepDirtyValues: true } });
-  const { register, control, handleSubmit, watch, formState: { errors, isDirty } } = form;
 
   if (isLoading) {
     return <PageContainer><div className="p-6 space-y-4 w-full">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
@@ -122,6 +113,22 @@ export function WebsiteVehicleSheetView({ vehicleId }: { vehicleId: string }) {
   if (!vehicle) {
     return <PageContainer><div className="p-6 text-muted-foreground">Véhicule introuvable.</div></PageContainer>;
   }
+
+  return <VehicleSheet vehicle={vehicle} />;
+}
+
+/**
+ * The form is filled once on mount: later refetches (photo upload,
+ * publication) refresh the photos and the checklist without touching
+ * unsaved edits. It is reset explicitly after a save or a sheet copy.
+ */
+function VehicleSheet({ vehicle }: { vehicle: WebsiteVehicle }) {
+  const updateMutation = useUpdateWebsiteVehicle(vehicle.id);
+  const publishMutation = usePublishWebsiteVehicle(vehicle.id);
+  const [copyOpen, setCopyOpen] = useState(false);
+
+  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: toFormValues(vehicle) });
+  const { register, control, handleSubmit, watch, formState: { errors, isDirty } } = form;
 
   const onSubmit = (values: FormValues) => {
     updateMutation.mutate(toPayload(values), {
@@ -312,12 +319,17 @@ export function WebsiteVehicleSheetView({ vehicleId }: { vehicleId: string }) {
         </div>
       </form>
 
-      <CopySheetDialog open={copyOpen} onOpenChange={setCopyOpen} vehicle={vehicle} />
+      <CopySheetDialog open={copyOpen} onOpenChange={setCopyOpen} vehicle={vehicle} onCopied={(copied) => form.reset(toFormValues(copied))} />
     </PageContainer>
   );
 }
 
-function CopySheetDialog({ open, onOpenChange, vehicle }: { open: boolean; onOpenChange: (o: boolean) => void; vehicle: WebsiteVehicle }) {
+function CopySheetDialog({ open, onOpenChange, vehicle, onCopied }: {
+  open: boolean;
+  onOpenChange: (o: boolean) => void;
+  vehicle: WebsiteVehicle;
+  onCopied: (copied: WebsiteVehicle) => void;
+}) {
   const [search, setSearch] = useState('');
   const [sourceId, setSourceId] = useState('');
   const [withPhotos, setWithPhotos] = useState(true);
@@ -330,7 +342,7 @@ function CopySheetDialog({ open, onOpenChange, vehicle }: { open: boolean; onOpe
 
   const handleCopy = () => {
     copyMutation.mutate({ sourceId, withPhotos }, {
-      onSuccess: (r) => { toast.success(r.message ?? 'Fiche copiée'); onOpenChange(false); setSourceId(''); },
+      onSuccess: (r) => { onCopied(r.data); toast.success(r.message ?? 'Fiche copiée'); onOpenChange(false); setSourceId(''); },
       onError: (err) => toastWebsiteError(err, 'Copie impossible'),
     });
   };

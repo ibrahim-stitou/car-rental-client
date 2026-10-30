@@ -9,6 +9,9 @@ const PUBLIC_ROUTES = [paths.auth.signIn, paths.auth.forgotPassword, paths.auth.
 export default async function middleware(request: NextRequest) {
   const session = await auth();
   const { pathname } = request.nextUrl;
+  // A session whose backend token could not be refreshed is dead: treat it as
+  // signed out, otherwise pages load with a token every API call rejects
+  const isAuthenticated = !!session?.accessToken && !session.error;
 
   const isPublicRoute = PUBLIC_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(`${route}/`)
@@ -17,13 +20,13 @@ export default async function middleware(request: NextRequest) {
   if (pathname.startsWith('/api/')) return NextResponse.next();
 
   if (isPublicRoute) {
-    if (session?.accessToken) {
+    if (isAuthenticated) {
       return NextResponse.redirect(new URL(paths.dashboard.root, request.url));
     }
     return NextResponse.next();
   }
 
-  if (!session?.accessToken) {
+  if (!isAuthenticated || !session) {
     const url = new URL(paths.auth.signIn, request.url);
     return NextResponse.redirect(url);
   }

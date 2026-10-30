@@ -55,12 +55,12 @@ export function ChecklistCard({ checklist, published, publicUrl, onPublish, isPe
 
         <div className="flex flex-col gap-2">
           {published ? (
-            <Button variant="outline" onClick={() => onPublish(false)} disabled={isPending}>
+            <Button type="button" variant="outline" onClick={() => onPublish(false)} disabled={isPending}>
               {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <GlobeLock className="h-4 w-4 mr-1.5" />}
               Retirer du site
             </Button>
           ) : (
-            <Button onClick={() => onPublish(true)} disabled={isPending || !checklist.complete}>
+            <Button type="button" onClick={() => onPublish(true)} disabled={isPending || !checklist.complete}>
               {isPending ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Globe className="h-4 w-4 mr-1.5" />}
               Publier sur le site
             </Button>

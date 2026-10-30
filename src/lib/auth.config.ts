@@ -124,6 +124,12 @@ export const authConfig = {
         return token;
       }
 
+      // Already failed once: the backend refresh window has lapsed, retrying on
+      // every session read only slows every page down until the sign-out
+      if (token.error === 'RefreshAccessTokenError') {
+        return token;
+      }
+
       return refreshAccessToken(token);
     },
 

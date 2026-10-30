@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useForm, Controller } from 'react-hook-form';
@@ -79,13 +78,6 @@ function toPayload(v: FormValues): UpdateWebsiteAgencyInput {
 export function WebsiteAgencySheetView({ agencyId }: { agencyId: string }) {
   const { data: res, isLoading } = useWebsiteAgency(agencyId);
   const agency = res?.data;
-  const updateMutation = useUpdateWebsiteAgency(agencyId);
-  const publishMutation = usePublishWebsiteAgency(agencyId);
-
-  // Same as the vehicle sheet: filled from the first render, unsaved edits kept on refetch
-  const values = useMemo(() => (agency ? toFormValues(agency) : undefined), [agency]);
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), values, resetOptions: { keepDirtyValues: true } });
-  const { register, control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = form;
 
   if (isLoading) {
     return <PageContainer><div className="p-6 space-y-4 w-full">{Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}</div></PageContainer>;
@@ -93,6 +85,17 @@ export function WebsiteAgencySheetView({ agencyId }: { agencyId: string }) {
   if (!agency) {
     return <PageContainer><div className="p-6 text-muted-foreground">Agence introuvable.</div></PageContainer>;
   }
+
+  return <AgencySheet agency={agency} />;
+}
+
+/** Same as the vehicle sheet: the form is filled once, refetches only refresh photos, points and checklist. */
+function AgencySheet({ agency }: { agency: WebsiteAgency }) {
+  const updateMutation = useUpdateWebsiteAgency(agency.id);
+  const publishMutation = usePublishWebsiteAgency(agency.id);
+
+  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: toFormValues(agency) });
+  const { register, control, handleSubmit, watch, setValue, formState: { errors, isDirty } } = form;
 
   const lat = num(watch('latitude') ?? '');
   const lng = num(watch('longitude') ?? '');
