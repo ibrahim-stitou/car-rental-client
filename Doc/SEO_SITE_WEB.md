@@ -16,6 +16,12 @@ Le code fait sa part (§ 1). Le classement local dépend surtout de ce qui se pa
 | Sitemap | `/sitemap.xml` : toutes les pages dans les 3 langues, villes, voitures (toutes les pages de l'API), agences. |
 | Aperçus de partage | Image 1200×630 générée (`/og.png?l=fr`) ou photo de la voiture/agence ; favicon et icône iPhone à la marque. |
 | Accueil | Le h1 est « Location de voitures au Maroc » ; liens « Location voiture {ville} » sur l'accueil et dans le pied de page. |
+| Pages par type | `/fr/location/suv`, `/citadine`, `/berline`, `/voiture-automatique`, `/utilitaire`, `/pick-up` : construites depuis le catalogue, non indexées tant qu'elles sont vides. |
+| Guides | `/fr/guides` : « Louer une voiture au Maroc : le guide complet » et « Location de voiture à l'aéroport », en 3 langues, balisés Article. Contenu dans `src/content/guides.ts`. |
+| Fil d'Ariane visible | Accueil › Ville › Voiture (ou Agence), identique aux données BreadcrumbList. |
+| Pages vides | Une ville ou un type sans voiture en ligne est `noindex` et absent du sitemap. |
+| Logo | `/logo.png` (512 px) pour les données Organization. |
+| IndexNow | Avec `INDEXNOW_KEY`, chaque modification faite dans l'admin (voiture, agence, contenu) est signalée à Bing et aux moteurs IndexNow. |
 | Vérification | Variables `GOOGLE_SITE_VERIFICATION` et `BING_SITE_VERIFICATION` (balises meta). |
 
 À la mise en ligne : définir `NEXT_PUBLIC_SITE_URL` sur le vrai domaine (https), sinon canoniques et sitemap pointent vers localhost.
@@ -59,7 +65,8 @@ Le nombre, la note et la fréquence des avis Google sont un des premiers facteur
 ## 6. Contenu (à faire ensuite)
 
 - Remplir dans l'admin la description de chaque voiture et de chaque agence (texte unique, pas copié d'un concurrent).
-- Photos réelles des voitures (les fiches sans photo ressortent moins bien).
+- Photos réelles des voitures (les fiches sans photo ressortent moins bien), avec un texte alternatif « Location {modèle} à {ville} ».
+- Corriger les adresses de fiche mal orthographiées dans l'admin (ex. `volkswagen-tauareg-2026`, `renault-megan-2026`) avant la mise en ligne : après, un changement d'adresse demande une redirection.
 - Guides utiles, 1 à 2 par mois : « Louer une voiture à l'aéroport de Tanger », « Conduire au Maroc : règles et péages », « Road trip Tanger – Chefchaouen ». Une section blog peut être ajoutée au site sur demande.
 - Ajouter une ville au site = ajouter une agence (ou un point de livraison) dans cette ville : la page se crée seule. Ne pas créer de pages pour des villes non desservies (contenu « porte d'entrée » pénalisé).
 
