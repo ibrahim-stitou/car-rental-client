@@ -138,6 +138,10 @@ Le lot 5 (maquettes) a été sauté à la demande de l'utilisateur : le site a �
 
 - SEO (commit sur `develop` après `3aa732f`) : pages ville `/location-voiture/{ville}`, titres orientés recherche, canonical + hreflang, données structurées, sitemap trilingue. Plan d'action hors site : `Doc/SEO_SITE_WEB.md`.
 
+- Recette du 2026-10-31 : base `ges_site_web_test` reconstruite (copie de la sauvegarde prod, migrations, `WebsiteDemoSeeder`), 18 voitures avec vraies photos de test (Wikimedia Commons, crédit dans la propriété `credit` de chaque média), agences complètes. Demande WEB-2026-0001 envoyée depuis le site (livraison aéroport de Tétouan) puis acceptée dans l'admin → réservation RES-000263, statut « converted » côté suivi client.
+- Bug corrigé (API `412916a`) : une livraison vers un point de remise (aéroport) était refusée car l'adresse libre était exigée.
+- Ne jamais lancer `artisan test` avec `DB_DATABASE` exporté : la variable l'emporte sur `phpunit.xml` et vide la base visée.
+
 ## 7. Lots suivants
 - **Lot 5** : analyser des sites pros de location (aucune référence fournie par l'utilisateur) et produire 2 maquettes de la page d'accueil à faire valider.
 - **Lot 6** : site `car-rental-website` :
